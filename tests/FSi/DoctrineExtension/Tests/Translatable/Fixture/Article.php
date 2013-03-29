@@ -32,10 +32,10 @@ class Article
     private $date;
 
     /**
-     * @Translatable\Language
+     * @Translatable\Locale
      * @var string
      */
-    private $language;
+    private $locale;
 
     /**
      * @Translatable\Translatable(mappedBy="translations")
@@ -50,7 +50,7 @@ class Article
     private $contents;
 
     /**
-     * @ORM\OneToMany(targetEntity="ArticleTranslation", mappedBy="article", indexBy="language")
+     * @ORM\OneToMany(targetEntity="ArticleTranslation", mappedBy="article", indexBy="locale")
      * @var Doctrine\Common\Collections\ArrayCollection
      */
     private $translations;
@@ -102,15 +102,15 @@ class Article
         return $this->contents;
     }
 
-    public function setLanguage($language)
+    public function setLocale($locale)
     {
-        $this->language = (string)$language;
+        $this->locale = (string)$locale;
         return $this;
     }
 
-    public function getLanguage()
+    public function getLocale()
     {
-        return $this->language;
+        return $this->locale;
     }
 
     public function getTranslations()

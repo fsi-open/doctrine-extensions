@@ -82,7 +82,7 @@ class SimpleTest extends BaseORMTest
 
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $this->_logger->enabled = true;
         $this->_em->flush();
 
@@ -118,13 +118,13 @@ class SimpleTest extends BaseORMTest
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
 
-        $article->setLanguage($this->_languageEn);
+        $article->setLocale($this->_languageEn);
         $article->setTitle(self::ENGLISH_TITLE_1);
         $article->setContents(self::ENGLISH_CONTENTS_1);
         $this->_logger->enabled = true;
@@ -156,19 +156,19 @@ class SimpleTest extends BaseORMTest
     }
 
     /**
-     * Test simple entity creation with two translation and check its state after $em->clear(), change default language and load
+     * Test simple entity creation with two translation and check its state after $em->clear(), change default locale and load
      */
     public function testInsertWithTwoTranslationsClearAndLoad()
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
 
-        $article->setLanguage($this->_languageEn);
+        $article->setLocale($this->_languageEn);
         $article->setTitle(self::ENGLISH_TITLE_1);
         $article->setContents(self::ENGLISH_CONTENTS_1);
         $this->_em->flush();
@@ -222,13 +222,13 @@ class SimpleTest extends BaseORMTest
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
 
-        $article->setLanguage($this->_languageEn);
+        $article->setLocale($this->_languageEn);
         $article->setTitle(self::ENGLISH_TITLE_1);
         $article->setContents(self::ENGLISH_CONTENTS_1);
         $this->_em->flush();
@@ -271,7 +271,7 @@ class SimpleTest extends BaseORMTest
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
@@ -326,7 +326,7 @@ class SimpleTest extends BaseORMTest
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
@@ -369,7 +369,7 @@ class SimpleTest extends BaseORMTest
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
@@ -428,13 +428,13 @@ class SimpleTest extends BaseORMTest
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
 
-        $article->setLanguage($this->_languageEn);
+        $article->setLocale($this->_languageEn);
         $this->_logger->enabled = true;
         $this->_em->flush();
 
@@ -483,7 +483,7 @@ class SimpleTest extends BaseORMTest
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
@@ -503,7 +503,7 @@ class SimpleTest extends BaseORMTest
 
         $this->assertAttributeEquals(
             $this->_languagePl,
-            'language',
+            'locale',
             $article
         );
 
@@ -519,14 +519,14 @@ class SimpleTest extends BaseORMTest
             $article
         );
 
-        $article->setLanguage($this->_languageEn);
+        $article->setLocale($this->_languageEn);
         $this->_em->flush();
         $this->_em->clear();
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertAttributeEquals(
                 $this->_languageEn,
-                'language',
+                'locale',
                 $article
         );
 
@@ -544,20 +544,20 @@ class SimpleTest extends BaseORMTest
     }
 
     /**
-     * Test entity creation with two translation and check its state after $em->clear(), change default language and load with some
+     * Test entity creation with two translation and check its state after $em->clear(), change default locale and load with some
      * specific translation
      */
     public function testInsertWithTwoTranslationsClearAndLoadTranslation()
     {
         $article = new Article();
         $article->setDate(new \DateTime());
-        $article->setLanguage($this->_languagePl);
+        $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
 
-        $article->setLanguage($this->_languageEn);
+        $article->setLocale($this->_languageEn);
         $article->setTitle(self::ENGLISH_TITLE_1);
         $article->setContents(self::ENGLISH_CONTENTS_1);
         $this->_em->flush();

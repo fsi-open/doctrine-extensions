@@ -14,6 +14,6 @@ use Doctrine\Common\Annotations\Annotation;
 /**
  * @Annotation
  */
-final class Language extends Annotation
+final class Locale extends Annotation
 {
 }

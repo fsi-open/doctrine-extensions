@@ -19,7 +19,7 @@ use FSi\DoctrineExtension\Translatable\Mapping\TranslatableClassMetadata;
 class Annotation extends AbstractAnnotationDriver
 {
     const TRANSLATABLE = 'FSi\\DoctrineExtension\\Translatable\\Mapping\\Annotation\\Translatable';
-    const LANGUAGE     = 'FSi\\DoctrineExtension\\Translatable\\Mapping\\Annotation\\Language';
+    const LOCALE       = 'FSi\\DoctrineExtension\\Translatable\\Mapping\\Annotation\\Locale';
 
     /**
     * {@inheritDoc}
@@ -48,7 +48,7 @@ class Annotation extends AbstractAnnotationDriver
                 );
             }
 
-            if ($languageAnnotation = $this->getAnnotationReader()->getPropertyAnnotation($property, self::LANGUAGE))
+            if ($languageAnnotation = $this->getAnnotationReader()->getPropertyAnnotation($property, self::LOCALE))
                 $extendedClassMetadata->localeProperty = $property->getName();
         }
     }

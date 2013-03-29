@@ -26,11 +26,11 @@ class ArticleTranslation
     private $id;
 
     /**
-     * @Translatable\Language
+     * @Translatable\Locale
      * @ORM\Column(type="string", length=2)
      * @var string
      */
-    private $language;
+    private $locale;
 
     /**
      * @ORM\Column
@@ -73,13 +73,13 @@ class ArticleTranslation
         return $this->contents;
     }
 
-    public function setLanguage($language)
+    public function setLocale($language)
     {
         $this->language = (string)$language;
         return $this;
     }
 
-    public function getLanguage()
+    public function getLocale()
     {
         return $this->language;
     }
