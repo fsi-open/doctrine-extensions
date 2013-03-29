@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace FSi\DoctrineExtension\Translatable;
 
 use Doctrine\Common\EventArgs;
@@ -12,17 +19,14 @@ use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\UnitOfWork;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use FSi\Component\Metadata\MetadataFactory;
 use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\Component\PropertyObserver\PropertyObserver;
-use FSi\Component\Reflection\ReflectionProperty;
 use FSi\DoctrineExtension\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtension\ChangeTracking\ChangeTrackingListener;
 use FSi\DoctrineExtension\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 
-/**
- * @author Rafal Warpecha <rafal.warpecha@fsi.pl>
- */
 class TranslatableListener extends MappedEventSubscriber
 {
     /**
@@ -56,7 +60,6 @@ class TranslatableListener extends MappedEventSubscriber
     public function getSubscribedEvents()
     {
         return array(
-//            'loadClassMetadata',
             'postLoad',
             'preFlush'
         );
@@ -101,24 +104,6 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * Mapps additional metadata for the Entity
-     *
-     * @param LoadClassMetadataEventArgs $eventArgs
-     * @return void
-     */
-/*    public function loadClassMetadata(EventArgs $eventArgs)
-    {
-        $eventAdapter = $this->getEventAdapter($eventArgs);
-        $objectManager = $eventAdapter->getObjectManager();
-        $meta = $eventArgs->getClassMetadata();
-        $class = $meta->getName();
-        $translatableMeta = $this->getExtendedMetadata($objectManager, $class);
-        $translatableProperties = $translatableMeta->getTranslatableProperties();
-        if (empty($translatableProperties))
-            return;
-    }*/
-
-    /**
      * Returns PropertyObserver for specified ObjectManager
      *
      * @param ObjectManager $om
@@ -132,29 +117,6 @@ class TranslatableListener extends MappedEventSubscriber
         }
         return $this->_propertyObservers[$oid];
     }
-
-    /**
-     * Return ChangeTrackingListener instance associated with specified EntityManager instance or throw an exception
-     *
-     * @param EntityManager $em
-     * @throws LoStorageException
-     * @return ChangeTrackingListener
-     */
-/*    protected function getChangeTrackingListener(EntityManager $em)
-    {
-        $emHash = spl_object_hash($em);
-        if (!isset($this->changeTrackingListeners[$emHash])) {
-            $this->changeTrackingListener[$emHash] = $this->getListener(
-                $em,
-                'FSi\DoctrineExtension\ChangeTracking\ChangeTrackingListener',
-                'postLoad',
-                self::AFTER_SELF
-            );
-            if (!isset($this->changeTrackingListener[$emHash]))
-                throw new LoStorageException('TranslatableListener needs an instance of FSi\DoctrineExtension\ChangeTracking\ChangeTrackingListener to be registered in the same EntityManager instance after the registration of itself');
-        }
-        return $this->changeTrackingListener[$emHash];
-    }*/
 
     /**
      * Load translations fields into object properties
@@ -205,7 +167,6 @@ class TranslatableListener extends MappedEventSubscriber
             if (!isset($currentTranslation)) {
                 foreach ($fields as $property => $translationField)
                     $propertyObserver->setValue($object, $property, null);
-//                    ReflectionProperty::factory($meta->name, $property)->setValue($object, null);
                 continue;
             }
 
@@ -216,16 +177,12 @@ class TranslatableListener extends MappedEventSubscriber
                     $property,
                     $translationMeta->getFieldValue($currentTranslation, $translationField)
                 );
-//                ReflectionProperty::factory($meta->name, $property)
-//                    ->setValue($object, $translationMeta->getFieldValue($currentTranslation, $translationField));
         }
 
         if ($translationFound)
             $propertyObserver->setValue($object, $localeProperty, $currentLocale);
-//            ReflectionProperty::factory($meta->name, $localeProperty)->setValue($object, $currentLocale);
         else
             $propertyObserver->setValue($object, $localeProperty, null);
-//            ReflectionProperty::factory($meta->name, $localeProperty)->setValue($object, null);
         return $translationFound;
     }
 
@@ -261,12 +218,9 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $localeProperty = $translatableMeta->localeProperty;
         $propertyObserver = $this->getPropertyObserver($objectManager);
-        /* @var $changeTrackingListener ChangeTrackingListener */
-        //$changeTrackingListener = $this->getChangeTrackingListener($objectManager);
-        $objectLocale = ReflectionProperty::factory($meta->name, $localeProperty)->getValue($object);
+        $objectLocale = PropertyAccess::getPropertyAccessor()->getValue($object, $localeProperty);
         if (!isset($objectLocale))
             $objectLocale = $this->getLocale();
-        //$objectLanguageChanged = $changeTrackingListener->hasPropertyValueChanged($object, $localeProperty);
         $objectLanguageChanged = !$propertyObserver->hasSavedValue($object, $localeProperty) || $propertyObserver->hasValueChanged($object, $localeProperty);
 
         $translatableProperties = $translatableMeta->getTranslatableProperties();
@@ -286,7 +240,7 @@ class TranslatableListener extends MappedEventSubscriber
             foreach ($properties as $property => $translationField) {
                 if ($objectLanguageChanged || !$propertyObserver->hasSavedValue($object, $property) ||
                     $propertyObserver->hasValueChanged($object, $property)) {
-                    if ($propertyValue = ReflectionProperty::factory($meta->name, $property)->getValue($object)) {
+                    if ($propertyValue = PropertyAccess::getPropertyAccessor()->getValue($object, $property)) {
                         $propertiesFound = true;
                         if (!isset($currentTranslation)) {
                             $currentTranslation = new $translationEntity();
@@ -438,5 +392,4 @@ class TranslatableListener extends MappedEventSubscriber
         else
             return $translations->first();
     }
-
 }

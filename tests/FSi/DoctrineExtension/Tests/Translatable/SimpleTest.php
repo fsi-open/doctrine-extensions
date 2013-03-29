@@ -1,16 +1,18 @@
 <?php
 
+/**
+ * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace FSi\DoctrineExtension\Tests\Translatable;
 
 use FSi\DoctrineExtension\Tests\Translatable\Fixture\Article;
 use FSi\DoctrineExtension\Tests\Translatable\Fixture\ArticleTranslation;
 use FSi\DoctrineExtension\Tests\Tool\BaseORMTest;
 
-/**
- * These are tests for large object storage
- *
- * @author Lukasz Cybula <lukasz.cybula@fsi.pl>
- */
 class SimpleTest extends BaseORMTest
 {
     const ARTICLE = "FSi\\DoctrineExtension\\Tests\\Translatable\\Fixture\\Article";
