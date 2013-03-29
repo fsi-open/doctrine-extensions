@@ -1,0 +1,33 @@
+{
+    "repositories": [ { "type": "composer", "url": "http://git.fsi.pl/" } ],
+    "name": "fsi/doctrine-extension-translatable",
+    "type": "library",
+    "description": "FSi Doctrine Extension Translatable",
+    "keywords": ["fsi", "doctrine-extension", "translatable"],
+    "authors": [
+        {
+            "name": "Lukasz Cybula",
+            "email": "lukasz@fsi.pl"
+        },
+        {
+            "name": "Norbert Orzechowicz",
+            "email": "norbert@fsi.pl"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "doctrine/common": "~2.3",
+        "fsi/reflection": "0.9.*",
+        "fsi/metadata": "0.9.*",
+        "fsi/property-observer": "0.9.*"
+    },
+    "require-dev": {
+        "doctrine/dbal": "~2.3",
+        "doctrine/orm": "~2.3"
+    },
+    "autoload": {
+        "psr-0": {
+            "FSi\\DoctrineExtension": "lib/"
+        }
+    }
+}
