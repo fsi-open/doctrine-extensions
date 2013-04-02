@@ -14,7 +14,6 @@ use Doctrine\Common\Annotations\AnnotationException;
 use FSi\Component\Reflection\ReflectionClass;
 use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtension\Mapping\Driver\AbstractAnnotationDriver;
-use FSi\DoctrineExtension\Translatable\Mapping\TranslatableClassMetadata;
 
 class Annotation extends AbstractAnnotationDriver
 {
@@ -36,10 +35,11 @@ class Annotation extends AbstractAnnotationDriver
             }
 
             if ($translatableAnnotation = $this->getAnnotationReader()->getPropertyAnnotation($property, self::TRANSLATABLE)) {
-                if (!isset($translatableAnnotation->mappedBy))
+                if (!isset($translatableAnnotation->mappedBy)) {
                     throw new AnnotationException(
-                        'Annotation \'Translatable\' in property \''.$property.'\' of class \''.$meta->name.'\' does not have required \'mappedBy\' attribute'
+                        'Annotation \'Translatable\' in property \''.$property.'\' of class \''.$baseClassMetadata->name.'\' does not have required \'mappedBy\' attribute'
                     );
+                }
 
                 $extendedClassMetadata->addTranslatableProperty(
                     $translatableAnnotation->mappedBy,
