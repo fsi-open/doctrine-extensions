@@ -49,6 +49,11 @@ class TranslatableTreeWalker extends TreeWalkerAdapter
     protected $translatableListener;
 
     /**
+     * @var bool
+     */
+    protected $skipUntranslated;
+
+    /**
      * {@inheritDoc}
      */
     public function __construct($query, $parserResult, array $queryComponents)
@@ -57,6 +62,11 @@ class TranslatableTreeWalker extends TreeWalkerAdapter
         $this->translatableListener = $this->getTranslatableListener();
         parent::__construct($query, $parserResult, $queryComponents);
         $this->detectTranslatableComponents($queryComponents);
+        $hints = $query->getHints();
+        if (isset($hints[\FSi\DoctrineExtension\Translatable\TranslatableListener::HINT_SKIP_UNTRANSLATED]))
+            $this->skipUntranslated = $hints[\FSi\DoctrineExtension\Translatable\TranslatableListener::HINT_SKIP_UNTRANSLATED];
+        else
+            $this->skipUntranslated = $this->translatableListener->isSkipUntranslated();
     }
 
     /**
@@ -128,7 +138,7 @@ class TranslatableTreeWalker extends TreeWalkerAdapter
         $translationLanguageField = $translationConfig->localeProperty;
 
         $join = new AST\Join(
-            $this->translatableListener->isSkipUntranslated()?(AST\Join::JOIN_TYPE_INNER):(AST\Join::JOIN_TYPE_LEFT),
+            $this->skipUntranslated?(AST\Join::JOIN_TYPE_INNER):(AST\Join::JOIN_TYPE_LEFT),
             new AST\JoinAssociationDeclaration(
                 new AST\JoinAssociationPathExpression($componentAlias, $translation),
                 $this->getTranslationComponentAlias($componentAlias, $translation),
