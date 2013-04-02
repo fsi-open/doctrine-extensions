@@ -82,6 +82,16 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(new \Doctrine\ORM\Mapping\DefaultQuoteStrategy()))
             ;
 
+        $config
+            ->expects($this->any())
+            ->method('getCustomHydrationMode')
+            ->will($this->returnCallback(function ($hydrationMode) {
+                if ($hydrationMode == \FSi\DoctrineExtension\ORM\Query::HYDRATE_OBJECT) {
+                    return 'FSi\DoctrineExtension\ORM\Hydration\ObjectHydrator';
+                }
+            }))
+            ;
+
         $mappingDriver = $this->getMetadataDriverImplementation();
 
         $config

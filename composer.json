@@ -16,14 +16,14 @@
     ],
     "require": {
         "php": ">=5.3.0",
-        "doctrine/common": "~2.3",
+        "doctrine/common": "~2.3@dev",
         "symfony/property-access": "~2.2",
         "fsi/metadata": "0.9.*",
         "fsi/property-observer": "0.9.*"
     },
     "require-dev": {
-        "doctrine/dbal": "~2.3",
-        "doctrine/orm": "~2.3"
+        "doctrine/dbal": "~2.3@dev",
+        "doctrine/orm": "~2.3@dev"
     },
     "autoload": {
         "psr-0": {

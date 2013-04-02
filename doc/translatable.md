@@ -1,4 +1,4 @@
-# Translatable - Translatable behavioral extension for Doctrine 2
+# Translatable - Translatable behavioral extension for Doctrine 2 #
 
 **Translatable** behaviour will automate storing and retrieving translations in entities. Translated values are presisted in
 specialized translation entities associated with base entity. Each base entity with translatable properties has to be associated
@@ -15,7 +15,7 @@ Features:
 - supports indexing translations collection by locale (or some other field) which simplifies accessing different translations
   at the same time
 
-## Setup and autoloading {#including-extension}
+## Setup and autoloading ##
 
 If you are using the official extension repository, initial directory structure for 
 the extension library should look like this:
@@ -40,7 +40,7 @@ First of all we need to setup the autoloading of required extensions:
     $classLoader = new \Doctrine\Common\ClassLoader('FSi\\DoctrineExtensions\\ChangeTracking', "/path/to/library/ChangeTracking/lib");
     $classLoader->register();
 
-## Creating and attaching the TranslatableListener to the event manager {#event-listener}
+## Creating and attaching the TranslatableListener to the event manager ##
 
 To attach the ``TranslatableListener`` to your event system:
 
@@ -63,7 +63,7 @@ necessarily **after** attaching ``TranslatableListener``. Otherwise an exception
 The current locale has to be set in order to retrieve translations from database. If there is no translation in current
 locale and the default locale is set then translation from default locale will be loaded.
 
-## Simple entity annotations and usage example {#simple-example}
+## Simple entity annotations and usage example ##
 
 Here is an example of an entity with translatable properties:
 
@@ -289,9 +289,22 @@ Retrieving article from database with currently set default locale is as simple 
     echo $article->getTitle();
     echo $article->getContents();
 
-## Annotations reference {#annotations-reference}
+## Using TranslatableTreeWalker ##
 
-### @FSi\DoctrineExtensions\Translatable\Mapping\Annotation\Translatable
+To simplify querying translatable entities there's a ``TranslatableTreeWalker`` which can be added as a hint to the query (
+``Query::HINT_CUSTOM_TREE_WALKERS``). It modifies query in order to automagically load proper translations along with queried
+entities using one ``SELECT`` query.
+
+    $query = $em->createQuery("SELECT a FROM Article AS a");
+    $query->setHint(Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtension\Translatable\Query\TranslatableTreeWalker'));
+    $articles = $query->execute();
+
+Now objects returned in ``$articles`` collection have already loaded all translatable fields according to the settings of
+``locale`` and ``defaultLocale`` in ``TranslatableListener`` attached to the ``$em``.
+
+## Annotations reference ##
+
+### @FSi\DoctrineExtensions\Translatable\Mapping\Annotation\Translatable ###
 
 **property** annotation
 
@@ -318,7 +331,7 @@ example:
          */
         private $contents;
 
-### @FSi\DoctrineExtensions\Translatable\Mapping\Annotation\Locale
+### @FSi\DoctrineExtensions\Translatable\Mapping\Annotation\Locale ###
 
 **property** annotation
 

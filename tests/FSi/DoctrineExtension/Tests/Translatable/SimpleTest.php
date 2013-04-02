@@ -9,15 +9,18 @@
 
 namespace FSi\DoctrineExtension\Tests\Translatable;
 
+use FSi\DoctrineExtension\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtension\Tests\Translatable\Fixture\Article;
 use FSi\DoctrineExtension\Tests\Translatable\Fixture\ArticleTranslation;
 use FSi\DoctrineExtension\Tests\Tool\BaseORMTest;
 
 class SimpleTest extends BaseORMTest
 {
+    const CATEGORY = "FSi\\DoctrineExtension\\Tests\\Translatable\\Fixture\\Category";
     const ARTICLE = "FSi\\DoctrineExtension\\Tests\\Translatable\\Fixture\\Article";
     const ARTICLE_TRANSLATION = "FSi\\DoctrineExtension\\Tests\\Translatable\\Fixture\\ArticleTranslation";
 
+    const CATEGORY_1 = 'Category 1';
     const POLISH_TITLE_1 = 'Tytuł polski 1';
     const POLISH_TITLE_2 = 'Tytuł polski 2';
     const POLISH_CONTENTS_1 = 'Treść artukułu po polsku 1';
@@ -594,9 +597,126 @@ class SimpleTest extends BaseORMTest
         );
     }
 
+    /**
+     * Test if translatable entities loaded using TrasnlatableTreeWalker have already loaded translations
+     */
+    public function testQueryWalker()
+    {
+        $category = new Category();
+        $category->setTitle(self::CATEGORY_1);
+        $this->_em->persist($category);
+
+        $article = new Article();
+        $article->setDate(new \DateTime());
+        $article->setLocale($this->_languagePl);
+        $article->setTitle(self::POLISH_TITLE_1);
+        $article->setContents(self::POLISH_CONTENTS_1);
+        $article->addCategory($category);
+        $this->_em->persist($article);
+        $this->_em->flush();
+
+        $article->setLocale($this->_languageEn);
+        $article->setTitle(self::ENGLISH_TITLE_1);
+        $article->setContents(self::ENGLISH_CONTENTS_1);
+        $this->_em->flush();
+
+        $article2 = new Article();
+        $article2->setDate(new \DateTime());
+        $article2->setLocale($this->_languageEn);
+        $article2->setTitle(self::ENGLISH_TITLE_2);
+        $article2->setContents(self::ENGLISH_CONTENTS_2);
+        $article2->addCategory($category);
+        $this->_em->persist($article2);
+        $this->_em->flush();
+
+        $this->_em->clear();
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+
+        $query = $this->_em->createQuery("SELECT c, a FROM ".self::CATEGORY." AS c JOIN c.articles AS a ORDER BY a.id");
+        $query->setHint(\Doctrine\ORM\Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtension\Translatable\Query\TranslatableTreeWalker'));
+        $query->setHydrationMode(\FSi\DoctrineExtension\ORM\Query::HYDRATE_OBJECT);
+        $this->_logger->enabled = true;
+        $categories = $query->execute();
+        $articles = $categories[0]->getArticles();
+
+        $this->assertEquals(
+            1,
+            count($this->_logger->queries),
+            'Loading with tree walker hint executed wrong number of queries'
+        );
+
+        $this->assertAttributeEquals(
+            $this->_languagePl,
+            'locale',
+            $articles[0]
+        );
+
+        $this->assertAttributeEquals(
+            self::POLISH_TITLE_1,
+            'title',
+            $articles[0]
+        );
+
+        $this->assertAttributeEquals(
+            self::POLISH_CONTENTS_1,
+            'contents',
+            $articles[0]
+        );
+
+        $this->assertAttributeEquals(
+            $this->_languageEn,
+            'locale',
+            $articles[1]
+        );
+
+        $this->assertAttributeEquals(
+            self::ENGLISH_TITLE_2,
+            'title',
+            $articles[1]
+        );
+
+        $this->assertAttributeEquals(
+            self::ENGLISH_CONTENTS_2,
+            'contents',
+            $articles[1]
+        );
+
+        $this->_em->clear();
+        $this->_translatableListener->setDefaultLocale(null);
+        $query = $this->_em->createQuery("SELECT a FROM ".self::ARTICLE." AS a ORDER BY a.id");
+        $query->setHint(\Doctrine\ORM\Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtension\Translatable\Query\TranslatableTreeWalker'));
+        $query->setHydrationMode(\FSi\DoctrineExtension\ORM\Query::HYDRATE_OBJECT);
+        $articles = $query->execute();
+
+        $this->assertCount(
+            1,
+            $articles
+        );
+
+        $this->assertAttributeEquals(
+            $this->_languagePl,
+            'locale',
+            $articles[0]
+        );
+
+        $this->assertAttributeEquals(
+            self::POLISH_TITLE_1,
+            'title',
+            $articles[0]
+        );
+
+        $this->assertAttributeEquals(
+            self::POLISH_CONTENTS_1,
+            'contents',
+            $articles[0]
+        );
+    }
+
     protected function getUsedEntityFixtures()
     {
         return array(
+            self::CATEGORY,
             self::ARTICLE,
             self::ARTICLE_TRANSLATION
         );

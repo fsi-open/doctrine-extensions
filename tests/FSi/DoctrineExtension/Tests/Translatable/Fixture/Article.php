@@ -55,6 +55,16 @@ class Article
      */
     private $translations;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="Category", inversedBy="articles")
+     * @ORM\JoinTable(name="article2category",
+     *      joinColumns={@ORM\JoinColumn(name="category", referencedColumnName="id", onDelete="CASCADE")},
+     *      inverseJoinColumns={@ORM\JoinColumn(name="article", referencedColumnName="id")}
+     *      )
+     * @var ArrayCollection
+     */
+    private $categories;
+
     public function __construct()
     {
         $this->translations = new \Doctrine\Common\Collections\ArrayCollection();
@@ -111,6 +121,17 @@ class Article
     public function getLocale()
     {
         return $this->locale;
+    }
+
+    public function addCategory(Category $category)
+    {
+        $this->categories[] = $category;
+        $category->addArticle($this);
+    }
+
+    public function getCategories()
+    {
+        return $this->categories;
     }
 
     public function getTranslations()

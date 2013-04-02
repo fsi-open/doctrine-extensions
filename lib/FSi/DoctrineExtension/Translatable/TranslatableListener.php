@@ -43,14 +43,20 @@ class TranslatableListener extends MappedEventSubscriber
      */
     private $_defaultLocale;
 
-    private $_propertyObservers = array();
+    /**
+     * If this option is set to true, then TranslatableTreeWalker does not load objects which does not have translation in
+     * currentLocale nor in defaultLocale (or defaultLocale is not set)
+     *
+     * @var bool
+     */
+    private $_skipUntranslated = true;
 
     /**
-     * Cached references to ChangeTrackingListener instances indexed by EntityManager's object hash
+     * Array of PropertyObserver instances for each ObjectManager's context
      *
-     * @var \FSi\DoctrineExtension\ChangeTracking\ChangeTrackingListener
+     * @var \FSi\Component\PropertyObserver\PropertyObserver[]
      */
-    private $changeTrackingListeners = array();
+    private $_propertyObservers = array();
 
     /**
      * Specifies the list of events to listen
@@ -61,6 +67,7 @@ class TranslatableListener extends MappedEventSubscriber
     {
         return array(
             'postLoad',
+            'postHydrate',
             'preFlush'
         );
     }
@@ -149,11 +156,15 @@ class TranslatableListener extends MappedEventSubscriber
         $translatableProperties = $translatableMeta->getTranslatableProperties();
         $localeProperty = $translatableMeta->localeProperty;
         foreach ($translatableProperties as $translation => $properties) {
+            $translations = $meta->getFieldValue($object, $translation);
+            // Do not try to find translation if translations association is not yet initialized i.e. during postLoad
+            if (!isset($translations))
+                continue;
+
             $translationEntity = $meta->getAssociationTargetClass($translation);
             $translationMeta = $objectManager->getClassMetadata($translationEntity);
             $translationLanguageField = $this->getTranslationLanguageField($objectManager, $translationMeta->name);
 
-            $translations = $meta->getFieldValue($object, $translation);
             $currentTranslation = null;
             if (isset($currentLocale) && isset($translations))
                 $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $currentLocale);
@@ -171,12 +182,13 @@ class TranslatableListener extends MappedEventSubscriber
             }
 
             $translationFound = true;
-            foreach ($properties as $property => $translationField)
+            foreach ($properties as $property => $translationField) {
                 $propertyObserver->setValue(
                     $object,
                     $property,
                     $translationMeta->getFieldValue($currentTranslation, $translationField)
                 );
+            }
         }
 
         if ($translationFound)
@@ -204,6 +216,17 @@ class TranslatableListener extends MappedEventSubscriber
             $currentLocale = $this->getLocale();
             $this->loadTranslations($meta, $translatableMeta, $objectManager, $object, $currentLocale);
         }
+    }
+
+    /**
+     * After loading the entity copy the current translation fields into non-persistent translatable properties
+     *
+     * @param EventArgs $eventArgs
+     * @return void
+     */
+    public function postHydrate(EventArgs $eventArgs)
+    {
+        $this->postLoad($eventArgs);
     }
 
     /**
@@ -345,6 +368,28 @@ class TranslatableListener extends MappedEventSubscriber
     public function getDefaultLocale()
     {
         return $this->_defaultLocale;
+    }
+
+    /**
+     * Set if untranslated objects should be skipped during loading translations with TranslatableTreeWalker
+     *
+     * @param bool $skip
+     * @return TranslatableListener
+     */
+    public function skipUntranslated($skip = true)
+    {
+        $this->_skipUntranslated = (bool)$skip;
+        return $this;
+    }
+
+    /**
+     * Returns true if untranslated objects should be skipped during loading translations with TranslatableTreeWalker
+     *
+     * @return boolean
+     */
+    public function isSkipUntranslated()
+    {
+        return $this->_skipUntranslated;
     }
 
     /**
