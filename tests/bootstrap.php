@@ -30,6 +30,10 @@ $loader->add('FSi\\DoctrineExtension\\Tests', __DIR__);
     'FSi\\DoctrineExtension\\Translatable\\Mapping\\Annotation',
     VENDOR_PATH.'/../lib'
 );
+\Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace(
+        'FSi\\DoctrineExtension\\Versionable\\Mapping\\Annotation',
+        VENDOR_PATH.'/../lib'
+);
 
 $reader = new \Doctrine\Common\Annotations\AnnotationReader();
 $reader = new \Doctrine\Common\Annotations\CachedReader($reader, new \Doctrine\Common\Cache\ArrayCache());

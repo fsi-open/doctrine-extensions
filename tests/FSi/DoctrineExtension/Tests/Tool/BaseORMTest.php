@@ -16,6 +16,7 @@ use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Common\Util\Debug;
 use FSi\DoctrineExtension\ChangeTracking\ChangeTrackingListener;
 use FSi\DoctrineExtension\Translatable\TranslatableListener;
+use FSi\DoctrineExtension\Versionable\VersionableListener;
 
 /**
  * This is the base test class for other Doctrine related tests
@@ -25,17 +26,22 @@ use FSi\DoctrineExtension\Translatable\TranslatableListener;
 abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var Doctrine\ORM\EntityManager
+     * @var \Doctrine\ORM\EntityManager
      */
     protected $_em;
 
     /**
-     * @var FSi\DoctrineExtension\Translatable\TranslatableListener
+     * @var \FSi\DoctrineExtension\Translatable\TranslatableListener
      */
     protected $_translatableListener;
 
     /**
-     * @var Doctrine\DBAL\Logging\DebugStack
+     * @var \FSi\DoctrineExtension\Versionable\VersionableListener
+     */
+    protected $_versionableListener;
+
+    /**
+     * @var \Doctrine\DBAL\Logging\DebugStack
      */
     protected $_logger;
 
@@ -122,6 +128,8 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $evm = new EventManager;
         $this->_translatableListener = new TranslatableListener();
         $evm->addEventSubscriber($this->_translatableListener);
+        $this->_versionableListener = new VersionableListener();
+        $evm->addEventSubscriber($this->_versionableListener);
 
 /*        $connectionParams = array(
             'driver'    => 'pdo_mysql',
