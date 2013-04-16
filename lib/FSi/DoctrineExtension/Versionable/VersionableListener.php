@@ -110,7 +110,7 @@ class VersionableListener extends MappedEventSubscriber
      * Returns PropertyObserver for specified ObjectManager
      *
      * @param ObjectManager $om
-     * @return \FSi\Component\PropertyObserver\PropertyObserver:
+     * @return \FSi\Component\PropertyObserver\PropertyObserver
      */
     protected function getPropertyObserver(ObjectManager $objectManager)
     {
@@ -367,11 +367,10 @@ class VersionableListener extends MappedEventSubscriber
         if (!isset($versionToUpdate))
             $createNewVersion = true;
 
-//        var_dump($versionableMeta);
-//        die;
         foreach ($versionableMeta->getVersionableProperties() as $property => $versionField) {
             if (!$propertyObserver->hasSavedValue($object, $property) || $propertyObserver->hasValueChanged($object, $property)) {
-                if ($propertyValue = ReflectionProperty::factory($meta->name, $property)->getValue($object)) {
+                $propertyValue = ReflectionProperty::factory($meta->name, $property)->getValue($object);
+                if (isset($propertyValue)) {
                     if (!isset($versionToUpdate)) {
                         $versionToUpdate = new $versionEntity();
                         if ($meta->getIdentifierValues($object))
@@ -394,19 +393,19 @@ class VersionableListener extends MappedEventSubscriber
                         throw new AnnotationException('Version entity "'.$versionEntity.'" has no field named "'.$versionField.'" which is mapped as @Versionable in entity "'.$meta->name.'"');
                     }
                     $versionMeta->setFieldValue($versionToUpdate, $versionField, $propertyValue);
-                } else if ($versionToUpdate)
+                } else if ($versionToUpdate) {
                     $versionMeta->setFieldValue($versionToUpdate, $versionField, null);
+                }
+                $propertyObserver->saveValue($object, $property);
             }
         }
         if (!isset($versionToUpdateNumber) && isset($versionToUpdate)) {
             $versionToUpdateNumber = $versionMeta->getFieldValue($versionToUpdate, $versionNumberField);
             $propertyObserver->setValue($object, $objectVersionProperty, $versionToUpdateNumber);
-            //ReflectionProperty::factory($meta->name, $objectVersionProperty)->setValue($object, $versionToUpdateNumber);
         }
         if (!isset($currentVersionNumber) && isset($versionToUpdate)) {
             $currentVersionNumber = $versionMeta->getFieldValue($versionToUpdate, $versionNumberField);
-            $propertyObserver->setValue($object, $versionableMeta->versionProperty, $currentVersionNumber);
-            //$meta->setFieldValue($object, $config['version'], $currentVersionNumber);
+            $meta->setFieldValue($object, $versionableMeta->versionProperty, $currentVersionNumber);
         }
         $originalObject = $unitOfWork->getOriginalEntityData($object);
         if (isset($originalObject[$versionableMeta->versionProperty]) && ($currentVersionNumber !== $originalObject[$versionableMeta->versionProperty]) ||
