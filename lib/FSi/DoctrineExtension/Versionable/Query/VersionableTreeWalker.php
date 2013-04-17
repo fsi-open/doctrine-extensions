@@ -1,29 +1,21 @@
 <?php
 namespace FSi\DoctrineExtension\Versionable\Query;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\Query\SqlWalker;
 use Doctrine\ORM\Query\TreeWalkerAdapter;
 use Doctrine\ORM\Query\AST;
 use Doctrine\ORM\Query\Exec\SingleSelectExecutor;
+use FSi\DoctrineExtension\Versionable\Exception;
 use FSi\DoctrineExtension\Versionable\VersionableListener;
-use FSi\DoctrineExtension\Versionable\VersionableException;
 
 class VersionableTreeWalker extends TreeWalkerAdapter
 {
     /**
      * Associated EntityManager
      *
-     * @var EntityManager
+     * @var \Doctrine\ORM\EntityManager
      */
     protected $entityManager;
-
-    /**
-     * Associated database platfrom
-     *
-     * @var AbstractPlatform
-     */
-    protected $platform;
 
     /**
      * Version query components added by this tree walker
@@ -35,7 +27,7 @@ class VersionableTreeWalker extends TreeWalkerAdapter
     /**
      * VersionableListener extracted from attached EntityManager
      *
-     * @var VersionableListener
+     * @var \FSi\DoctrineExtension\Versionable\VersionableListener
      */
     protected $versionableListener;
 
@@ -45,6 +37,10 @@ class VersionableTreeWalker extends TreeWalkerAdapter
     public function __construct($query, $parserResult, array $queryComponents)
     {
         $this->entityManager = $query->getEntityManager();
+        if (($query->getHydrationMode() != \FSi\DoctrineExtension\ORM\Query::HYDRATE_OBJECT) ||
+            ($this->entityManager->getConfiguration()->getCustomHydrationMode($query->getHydrationMode()) != 'FSi\DoctrineExtension\ORM\Hydration\ObjectHydrator')) {
+            throw new Exception\RuntimeException('Using VersionableTreeWalker requires FSi\DoctrineExtension\ORM\Hydration\ObjectHydrator to be set for the same query');
+        }
         $this->versionableListener = $this->getVersionableListener();
         parent::__construct($query, $parserResult, $queryComponents);
         $this->detectVersionableComponents($queryComponents);
@@ -80,7 +76,7 @@ class VersionableTreeWalker extends TreeWalkerAdapter
      * Return join object with version entity for specified query component with apriopriate conditions
      *
      * @param string $componentAlias
-     * @return AST\Join
+     * @return \Doctrine\ORM\Query\AST\Join
      */
     protected function getJoinVersion($componentAlias)
     {
@@ -112,7 +108,7 @@ class VersionableTreeWalker extends TreeWalkerAdapter
      * @param string $componentAlias
      * @param string $componentVersionField
      * @param string $versionNumberField
-     * @return AST\ConditionalPrimary
+     * @return \Doctrine\ORM\Query\AST\ConditionalPrimary
      */
     protected function getVersionConditionalExpression($componentAlias, $componentVersionField, $versionNumberField)
     {
@@ -159,7 +155,7 @@ class VersionableTreeWalker extends TreeWalkerAdapter
      *
      * @param string $componentAlias
      * @param array $id
-     * @return AST\ConditionalTerm
+     * @return \Doctrine\ORM\Query\AST\ConditionalTerm
      */
     protected function getIdentityConditionalExpression($componentAlias, array $id)
     {
@@ -197,7 +193,7 @@ class VersionableTreeWalker extends TreeWalkerAdapter
      * Return select expression for version component
      *
      * @param string $componentAlias
-     * @return AST\SelectExpression
+     * @return \Doctrine\ORM\Query\AST\SelectExpression
      */
     protected function getVersionSelectExpression($componentAlias)
     {
@@ -211,8 +207,8 @@ class VersionableTreeWalker extends TreeWalkerAdapter
     /**
      * Find VersionableListener in attached EntityManager
      *
-     * @throws VersionableException
-     * @return VersionableListener
+     * @throws \FSi\DoctrineExtension\Versionable\Exception\RuntimeException
+     * @return \FSi\DoctrineExtension\Versionable\VersionableListener
      */
     protected function getVersionableListener()
     {
@@ -229,7 +225,7 @@ class VersionableTreeWalker extends TreeWalkerAdapter
                 break;
         }
         if (!isset($versionableListener)) {
-            throw new VersionableException('VersionableTreeWalker needs VersionableListener attached to its EnityManager');
+            throw new Exception\RuntimeException('VersionableTreeWalker needs VersionableListener attached to its EnityManager');
         }
         return $versionableListener;
     }

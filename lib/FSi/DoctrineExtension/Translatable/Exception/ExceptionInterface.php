@@ -7,7 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace FSi\DoctrineExtension\Mapping\Exception;
+namespace FSi\DoctrineExtension\Translatable\Exception;
 
 use FSi\DoctrineExtension\Exception\ExceptionInterface as BaseExceptionInterface;
 

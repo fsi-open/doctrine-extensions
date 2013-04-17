@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace FSi\DoctrineExtension\Tests\Versionable;
 
 use FSi\DoctrineExtension\Tests\Versionable\Fixture\Category;
@@ -669,6 +676,7 @@ class SimpleTest extends BaseORMTest
 
         $query = $this->_em->createQuery("SELECT a FROM ".self::ARTICLE." AS a ORDER BY a.id");
         $query->setHint(\Doctrine\ORM\Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtension\Versionable\Query\VersionableTreeWalker'));
+        $query->setHydrationMode(\FSi\DoctrineExtension\ORM\Query::HYDRATE_OBJECT);
         $this->_logger->enabled = true;
         $articles = $query->execute();
 
@@ -766,6 +774,11 @@ class SimpleTest extends BaseORMTest
             'contents',
             $article->getVersions()->get($article->getPublishedVersion())
         );
+
+        $query = $this->_em->createQuery("SELECT a FROM ".self::ARTICLE." AS a ORDER BY a.id");
+        $query->setHint(\Doctrine\ORM\Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtension\Versionable\Query\VersionableTreeWalker'));
+        $this->setExpectedException('FSi\DoctrineExtension\Versionable\Exception\RuntimeException');
+        $articles = $query->execute();
     }
 
     public function testQueryWalkerWithVersions()

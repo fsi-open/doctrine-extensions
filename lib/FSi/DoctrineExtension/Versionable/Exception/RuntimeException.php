@@ -7,9 +7,8 @@
  * file that was distributed with this source code.
  */
 
-namespace FSi\DoctrineExtension\Mapping\Exception;
+namespace FSi\DoctrineExtension\Versionable\Exception;
 
-use FSi\DoctrineExtension\Exception\ExceptionInterface as BaseExceptionInterface;
-
-interface ExceptionInterface extends BaseExceptionInterface {
+class RuntimeException extends \RuntimeException implements ExceptionInterface
+{
 }

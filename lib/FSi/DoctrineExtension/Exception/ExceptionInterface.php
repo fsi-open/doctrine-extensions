@@ -7,8 +7,7 @@
  * file that was distributed with this source code.
  */
 
-namespace FSi\DoctrineExtension\Translatable;
+namespace FSi\DoctrineExtension\Exception;
 
-class TranslatableException extends \Exception
-{
+interface ExceptionInterface {
 }

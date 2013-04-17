@@ -9,30 +9,22 @@
 
 namespace FSi\DoctrineExtension\Translatable\Query;
 
-use Doctrine\ORM\Query\AST\ComparisonExpression;
-
 use Doctrine\ORM\Query\SqlWalker;
 use Doctrine\ORM\Query\TreeWalkerAdapter;
 use Doctrine\ORM\Query\AST;
+use Doctrine\ORM\Query\AST\ComparisonExpression;
 use Doctrine\ORM\Query\Exec\SingleSelectExecutor;
+use FSi\DoctrineExtension\Translatable\Exception;
 use FSi\DoctrineExtension\Translatable\TranslatableListener;
-use FSi\DoctrineExtension\Translatable\TranslatableException;
 
 class TranslatableTreeWalker extends TreeWalkerAdapter
 {
     /**
      * Associated EntityManager
      *
-     * @var EntityManager
+     * @var \Doctrine\ORM\EntityManager
      */
     protected $entityManager;
-
-    /**
-     * Associated database platfrom
-     *
-     * @var AbstractPlatform
-     */
-    protected $platform;
 
     /**
      * Translatable query components detected by this tree walker
@@ -44,7 +36,7 @@ class TranslatableTreeWalker extends TreeWalkerAdapter
     /**
      * TranslatableListener extracted from attached EntityManager
      *
-     * @var TranslatableListener
+     * @var \FSi\DoctrineExtension\Translatable\TranslatableListener
      */
     protected $translatableListener;
 
@@ -59,6 +51,10 @@ class TranslatableTreeWalker extends TreeWalkerAdapter
     public function __construct($query, $parserResult, array $queryComponents)
     {
         $this->entityManager = $query->getEntityManager();
+        if (($query->getHydrationMode() != \FSi\DoctrineExtension\ORM\Query::HYDRATE_OBJECT) ||
+            ($this->entityManager->getConfiguration()->getCustomHydrationMode($query->getHydrationMode()) != 'FSi\DoctrineExtension\ORM\Hydration\ObjectHydrator')) {
+            throw new Exception\RuntimeException('Using TranslatableTreeWalker requires FSi\DoctrineExtension\ORM\Hydration\ObjectHydrator to be set for the same query');
+        }
         $this->translatableListener = $this->getTranslatableListener();
         parent::__construct($query, $parserResult, $queryComponents);
         $this->detectTranslatableComponents($queryComponents);
@@ -216,8 +212,8 @@ class TranslatableTreeWalker extends TreeWalkerAdapter
     /**
      * Find TranslatableListener in attached EntityManager
      *
-     * @throws TranslatableException
-     * @return TranslatableListener
+     * @throws \FSi\DoctrineExtension\Translatable\Exception\RuntimeException
+     * @return \FSi\DoctrineExtension\Translatable\TranslatableListener
      */
     protected function getTranslatableListener()
     {
@@ -234,7 +230,7 @@ class TranslatableTreeWalker extends TreeWalkerAdapter
                 break;
         }
         if (!isset($translatableListener)) {
-            throw new TranslatableException('TranslatableTreeWalker needs TranslatableListener attached to its EnityManager');
+            throw new Exception\RuntimeException('TranslatableTreeWalker needs TranslatableListener attached to its EnityManager');
         }
         return $translatableListener;
     }

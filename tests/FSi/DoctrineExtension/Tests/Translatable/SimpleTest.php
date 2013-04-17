@@ -711,6 +711,11 @@ class SimpleTest extends BaseORMTest
             'contents',
             $articles[0]
         );
+
+        $query = $this->_em->createQuery("SELECT a FROM ".self::ARTICLE." AS a ORDER BY a.id");
+        $query->setHint(\Doctrine\ORM\Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtension\Translatable\Query\TranslatableTreeWalker'));
+        $this->setExpectedException('FSi\DoctrineExtension\Translatable\Exception\RuntimeException');
+        $query->execute();
     }
 
     protected function getUsedEntityFixtures()
