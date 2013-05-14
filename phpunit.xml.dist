@@ -12,7 +12,7 @@
 >
     <testsuites>
         <testsuite name="FSi Doctrine Extensions">
-            <directory suffix=".php">tests/FSi/DoctrineExtension/Tests/</directory>
+            <directory suffix=".php">tests/FSi/DoctrineExtensions/Tests/</directory>
         </testsuite>
     </testsuites>
 </phpunit>
