@@ -79,7 +79,7 @@ namespace Extension\Encoder\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use FSi\Component\Metadata\ClassMetadataInterface;
-use FSi\DoctrineExtension\Mapping\Driver\AbstractAnnotationDriver;
+use FSi\DoctrineExtensions\Mapping\Driver\AbstractAnnotationDriver;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 

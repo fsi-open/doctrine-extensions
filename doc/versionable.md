@@ -633,7 +633,7 @@ entities using one ``SELECT`` query.
 
 ```php
 $query = $em->createQuery("SELECT a FROM Article AS a");
-$query->setHint(Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtension\Versionable\Query\VersionableTreeWalker'));
+$query->setHint(Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtensions\Versionable\Query\VersionableTreeWalker'));
 $articles = $query->execute();
 ```
 

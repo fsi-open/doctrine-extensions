@@ -27,7 +27,12 @@
     },
     "autoload": {
         "psr-0": {
-            "FSi\\DoctrineExtension": "lib/"
+            "FSi\\DoctrineExtensions": "lib/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
         }
     }
 }

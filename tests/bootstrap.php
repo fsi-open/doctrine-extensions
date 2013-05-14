@@ -25,22 +25,22 @@ if (!file_exists(TESTS_TEMP_DIR . '/cache')) {
 }
 
 $loader = require_once __DIR__.'/../vendor/autoload.php';
-$loader->add('FSi\\DoctrineExtension\\Tests', __DIR__);
+$loader->add('FSi\\DoctrineExtensions\\Tests', __DIR__);
 
 \Doctrine\Common\Annotations\AnnotationRegistry::registerFile(
     VENDOR_PATH.'/doctrine/orm/lib/Doctrine/ORM/Mapping/Driver/DoctrineAnnotations.php'
 );
 
 \Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace(
-    'FSi\\DoctrineExtension\\Translatable\\Mapping\\Annotation',
+    'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation',
     VENDOR_PATH.'/../lib'
 );
 \Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace(
-    'FSi\\DoctrineExtension\\Versionable\\Mapping\\Annotation',
+    'FSi\\DoctrineExtensions\\Versionable\\Mapping\\Annotation',
     VENDOR_PATH.'/../lib'
 );
 \Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace(
-    'FSi\\DoctrineExtension\\LoStorage\\Mapping\\Annotation',
+    'FSi\\DoctrineExtensions\\LoStorage\\Mapping\\Annotation',
     VENDOR_PATH.'/../lib'
 );
 

@@ -280,7 +280,7 @@ entities using one ``SELECT`` query.
 
 ```php
 $query = $em->createQuery("SELECT a FROM Article AS a");
-$query->setHint(Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtension\Translatable\Query\TranslatableTreeWalker'));
+$query->setHint(Query::HINT_CUSTOM_TREE_WALKERS, array('FSi\DoctrineExtensions\Translatable\Query\TranslatableTreeWalker'));
 $articles = $query->execute();
 ```
 
