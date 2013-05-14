@@ -18,6 +18,11 @@ if (!class_exists('PHPUnit_Framework_MockObject_MockBuilder')) {
 if (!file_exists(__DIR__.'/../vendor/autoload.php')) {
     die('Install vendors using command: composer.phar update');
 }
+if (!file_exists(TESTS_TEMP_DIR . '/cache')) {
+    if (!mkdir(TESTS_TEMP_DIR . '/cache', 0777, true)) {
+        die(sprintf('Failed to create temp cache directory for tests "%s"', TESTS_TEMP_DIR . '/cache'));
+    }
+}
 
 $loader = require_once __DIR__.'/../vendor/autoload.php';
 $loader->add('FSi\\DoctrineExtension\\Tests', __DIR__);
