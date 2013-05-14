@@ -1,16 +1,20 @@
 <?php
 
+/**
+ * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace FSi\DoctrineExtension\Versionable;
 
-use Doctrine\ORM\Events;
 use Doctrine\Common\EventArgs;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;;
+use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Annotations\AnnotationException;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\UnitOfWork;
 use Doctrine\ORM\Query;
 use FSi\Component\Reflection\ReflectionProperty;
@@ -27,9 +31,9 @@ use FSi\DoctrineExtension\Versionable\Mapping\ClassMetadata as VersionableClassM
 class VersionableListener extends MappedEventSubscriber
 {
     /**
-     * Cached references to ersioning strategies instances for specific classes
+     * Cached references to versioning strategies instances for specific classes
      *
-     * @var unknown_type
+     * @var array
      */
     private $strategies = array();
 
@@ -39,6 +43,13 @@ class VersionableListener extends MappedEventSubscriber
      * @var array
      */
     private $versions = array();
+
+    /**
+     * Array of property observers for each object manager
+     *
+     * @var array
+     */
+    private $_propertyObservers = array();
 
     /**
      * Specifies the list of events to listen
@@ -55,42 +66,55 @@ class VersionableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param ObjectManager $objectManager
+     * @param string $class
+     * @return VersionableClassMetadata
+     */
+    public function getExtendedMetadata(ObjectManager $objectManager, $class)
+    {
+        return parent::getExtendedMetadata($objectManager, $class);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
+        if (!($extendedClassMetadata instanceof VersionableClassMetadata)) {
+            throw new Exception\MappingException('Metadata passed to LoStorage listener is not an object of class FSi\DoctrineExtension\LoStorage\Mapping\ClassMetadata');
+        }
         if (isset($extendedClassMetadata->versionAssociation)) {
             // This class is versionable
             if (!$baseClassMetadata->isCollectionValuedAssociation($extendedClassMetadata->versionAssociation)) {
-                throw new Exception\AnnotationException('Entity \'' . $baseClassMetadata->name . '\' is versionable it has no apriopriate versions\' collection named \'' . $config['versions'] . '\'');
+                throw new Exception\MappingException('Entity \'' . $baseClassMetadata->getName() . '\' is versionable it has no apriopriate versions\' collection named \'' . $extendedClassMetadata->versionAssociation . '\'');
             }
             if (!$extendedClassMetadata->hasVersionableProperties()) {
-                throw new Exception\AnnotationException('Entity \'' . $baseClassMetadata->name . '\' is versionable but has no versionable properties');
+                throw new Exception\MappingException('Entity \'' . $baseClassMetadata->getName() . '\' is versionable but has no versionable properties');
             } else {
                 foreach ($extendedClassMetadata->getVersionableProperties() as $property => $field) {
                     if ($baseClassMetadata->hasField($property))
-                        throw new Exception\AnnotationException('Property \''.$property.'\' of class \''.$baseClassMetadata->name.'\' is versionable so it cannot be persistent');
+                        throw new Exception\MappingException('Property \''.$property.'\' of class \''.$baseClassMetadata->getName().'\' is versionable so it cannot be persistent');
                 }
             }
             if (!isset($extendedClassMetadata->versionProperty)) {
-                throw new Exception\AnnotationException('Entity \'' . $baseClassMetadata->name . '\' is versionable but has no field marked with @Versionable\Version annotation');
+                throw new Exception\MappingException('Entity \'' . $baseClassMetadata->getName() . '\' is versionable but has no field marked with @Versionable\Version annotation');
             } else if (!$baseClassMetadata->hasField($extendedClassMetadata->versionProperty) ||
                 $baseClassMetadata->hasAssociation($extendedClassMetadata->versionProperty)) {
-                throw new Exception\AnnotationException('Property \''.$config['version'].'\' of class \''.$baseClassMetadata->name.'\' holds current version number so it has to be a persistent field and not an association');
+                throw new Exception\MappingException('Property \''.$extendedClassMetadata->versionProperty.'\' of class \''.$baseClassMetadata->getName().'\' holds current version number so it has to be a persistent field and not an association');
             }
             if (isset($extendedClassMetadata->statusProperty)) {
-                throw new Exception\AnnotationException('Entity \'' . $baseClassMetadata->name . '\' is versionable so it cannot contain property marked with @Versionable\Status annotation');
+                throw new Exception\MappingException('Entity \'' . $baseClassMetadata->getName() . '\' is versionable so it cannot contain property marked with @Versionable\Status annotation');
             }
         } else if (isset($extendedClassMetadata->versionProperty) || isset($extendedClassMetadata->statusProperty)) {
             // This class represents version entity
             if (!isset($extendedClassMetadata->versionProperty))
-                throw new Exception\AnnotationException('Entity \'' . $baseClassMetadata->name . '\' is a version entity but has no field marked with @Versionable\Version annotation');
+                throw new Exception\MappingException('Entity \'' . $baseClassMetadata->getName() . '\' is a version entity but has no field marked with @Versionable\Version annotation');
             else if (!$baseClassMetadata->hasField($extendedClassMetadata->versionProperty) ||
                 $baseClassMetadata->hasAssociation($extendedClassMetadata->versionProperty)) {
-                throw new Exception\AnnotationException('Property \''.$extendedClassMetadata->versionProperty.'\' of class \''.$baseClassMetadata->name.'\' holds version number so it has to be a persistent field and not an association');
+                throw new Exception\MappingException('Property \''.$extendedClassMetadata->versionProperty.'\' of class \''.$baseClassMetadata->getName().'\' holds version number so it has to be a persistent field and not an association');
             }
             if (isset($extendedClassMetadata->statusProperty) && !$baseClassMetadata->hasField($extendedClassMetadata->statusProperty))
-                throw new Exception\AnnotationException('Property \''.$extendedClassMetadata->statusProperty.'\' of class \''.$baseClassMetadata->name.'\' holds version status so it has to be a persistent field and not an association');
+                throw new Exception\MappingException('Property \''.$extendedClassMetadata->statusProperty.'\' of class \''.$baseClassMetadata->getName().'\' holds version status so it has to be a persistent field and not an association');
         }
     }
 
@@ -109,7 +133,7 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Returns PropertyObserver for specified ObjectManager
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $om
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @return \FSi\Component\PropertyObserver\PropertyObserver
      */
     protected function getPropertyObserver(ObjectManager $objectManager)
@@ -124,7 +148,7 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Returns versioning strategy instance for specified class
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $class
      * @return \FSi\DoctrineExtension\Versionable\Strategy\StrategyInterface
      * @throws \FSi\DoctrineExtension\Versionable\Exception\RuntimeException
@@ -149,14 +173,14 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Load specific version into specified object
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param object $object
      * @param integer $version
      */
     public function loadVersion(ObjectManager $objectManager, $object, $version = null)
     {
         $meta            = $objectManager->getClassMetadata(get_class($object));
-        $extendedMeta    = $this->getExtendedMetadata($objectManager, $meta->name);
+        $extendedMeta    = $this->getExtendedMetadata($objectManager, $meta->getName());
         if ($extendedMeta->hasVersionableProperties())
             $this->loadVersionProperties($meta, $extendedMeta, $objectManager, $object, $version);
     }
@@ -164,9 +188,7 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Load specific version into specified object
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
-     * @param object $object
-     * @param integer $version
+     * @param \Doctrine\Common\EventArgs $eventArgs
      */
     public function postHydrate(EventArgs $eventArgs)
     {
@@ -176,7 +198,7 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Override published version number for specific entity. Pass $version = null to disable overriding.
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param object $object
      * @param int $version
      * @return \FSi\DoctrineExtension\Versionable\VersionableListener
@@ -185,14 +207,14 @@ class VersionableListener extends MappedEventSubscriber
     {
         $meta = $objectManager->getClassMetadata(get_class($object));
         $id = $meta->getIdentifierValues($object);
-        $this->setVersionForId($objectManager, $meta->name, $id, $version);
+        $this->setVersionForId($objectManager, $meta->getName(), $id, $version);
         return $this;
     }
 
     /**
      * Get overrided version number for specific entity. Returns null if it has not overrided version number.
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param object $object
      * @return int|null
      */
@@ -200,16 +222,17 @@ class VersionableListener extends MappedEventSubscriber
     {
         $meta = $objectManager->getClassMetadata(get_class($object));
         $id = $meta->getIdentifierValues($object);
-        return $this->getVersionForId($objectManager, $meta->name, $id);
+        return $this->getVersionForId($objectManager, $meta->getName(), $id);
     }
 
     /**
      * Override published version number for entity with specific $id. Pass $version = null to disable overriding.
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $class
      * @param int|array $id
      * @param int|null $version
+     * @return \FSi\DoctrineExtension\Versionable\VersionableListener
      */
     public function setVersionForId(ObjectManager $objectManager, $class, $id, $version = null)
     {
@@ -230,7 +253,7 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Get overrided version number for entity with specific $id. Returns null if it has not overrided version number.
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $class
      * @param int|array $id
      * @return int|null
@@ -249,8 +272,9 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Return an array of overrided version numbers for entities of specified class
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $class
+     * @return array
      */
     public function getVersionsForClass(ObjectManager $objectManager, $class)
     {
@@ -277,11 +301,12 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Load version fields into object properties
      *
-     * @param \Doctrine\Common\Persistance\Mapping\ClassMetadata $meta
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $meta
      * @param \FSi\DoctrineExtension\Versionable\Mapping\ClassMetadata $versionableMeta
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param object $object
      * @param integer $currentVersionNumber
+     * @throws \FSi\DoctrineExtension\Versionable\Exception\RuntimeException
      */
     protected function loadVersionProperties(ClassMetadata $meta, VersionableClassMetadata $versionableMeta, ObjectManager $objectManager, $object,
         $currentVersionNumber = null)
@@ -306,7 +331,7 @@ class VersionableListener extends MappedEventSubscriber
             $currentVersion = $this->findVersion($versions, $versionMeta, $versionNumberField, $currentVersionNumber);
 
         if (!isset($currentVersion))
-            throw new Exception\RuntimeException('Versionable object of class "'.$meta->name.'" cannot load current version with number '.$currentVersionNumber);
+            throw new Exception\RuntimeException('Versionable object of class "'.$meta->getName().'" cannot load current version with number '.$currentVersionNumber);
 
         $propertyObserver = $this->getPropertyObserver($objectManager);
         foreach ($versionableMeta->getVersionableProperties() as $property => $versionField) {
@@ -335,19 +360,22 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Helper method to insert, remove or update version entities associated with specified object
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
-     * @param \Doctrine\Common\Persistance\Mapping\ClassMetadata $meta
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $meta
      * @param \FSi\DoctrineExtension\Versionable\Mapping\ClassMetadata $versionableMeta
+     * @param $object
+     * @throws Exception\MappingException
+     * @throws Exception\RuntimeException
      * @param object $object
      */
     protected function updateVersions(ObjectManager $objectManager, ClassMetadata $meta, VersionableClassMetadata $versionableMeta, $object)
     {
         $unitOfWork = $objectManager->getUnitOfWork();
         $propertyObserver = $this->getPropertyObserver($objectManager);
-        $strategy = $this->getStrategy($objectManager, $meta->name);
+        $strategy = $this->getStrategy($objectManager, $meta->getName());
 
         $versionEntity = $meta->getAssociationTargetClass($versionableMeta->versionAssociation);
-        $objectVersionProperty = $this->getVersionProperty($objectManager, $meta->name, $versionableMeta, $versionEntity);
+        $objectVersionProperty = $this->getVersionProperty($objectManager, $meta->getName(), $versionableMeta, $versionEntity);
         if (!isset($objectVersionProperty))
             throw new Exception\RuntimeException("Version's number field must be marked as versionable in class '".$meta->name."'");
         $versionToUpdateNumber = ReflectionProperty::factory($meta->name, $objectVersionProperty)->getValue($object);
@@ -369,7 +397,7 @@ class VersionableListener extends MappedEventSubscriber
 
         foreach ($versionableMeta->getVersionableProperties() as $property => $versionField) {
             if (!$propertyObserver->hasSavedValue($object, $property) || $propertyObserver->hasValueChanged($object, $property)) {
-                $propertyValue = ReflectionProperty::factory($meta->name, $property)->getValue($object);
+                $propertyValue = ReflectionProperty::factory($meta->getName(), $property)->getValue($object);
                 if (isset($propertyValue)) {
                     if (!isset($versionToUpdate)) {
                         $versionToUpdate = new $versionEntity();
@@ -390,7 +418,7 @@ class VersionableListener extends MappedEventSubscriber
                         $objectManager->persist($versionToUpdate);
                     }
                     if (!$versionMeta->hasField($versionField)) {
-                        throw new AnnotationException('Version entity "'.$versionEntity.'" has no field named "'.$versionField.'" which is mapped as @Versionable in entity "'.$meta->name.'"');
+                        throw new Exception\MappingException('Version entity "'.$versionEntity.'" has no field named "'.$versionField.'" which is mapped as @Versionable in entity "'.$meta->name.'"');
                     }
                     $versionMeta->setFieldValue($versionToUpdate, $versionField, $propertyValue);
                 } else if ($versionToUpdate) {
@@ -419,11 +447,12 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Get next version number for newly created version entity
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param object $object
-     * @param \Doctrine\Common\Persistance\Mapping\ClassMetadata $versionMeta
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $versionMeta
      * @param array $versionAssociation
      * @param string $versionNumberField
+     * @return int
      */
     protected function getNextVersionNumber(ObjectManager $objectManager, $object, ClassMetadata $versionMeta,
         array $versionAssociation, $versionNumberField)
@@ -431,7 +460,7 @@ class VersionableListener extends MappedEventSubscriber
         /* @var $query Query */
         $query = $objectManager->createQuery("
             SELECT MAX(v.".$versionNumberField.") + 1
-            FROM ".$versionMeta->name." v
+            FROM ".$versionMeta->getName()." v
             WHERE v.".$versionAssociation['mappedBy']." = ?1");
         $query->setParameter(1, $object);
         return (int)$query->getResult(Query::HYDRATE_SINGLE_SCALAR);
@@ -473,7 +502,7 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Get version property for specific entity
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $entity
      * @param \FSi\DoctrineExtension\Versionable\Mapping\ClassMetadata $versionableMeta
      * @param string $versionEntity
@@ -493,7 +522,7 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Get status property for specific entity
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $entity
      * @param \FSi\DoctrineExtension\Versionable\Mapping\ClassMetadata $versionableMeta
      * @param string $versionEntity
@@ -513,8 +542,9 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Get version field from version entity
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
-	 * @param string $targetEntity
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param $versionEntity
+     * @throws Exception\MappingException
      * @return string
      */
     private function getVersionNumberField(ObjectManager $objectManager, $versionEntity)
@@ -522,7 +552,7 @@ class VersionableListener extends MappedEventSubscriber
         $versionExtendedMeta = $this->getExtendedMetadata($objectManager, $versionEntity);
 
         if(!isset($versionExtendedMeta->versionProperty))
-            throw new Exception\MappingException('Entity \''.$translationEntity.'\' seems to be a version entity so it must have field marked with @Versionable\Version annotation');
+            throw new Exception\MappingException('Entity \''.$versionEntity.'\' seems to be a version entity so it must have field marked with @Versionable\Version annotation');
 
         return $versionExtendedMeta->versionProperty;
     }
@@ -530,8 +560,8 @@ class VersionableListener extends MappedEventSubscriber
     /**
      * Get status field from version entity
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
-     * @param string $targetEntity
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param $versionEntity
      * @return string
      */
     private function getVersionStatusField(ObjectManager $objectManager, $versionEntity)
@@ -547,10 +577,11 @@ class VersionableListener extends MappedEventSubscriber
      * Find version entity by specified version number using filter method from ArrayCollection class
      *
      * @param \Doctrine\Common\Collections\Collection $versions
-     * @param \Doctrine\Common\Persistance\Mapping\ClassMetadata $versionMeta
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $versionMeta
      * @param string $versionNumberField
      * @param integer $currentVersionNumber
      * @return object
+     * @throws Exception\RuntimeException
      */
     private function findVersion(Collection $versions, ClassMetadata $versionMeta, $versionNumberField, $currentVersionNumber)
     {

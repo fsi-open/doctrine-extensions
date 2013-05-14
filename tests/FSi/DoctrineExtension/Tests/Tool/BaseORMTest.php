@@ -14,9 +14,9 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Common\Util\Debug;
-use FSi\DoctrineExtension\ChangeTracking\ChangeTrackingListener;
 use FSi\DoctrineExtension\Translatable\TranslatableListener;
 use FSi\DoctrineExtension\Versionable\VersionableListener;
+use FSi\DoctrineExtension\LoStorage\LoStorageListener;
 
 /**
  * This is the base test class for other Doctrine related tests
@@ -41,6 +41,11 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
     protected $_versionableListener;
 
     /**
+     * @var \FSi\DoctrineExtension\LoStorage\LoStorageListener
+     */
+    protected $_loListener;
+
+    /**
      * @var \Doctrine\DBAL\Logging\DebugStack
      */
     protected $_logger;
@@ -61,7 +66,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $config
             ->expects($this->once())
             ->method('getProxyDir')
-            ->will($this->returnValue(__DIR__.'/../../../temp'))
+            ->will($this->returnValue(TESTS_TEMP_DIR))
             ;
 
         $config
@@ -130,6 +135,8 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $evm->addEventSubscriber($this->_translatableListener);
         $this->_versionableListener = new VersionableListener();
         $evm->addEventSubscriber($this->_versionableListener);
+        $this->_loListener = new LoStorageListener(array('basePath' => TESTS_TEMP_DIR . '/cache'));
+        $evm->addEventSubscriber($this->_loListener);
 
 /*        $connectionParams = array(
             'driver'    => 'pdo_mysql',

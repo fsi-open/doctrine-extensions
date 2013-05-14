@@ -1,9 +1,8 @@
 {
-    "repositories": [ { "type": "composer", "url": "http://git.fsi.pl/" } ],
-    "name": "fsi/doctrine-extension-translatable",
+    "name": "fsi/doctrine-extensions",
     "type": "library",
-    "description": "FSi Doctrine Extension Translatable",
-    "keywords": ["fsi", "doctrine-extension", "translatable"],
+    "description": "FSi Behavioral Doctrine Extensions",
+    "keywords": ["fsi", "doctrine-extensions"],
     "authors": [
         {
             "name": "Lukasz Cybula",
