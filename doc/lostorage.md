@@ -1,5 +1,4 @@
-#Large Objects' Storage
-###behavioral extension for Doctrine 2
+# Large Objects' Storage behavioral extension for Doctrine 2
 
 **LoStorage** behaviour will automate storing and retrieving large objects (BLOBs) in entities. It simplifies operation of
 storing any file's contents in a BLOB field to setting its filepath (or URL) in specially annotated entity property which is
@@ -15,28 +14,24 @@ Features:
 - supports advanced cache operations on entity, class or database level
 - only annotation mapping driver is now supported; yaml and xml may appear in the future
 
-##Creating and attaching the LoStorageListener to the event manager
+## Creating and attaching the LoStorageListener to the event manager
 
 To attach the ``LoStorageListener`` to your event system:
 
-    $evm = new \Doctrine\Common\EventManager();
-    $loStorageListener = new \FSi\DoctrineExtensions\LoStorage\LoStorageListener(array(
-        'basePath' => '/path/to/temporary/directory'
-    ));
-    $evm->addEventSubscriber($loStorageListener);
-    $changeTrackingListener = new \FSi\DoctrineExtensions\ChangeTracking\ChangeTrackingListener();
-    $evm->addEventSubscriber($changeTrackingListener);
-    // now this event manager should be passed to entity manager constructor
+```php
+$evm = new \Doctrine\Common\EventManager();
+$loStorageListener = new \FSi\DoctrineExtensions\LoStorage\LoStorageListener(array(
+    'basePath' => '/path/to/temporary/directory'
+));
+$evm->addEventSubscriber($loStorageListener);
+// now this event manager should be passed to entity manager constructor
+```
 
-An instance of ``FSi\DoctrineExtensions\ChangeTracking\ChangeTrackingListener`` is required to be attached to the same event manager
-necessarily **after** attaching LoStorageListener. Otherwise an exception will be thrown during the first operation requiring
-ChangeTrackingListener.
-
-LoStorageListener has a few usefull options which can be passed to the constructor as an array or set later by specific methods:
+LoStorageListener has a few useful options which can be passed to the constructor as an array or set later by specific methods:
 
 - ``basePath`` (``string``) - the base directory where the whole LoStorage cache is being held, default: ``sys_get_temp_dir()``
 - ``createMode`` (``integer``) - the permissions which are used during directory creation, default: ``0700``
-- ``removeOrhpans`` (``bool``) - flag determining if orphaned files will be searched and removed during every cache modification,
+- ``removeOrphans`` (``bool``) - flag determining if orphaned files will be searched and removed during every cache modification,
   default: ``false``
 - ``identifierGlue`` (``string``) - string that is used to implode compound primary keys into directory name; it cannot contain
   character which is the directory separator in host's operating system, default: ``'-'``
@@ -47,7 +42,7 @@ exist in LoStorage's cache directory. However, if your application has multiple 
 the same database, then it is possible that one of application's instances removes some Large Object and the other instances will
 have its cache file left in the cache directory. The same situation could happen if you have Large Objects with variable
 filenames and one application's instance change some Large Object's filename. If any of theses concerns your application you have
-two options: turn on the "remove orphans" mode permanently or periodically fullfill the whole cache with this option turned on.
+two options: turn on the "remove orphans" mode permanently or periodically fulfill the whole cache with this option turned on.
 Which is the best solution depends on multiple factors such as average amount of entities per class or how frequent the Large
 Objects are removed or their filenames change.
 
@@ -64,189 +59,197 @@ loaded (during the cache clearing process) into entity manager but their BLOB fi
 use filepath to some filepath field in this situation will cause an error that file doesn't exists. So the best practice is to
 call clear() on entity manager right after clearing the LoStorage's cache.
 
-##Simple entity annotations example
+## Simple entity annotations example
 
 Here is an example of using annotations to define large object storage in some simple entity.
 
-    namespace Entity;
+```php
+namespace Entity;
 
-    use FSi\DoctrineExtensions\LoStorage\Mapping\Annotation as LO;
-    use Doctrine\ORM\Mapping as ORM;
+use FSi\DoctrineExtensions\LoStorage\Mapping\Annotation as LO;
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity
+ */
+class News
+{
+    /**
+     * @var integer $id
+     *
+     * @ORM\Column(name="id", type="bigint")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    private $id;
 
     /**
-     * @ORM\Entity
+     * @ORM\Column(nullable=true)
      */
-    class News
+    private $title = null;
+
+    /**
+     * @ORM\Column(nullable=true)
+     */
+    private $contents = null;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     * @LO\Timestamp(lo="bigphoto")
+     * @var DateTime
+     */
+    private $bigphoto_timestamp;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @LO\Filename(lo="bigphoto")
+     * @var string
+     */
+    private $bigphoto_filename;
+
+    /**
+     * @LO\Filepath(lo="bigphoto", value="news")
+     * @var string
+     */
+    private $bigphoto_filepath;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @LO\Mimetype(lo="bigphoto")
+     * @var string
+     */
+    private $bigphoto_mimetype;
+
+    /**
+     * @ORM\Column(type="bigint", nullable=true)
+     * @LO\Size(lo="bigphoto")
+     * @var integer
+     */
+    private $bigphoto_size;
+
+    /**
+     * @ORM\OneToOne(targetEntity="Entity\Photo")
+     * @ORM\JoinColumn(name="bigphoto_data", referencedColumnName="id", onDelete="SET NULL")
+     * @LO\Data(lo="bigphoto")
+     * @var Entity\Photo
+     */
+    private $bigphoto_data;
+
+    /**
+     * Get id
+     * @return integer
+     */
+    public function getId()
     {
-        /**
-         * @var integer $id
-         *
-         * @ORM\Column(name="id", type="bigint")
-         * @ORM\Id
-         * @ORM\GeneratedValue(strategy="AUTO")
-         */
-        private $id;
-
-        /**
-         * @ORM\Column(nullable=true)
-         */
-        private $title = null;
-
-        /**
-         * @ORM\Column(nullable=true)
-         */
-        private $contents = null;
-
-        /**
-         * @ORM\Column(type="datetime", nullable=true)
-         * @LO\Timestamp(lo="bigphoto")
-         * @var DateTime
-         */
-        private $bigphoto_timestamp;
-
-        /**
-         * @ORM\Column(type="string", length=255, nullable=true)
-         * @LO\Filename(lo="bigphoto")
-         * @var string
-         */
-        private $bigphoto_filename;
-
-        /**
-         * @LO\Filepath(lo="bigphoto", value="news")
-         * @var string
-         */
-        private $bigphoto_filepath;
-
-        /**
-         * @ORM\Column(type="string", length=255, nullable=true)
-         * @LO\Mimetype(lo="bigphoto")
-         * @var string
-         */
-        private $bigphoto_mimetype;
-
-        /**
-         * @ORM\Column(type="bigint", nullable=true)
-         * @LO\Size(lo="bigphoto")
-         * @var integer
-         */
-        private $bigphoto_size;
-
-        /**
-         * @ORM\OneToOne(targetEntity="Entity\Photo")
-         * @ORM\JoinColumn(name="bigphoto_data", referencedColumnName="id", onDelete="SET NULL")
-         * @LO\Data(lo="bigphoto")
-         * @var Entity\Photo
-         */
-        private $bigphoto_data;
-
-        /**
-         * Get id
-         * @return integer
-         */
-        public function getId()
-        {
-            return $this->id;
-        }
-
-        public function setTitle($title)
-        {
-            $this->title = (string)$title;
-            return $this;
-        }
-
-        public function getTitle()
-        {
-            return $this->title;
-        }
-
-        public function setContents($contents)
-        {
-            $this->contents = (string)$contents;
-            return $this;
-        }
-
-        public function getContents()
-        {
-            return $this->contents;
-        }
-
-        public function setBigphotoFilepath($bigphoto)
-        {
-            $this->bigphoto_filepath = $bigphoto;
-            return $this;
-        }
-
-        public function getBigphotoFilepath()
-        {
-            return $this->bigphoto_filepath;
-        }
-
-        public function getBigphotoFilename()
-        {
-            return $this->bigphoto_filename;
-        }
-
-        public function getBigphotoTimestamp()
-        {
-            return $this->bigphoto_timestamp;
-        }
-
-        public function getBigphotoMimetype()
-        {
-            return $this->bigphoto_mimetype;
-        }
-
-        public function getBigphotoSize()
-        {
-            return $this->bigphoto_size;
-        }
-
+        return $this->id;
     }
+
+    public function setTitle($title)
+    {
+        $this->title = (string)$title;
+        return $this;
+    }
+
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    public function setContents($contents)
+    {
+        $this->contents = (string)$contents;
+        return $this;
+    }
+
+    public function getContents()
+    {
+        return $this->contents;
+    }
+
+    public function setBigphotoFilepath($bigphoto)
+    {
+        $this->bigphoto_filepath = $bigphoto;
+        return $this;
+    }
+
+    public function getBigphotoFilepath()
+    {
+        return $this->bigphoto_filepath;
+    }
+
+    public function getBigphotoFilename()
+    {
+        return $this->bigphoto_filename;
+    }
+
+    public function getBigphotoTimestamp()
+    {
+        return $this->bigphoto_timestamp;
+    }
+
+    public function getBigphotoMimetype()
+    {
+        return $this->bigphoto_mimetype;
+    }
+
+    public function getBigphotoSize()
+    {
+        return $this->bigphoto_size;
+    }
+
+}
+```
 
 Additionaly helper entity which really holds the BLOB field must be defined i.e:
 
-    namespace Entity;
+```php
+namespace Entity;
 
-    use FSi\DoctrineExtensions\LoStorage\Entity\AbstractStorage;
-    use Doctrine\ORM\Mapping as ORM;
-    use FSi\DoctrineExtensions\LoStorage\Mapping\Annotation as LO;
+use FSi\DoctrineExtensions\LoStorage\Entity\AbstractStorage;
+use Doctrine\ORM\Mapping as ORM;
+use FSi\DoctrineExtensions\LoStorage\Mapping\Annotation as LO;
 
-    /**
-     * @ORM\Entity
-     */
-    class Photo extends AbstractStorage
-    {
-    }
+/**
+ * @ORM\Entity
+ */
+class Photo extends AbstractStorage
+{
+}
+```
 
 Now it's really simple to create new article with photo:
 
-    $article = new Article();
-    $article->setTitle('Article\'s title');
-    $article->setContents('Contents of the article');
-    $article->setBigphotoFilepath('img/src/photo1.jpg');
-    $em->persist($article);
-    $em->flush();
+```php
+$article = new Article();
+$article->setTitle('Article\'s title');
+$article->setContents('Contents of the article');
+$article->setBigphotoFilepath('img/src/photo1.jpg');
+$em->persist($article);
+$em->flush();
+```
 
 Displaying this article is also simple:
 
-    echo '<h2>' . $article->getTitle() . '</h2>';
-    echo '<p>';
-    $photoUrl = str_replace('/path/to/temporary/directory/', 'http://baseurl.com/img/cache/', $article->getBigPhotoFilepath());
-    echo '<img src="' . $photoUrl . '" style="float: left" alt="" />';
-    echo $article->getContents();
-    echo '</p>';
+```php
+echo '<h2>' . $article->getTitle() . '</h2>';
+echo '<p>';
+$photoUrl = str_replace('/path/to/temporary/directory/', 'http://baseurl.com/img/cache/', $article->getBigPhotoFilepath());
+echo '<img src="' . $photoUrl . '" style="float: left" alt="" />';
+echo $article->getContents();
+echo '</p>';
+```
 
 The only assumption taken here is that the webserver is configured in such way that the URL ``http://baseurl.com/img/article/``
-points to the directory ``/path/to/temporary/directory`. Please bare in mind that before persisting an entity you assign
+points to the directory `/path/to/temporary/directory`. Please bare in mind that before persisting an entity you assign
 "source file" to ``bigphoto_filepath`` property and after persisting and ``$em->flush()`` this property holds filepath of some cached
 file stored in directory configured in ``LoStorageListener`` and annotation ``@LO\Filepath(value="article")``. However for the whole
 lifecycle of the entity this property holds valid filepath to the file with the same contents but it's not physically always the
 same file. Take it as a rule of thumb that using this property (or part of it) as an URL is reasonable only when entity is not
 "dirty".
 
-##Annotations reference
+## Annotations reference
 
-###@FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Filepath (required)
+### @FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Filepath (required)
 
 **class** annotation
 
@@ -270,6 +273,7 @@ The physical path where cache file will be saved is imploded from following dire
 
 example:
 
+```php
     /**
      * @LO\Filepath(lo="thumbnail", value="thumb")
      */
@@ -279,8 +283,9 @@ example:
      * @LO\Filepath(lo="photo", value="photo")
      */
     private $photo_filepath;
+```
 
-###@FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Filename (required)
+### @FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Filename (required)
 
 **property** annotation
 
@@ -296,6 +301,7 @@ files cached for this specific LO.
 
 example:
 
+```php
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      * @LO\Filename(lo="thumbnail", value="thumb.jpg")
@@ -307,6 +313,7 @@ example:
      * @LO\Filename(lo="photo", value="photo.jpg")
      */
     private $photo_filename;
+```
 
 ### @FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Data (required)
 
@@ -324,6 +331,7 @@ subclasses can be created to freely redistribute different Large Objects among d
 
 example:
 
+```php
     /**
      * @ORM\OneToOne(targetEntity="Entity\Photo", cascade={"remove"})
      * @ORM\JoinColumn(name="thumbnail_data", referencedColumnName="id", onDelete="SET NULL")
@@ -339,15 +347,16 @@ example:
      * @var Entity\Photo
      */
     private $photo_data;
+```
 
-###@FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Storage (required)
+### @FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Storage (required)
 
 **property** annotation
 
 This annotation is used to mark a BLOB field in the data entity. It normally should not be used as long as all data entities
 are subclassess of FSi\DoctrineExtensions\LoStorage\Entity\AbstractStorage class.
 
-###@FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Timestamp (optional)
+### @FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Timestamp (optional)
 
 **property** annotation
 
@@ -361,6 +370,7 @@ Although this annotation is optional its usage is highly recommended for every L
 
 example:
 
+```php
     /**
      * @ORM\Column(type="datetime", nullable=true)
      * @LO\Timestamp(lo="thumbnail")
@@ -372,8 +382,9 @@ example:
      * @LO\Timestamp(lo="photo")
      */
     private $photo_timestamp;
+```
 
-###@FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Mimetype (optional)
+### @FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Mimetype (optional)
 
 **property** annotation
 
@@ -387,6 +398,7 @@ every time the entity is loaded.
 
 example:
 
+```php
     /**
      * @ORM\Column(type="string", length=32, nullable=true)
      * @LO\Mimetype(lo="thumbnail")
@@ -398,8 +410,9 @@ example:
      * @LO\Mimetype(lo="photo")
      */
     private $photo_mimetype;
+```
 
-###@FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Size (optional)
+### @FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\Size (optional)
 
 **property** annotation
 
@@ -413,6 +426,7 @@ every time the entity is loaded.
 
 example:
 
+```php
     /**
      * @ORM\Column(type="integer", nullable=true)
      * @LO\Size(lo="thumbnail")
@@ -424,3 +438,4 @@ example:
      * @LO\Size(lo="photo")
      */
     private $photo_size;
+```
