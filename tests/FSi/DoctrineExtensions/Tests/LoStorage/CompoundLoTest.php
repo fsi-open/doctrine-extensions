@@ -15,6 +15,7 @@ class CompoundLoTest extends BaseORMTest
 {
     const ARTICLE = "FSi\\DoctrineExtensions\\Tests\\LoStorage\\Fixture\\Article";
     const NEWS = "FSi\\DoctrineExtensions\\Tests\\LoStorage\\Fixture\\News";
+    const NEWS_WITH_FILE = "FSi\\DoctrineExtensions\\Tests\\LoStorage\\Fixture\\NewsWithFile";
     const PHOTO = "FSi\\DoctrineExtensions\\Tests\\LoStorage\\Fixture\\Photo";
 
     const TEST_FILE_1 = '/FSi/DoctrineExtensions/Tests/LoStorage/Fixture/favourite.gif';
@@ -200,6 +201,7 @@ class CompoundLoTest extends BaseORMTest
         return array(
             self::ARTICLE,
             self::NEWS,
+            self::NEWS_WITH_FILE,
             self::PHOTO
         );
     }

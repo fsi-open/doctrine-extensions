@@ -9,13 +9,13 @@
 
 namespace FSi\DoctrineExtensions\LoStorage;
 
+use SplFileInfo;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Annotations\AnnotationException;
 use Doctrine\Common\EventArgs;
 use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\ORM\EntityManager;
 use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\Component\Reflection\ReflectionProperty;
 use FSi\Component\PropertyObserver\PropertyObserver;
@@ -199,7 +199,6 @@ class LoStorageListener extends MappedEventSubscriber
     public function getSubscribedEvents()
     {
         return array(
-//            'loadClassMetadata',
             'preUpdate',
             'preRemove',
             'postLoad',
@@ -224,12 +223,17 @@ class LoStorageListener extends MappedEventSubscriber
         }
         else if ($extendedClassMetadata->hasLargeObjects()) {
             foreach ($extendedClassMetadata->getLargeObjects() as $lo => $loConfig) {
-                if (!isset($loConfig['fields']['filepath']))
-                    throw new AnnotationException('Large object ' . $lo . ' does not have \'filepath\' field defined');
-                else if ($baseClassMetadata->hasField($loConfig['fields']['filepath']))
+                if (!isset($loConfig['fields']['filepath']) && !isset($loConfig['fields']['file'])) {
+                    throw new AnnotationException('Large object ' . $lo . ' does not have neither \'filepath\' nor \'file\' field defined');
+                } else if (isset($loConfig['fields']['filepath']) && $baseClassMetadata->hasField($loConfig['fields']['filepath'])) {
                     throw new AnnotationException(
                         'Large object ' . $lo
                             . '\'s \'filepath\' field must not be a mapped field and must not be an association');
+                } else if (isset($loConfig['fields']['file']) && $baseClassMetadata->hasField($loConfig['fields']['file'])) {
+                    throw new AnnotationException(
+                        'Large object ' . $lo
+                        . '\'s \'file\' field must not be a mapped field and must not be an association');
+                }
                 if (!isset($loConfig['fields']['filename']))
                     throw new AnnotationException('Large object ' . $lo . ' does not have \'filename\' field defined');
                 else if (!$baseClassMetadata->hasField($loConfig['fields']['filename']) && !isset($loConfig['values']['filename']))
@@ -251,26 +255,6 @@ class LoStorageListener extends MappedEventSubscriber
             }
         }
     }
-
-    /**
-     * Mapps additional metadata for the Entity
-     *
-     * @param EventArgs $eventArgs
-     */
-    /*public function loadClassMetadata(EventArgs $eventArgs)
-    {
-        $ea = $this->getEventAdapter($eventArgs);
-        $this->loadMetadataForObjectClass($ea->getObjectManager(), $eventArgs->getClassMetadata());
-        $class = $eventArgs->getClassMetadata()->getName();
-        if (!isset($this->configurations[$class]['lo']))
-            return;
-        $config = $this->configurations[$class];
-        $changeTrackingListener = $this->getChangeTrackingListener($ea->getObjectManager());
-        foreach ($config['lo'] as $lo => $loConfig) {
-            if (isset($loConfig['fields']['filepath']))
-                $changeTrackingListener->addTrackedProperty($class, $loConfig['fields']['filepath']);
-        }
-    }*/
 
     /**
      * Helper method which removes all contents from specified directory and optionally leave only specified paths. Paths to
@@ -332,7 +316,12 @@ class LoStorageListener extends MappedEventSubscriber
                     mkdir(dirname($filepath), $this->createMode, true);
                 file_put_contents($filepath, $data);
             }
-            $propertyObserver->setValue($object, $loConfig['fields']['filepath'], $filepath);
+            if (isset($loConfig['fields']['file'])) {
+                $file = new SplFileInfo($filepath);
+                $propertyObserver->setValue($object, $loConfig['fields']['file'], $file);
+            } else if (isset($loConfig['fields']['filepath'])) {
+                $propertyObserver->setValue($object, $loConfig['fields']['filepath'], $filepath);
+            }
             //ReflectionProperty::factory($meta->getName(), $loConfig['fields']['filepath'])->setValue($object, $filepath);
             if (isset($loConfig['fields']['filename']) && !$meta->hasField($loConfig['fields']['filename']))
                 ReflectionProperty::factory($meta->getName(), $loConfig['fields']['filename'])->setValue($object, basename($filepath));
@@ -348,7 +337,11 @@ class LoStorageListener extends MappedEventSubscriber
                 ReflectionProperty::factory($meta->getName(), $loConfig['fields']['size'])->setValue($object, filesize($filepath));
             return $filepath;
         } else {
-            $propertyObserver->setValue($object, $loConfig['fields']['filepath'], null);
+            if (isset($loConfig['fields']['file'])) {
+                $propertyObserver->setValue($object, $loConfig['fields']['file'], null);
+            } else if (isset($loConfig['fields']['filepath'])) {
+                $propertyObserver->setValue($object, $loConfig['fields']['filepath'], null);
+            }
             //ReflectionProperty::factory($meta->getName(), $loConfig['fields']['filepath'])->setValue($object, null);
             if (isset($loConfig['fields']['filename']) && !$meta->hasField($loConfig['fields']['filename']))
                 ReflectionProperty::factory($meta->getName(), $loConfig['fields']['filename'])->setValue($object, null);
@@ -462,10 +455,16 @@ class LoStorageListener extends MappedEventSubscriber
         $loStorageMeta = $this->getExtendedMetadata($om, $meta->name);
         if (!$loStorageMeta->hasLargeObjects())
             return;
-        $objectId = $this->getObjectIdentifier($meta, $object);
+        $propertyObserver = $this->getPropertyObserver($om);
         foreach ($loStorageMeta->getLargeObjects() as $lo => $loConfig) {
-            $propertyObserver = $this->getPropertyObserver($om);
-            $filepath = $propertyObserver->getSavedValue($object, $loConfig['fields']['filepath']);
+            $filepath = null;
+            if (isset($loConfig['fields']['file'])) {
+                $file = $propertyObserver->getSavedValue($object, $loConfig['fields']['file']);
+                if (isset($file))
+                    $filepath = $file->getPathname();
+            } else if (isset($loConfig['fields']['filepath'])) {
+                $filepath = $propertyObserver->getSavedValue($object, $loConfig['fields']['filepath']);
+            }
             $objectCachePath = $this->getCachedObjectPath($meta, $loStorageMeta, $object);
             // additional sanity check before removing previously cached file
             if (isset($filepath) && (substr($filepath, 0, strlen($objectCachePath)) === $objectCachePath))
@@ -667,7 +666,15 @@ class LoStorageListener extends MappedEventSubscriber
             if (!$loStorageMeta->hasLargeObjects())
                 continue;
             foreach ($loStorageMeta->getLargeObjects() as $lo => $loConfig) {
-                $filepath = ReflectionProperty::factory($meta->name, $loConfig['fields']['filepath'])->getValue($object);
+                $filepath = null;
+                if (isset($loConfig['fields']['file'])) {
+                    $file = ReflectionProperty::factory($meta->name, $loConfig['fields']['file'])->getValue($object);
+                    if (isset($file)) {
+                        $filepath = $file->getPathname();
+                    }
+                } else if (isset($loConfig['fields']['filepath'])) {
+                    $filepath = ReflectionProperty::factory($meta->name, $loConfig['fields']['filepath'])->getValue($object);
+                }
                 if (isset($filepath))
                     $this->updateLoState($em, $meta, $loConfig, $object, $filepath);
             }
@@ -683,10 +690,20 @@ class LoStorageListener extends MappedEventSubscriber
                 if ($object instanceof \Doctrine\ORM\Proxy\Proxy)
                     continue;
                 foreach ($loStorageMeta->getLargeObjects() as $lo => $loConfig) {
-                    if (!$propertyObserver->hasSavedValue($object, $loConfig['fields']['filepath']) || $propertyObserver->hasValueChanged($object, $loConfig['fields']['filepath'])) {
-                        $filepath = ReflectionProperty::factory($meta->name, $loConfig['fields']['filepath'])->getValue($object);
-                        $this->updateLoState($em, $meta, $loConfig, $object, $filepath);
+                    $filepath = null;
+                    if (isset($loConfig['fields']['file'])) {
+                        if (!$propertyObserver->hasSavedValue($object, $loConfig['fields']['file']) || $propertyObserver->hasValueChanged($object, $loConfig['fields']['file'])) {
+                            $file = ReflectionProperty::factory($meta->name, $loConfig['fields']['file'])->getValue($object);
+                            if (isset($file)) {
+                                $filepath = $file->getPathname();
+                            }
+                        }
+                    } else if (isset($loConfig['fields']['filepath'])) {
+                        if (!$propertyObserver->hasSavedValue($object, $loConfig['fields']['filepath']) || $propertyObserver->hasValueChanged($object, $loConfig['fields']['filepath'])) {
+                            $filepath = ReflectionProperty::factory($meta->name, $loConfig['fields']['filepath'])->getValue($object);
+                        }
                     }
+                    $this->updateLoState($em, $meta, $loConfig, $object, $filepath);
                 }
             }
         }
@@ -706,7 +723,7 @@ class LoStorageListener extends MappedEventSubscriber
         $configs = array();
         if (isset($class)) {
             if (isset($entity) && (get_class($entity) !== $class))
-                throw new Exception\RuntimeException('Specified enitity is not an instance of specified class.');
+                throw new Exception\RuntimeException('Specified entity is not an instance of specified class.');
             $configs[$class] = $this->getExtendedMetadata($om, $class);
         } else if (isset($entity)) {
             $class = get_class($entity);
