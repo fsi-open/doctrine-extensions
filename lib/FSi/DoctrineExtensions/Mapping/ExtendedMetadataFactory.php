@@ -78,6 +78,7 @@ final class ExtendedMetadataFactory extends MetadataFactory
         if ($omDriver instanceof DriverChain || $driverName == 'DriverChain') {
             $driver = new DriverChain();
             foreach ($omDriver->getDrivers() as $namespace => $nestedOmDriver) {
+                return $this->getDriver($nestedOmDriver); // @FIXME
                 $driver->addDriver($this->getDriver($nestedOmDriver), $namespace);
             }
         } else {
@@ -92,7 +93,7 @@ final class ExtendedMetadataFactory extends MetadataFactory
             }
             $driver = new $driverClassName();
             if (!($driver instanceof DriverInterface)) {
-                throw new Exception\RuntimeException(sprintf("Driver of class %s does not implement required FSi\DoctrineExtensions\Mapping\Driver\DriverInterface", get_class($driver)));
+                throw new Exception\RuntimeException(sprintf("Driver of class %s does not implement required FSi\\DoctrineExtensions\\Mapping\\Driver\\DriverInterface", get_class($driver)));
             }
             if ($driver instanceof AbstractFileDriver) {
                 /** @var $driver FileDriver */
