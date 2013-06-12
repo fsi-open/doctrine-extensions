@@ -21,7 +21,8 @@
         "fsi/metadata": "0.9.*",
         "fsi/property-observer": "0.9.*",
         "knplabs/gaufrette": "0.2.*@dev",
-        "symfony/options-resolver": ">=2.2.0"
+        "symfony/options-resolver": ">=2.2.0",
+        "symfony/http-foundation": "2.3.*"
     },
     "require-dev": {
         "doctrine/dbal": "~2.3@dev",

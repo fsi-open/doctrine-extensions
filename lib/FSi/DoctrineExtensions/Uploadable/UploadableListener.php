@@ -14,6 +14,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Proxy;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
@@ -202,7 +203,7 @@ class UploadableListener extends MappedEventSubscriber
                     continue;
                 }
                 $domain = $this->getDomain($config);
-                $keymaker = $this->getKeymaker($object, $property, $config);
+                $keymaker = $this->getKeymaker($config);
 
                 if ($file instanceof File) {
                     if ($domain !== $this->filesystemMap->seek($file->getFilesystem())) {
@@ -211,7 +212,12 @@ class UploadableListener extends MappedEventSubscriber
                     }
                     $reflection->setValue($object, $file->getKey());
                 } elseif ($file instanceof \SplFileInfo) {
-                    $newKey = $keymaker->createKey($object, $property, $key, $file->getRealPath());
+                    if ($file instanceof UploadedFile) {
+                        $path = $file->getClientOriginalName();
+                    } else {
+                        $path = $file->getRealPath();
+                    }
+                    $newKey = $keymaker->createKey($object, $property, $key, $path);
                     $file = File::fromLocalFile($file, $newKey, $this->filesystemMap->get($domain));
                     $reflection->setValue($object, $file->getKey());
                 } else {
@@ -266,12 +272,10 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * Get strategy for creating keys.
      *
-     * @param mixed $object
-     * @param string $property
      * @param array $config
      * @return Keymaker\KeymakerInterface
      */
-    protected function getKeymaker($object, $property, $config)
+    protected function getKeymaker($config)
     {
         if (isset($config['keymaker']) and !empty($config['keymaker'])) {
             return $config['keymaker'];
