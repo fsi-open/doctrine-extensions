@@ -12,7 +12,7 @@ namespace FSi\DoctrineExtensions\Mapping;
 use Doctrine\Common\Persistence\ObjectManager;
 use FSi\Component\Metadata\Driver\AbstractAnnotationDriver;
 use FSi\Component\Metadata\Driver\AbstractFileDriver;
-use FSi\Component\Metadata\Driver\DriverChain;
+use FSi\DoctrineExtensions\Mapping\Driver\DriverChain;
 use FSi\Component\Metadata\MetadataFactory;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception;
@@ -78,7 +78,6 @@ final class ExtendedMetadataFactory extends MetadataFactory
         if ($omDriver instanceof DriverChain || $driverName == 'DriverChain') {
             $driver = new DriverChain();
             foreach ($omDriver->getDrivers() as $namespace => $nestedOmDriver) {
-                return $this->getDriver($nestedOmDriver); // @FIXME
                 $driver->addDriver($this->getDriver($nestedOmDriver), $namespace);
             }
         } else {
