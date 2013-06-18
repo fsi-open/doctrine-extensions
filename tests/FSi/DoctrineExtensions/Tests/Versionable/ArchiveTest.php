@@ -29,12 +29,6 @@ class ArchiveTest extends BaseORMTest
     const CONTENTS_1 = 'Contents of article 1';
     const CONTENTS_2 = 'Contents of article 2';
 
-    protected function setUp()
-    {
-        parent::setUp();
-        $this->_em = $this->getEntityManager();
-    }
-
     /**
      * Test simple entity creation without any versionable property set and verify object's state after $em->flush()
      */

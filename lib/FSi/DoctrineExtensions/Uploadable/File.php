@@ -62,6 +62,14 @@ class File
     }
 
     /**
+     * @return bool
+     */
+    public function delete()
+    {
+        return $this->file->delete();
+    }
+
+    /**
      * Get instance of File that is loaded from other instance.
      *
      * @param File $file

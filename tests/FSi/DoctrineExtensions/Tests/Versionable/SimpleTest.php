@@ -31,12 +31,6 @@ class SimpleTest extends BaseORMTest
     const CONTENTS_2 = 'Contents of article 2';
     const CATEGORY_1 = 'Category 1';
 
-    protected function setUp()
-    {
-        parent::setUp();
-        $this->_em = $this->getEntityManager();
-    }
-
     /**
      * Test simple entity creation without any versionable property set and verify object's state after $em->flush()
      */

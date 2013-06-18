@@ -24,12 +24,6 @@ class CompoundLoTest extends BaseORMTest
     const TEST_PHOTO_1 = '/FSi/DoctrineExtensions/Tests/LoStorage/Fixture/lighthouse_l.jpg';
     const TEST_PHOTO_2 = '/FSi/DoctrineExtensions/Tests/LoStorage/Fixture/penguins_l.jpg';
 
-    protected function setUp()
-    {
-        parent::setUp();
-        $this->_em = $this->getEntityManager();
-    }
-
     /**
      * Test clearing the Large Object cache in different ways
      */
@@ -195,6 +189,9 @@ class CompoundLoTest extends BaseORMTest
         );
     }
 
+    /**
+     * {@iheritDoc}
+     */
     protected function getUsedEntityFixtures()
     {
         return array(

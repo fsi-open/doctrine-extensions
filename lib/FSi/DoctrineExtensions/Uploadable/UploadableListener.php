@@ -192,7 +192,7 @@ class UploadableListener extends MappedEventSubscriber
 
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             if (!$propertyObserver->hasSavedValue($object, $config['targetField']) || $propertyObserver->hasValueChanged($object, $config['targetField'])) {
-                $file = PropertyAccess::getPropertyAccessor()->getValue($object, $config['targetField']);
+                $file = PropertyAccess::createPropertyAccessor()->getValue($object, $config['targetField']);
                 // Save its current value, so if another fetch would be called, there wouldn't be another saving.
                 $propertyObserver->saveValue($object, $config['targetField']);
                 $reflection = new \ReflectionProperty($object, $property);

@@ -880,6 +880,9 @@ class MinimalLoStorageTest extends BaseORMTest
         );
     }
 
+    /**
+     * {@iheritDoc}
+     */
     protected function getUsedEntityFixtures()
     {
         return array(

@@ -18,12 +18,6 @@ class FullLoTest extends BaseORMTest
     const TEST_FILE_1 = '/FSi/DoctrineExtensions/Tests/LoStorage/Fixture/favourite.gif';
     const TEST_FILE_2 = '/FSi/DoctrineExtensions/Tests/LoStorage/Fixture/star.png';
 
-    protected function setUp()
-    {
-        parent::setUp();
-        $this->_em = $this->getEntityManager();
-    }
-
     /**
      * Test simple entity creation and its state after $em->flush()
      */
@@ -679,6 +673,9 @@ class FullLoTest extends BaseORMTest
         );
     }
 
+    /**
+     * {@iheritDoc}
+     */
     protected function getUsedEntityFixtures()
     {
         return array(
@@ -686,5 +683,4 @@ class FullLoTest extends BaseORMTest
             self::PHOTO
         );
     }
-
 }
