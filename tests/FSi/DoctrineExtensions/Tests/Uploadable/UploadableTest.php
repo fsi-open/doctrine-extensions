@@ -4,6 +4,7 @@ use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use FSi\DoctrineExtensions\Uploadable\File;
+use FSi\DoctrineExtensions\Uploadable\UploadableListener;
 
 class UploadableTest extends BaseORMTest
 {
@@ -161,6 +162,12 @@ class UploadableTest extends BaseORMTest
         $this->_em->flush();
 
         $this->assertEquals(null, $user->getFileKey());
+    }
+
+    public function testConstructWithoutFilesystems()
+    {
+        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        new UploadableListener(array('filesystems' => array()));
     }
 
     protected function tearDown()

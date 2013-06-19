@@ -18,4 +18,6 @@ final class Uploadable extends Annotation
 {
     public $targetField;
     public $domain;
+    public $keymaker;
+    public $keylength;
 }

@@ -71,6 +71,9 @@ class UploadableListener extends MappedEventSubscriber
             }
             $this->filesystemMap->set($domain, $filesystem);
         }
+        if (0 === count($this->filesystemMap->all())) {
+            throw new Exception\RuntimeException("You must give at least one filesystem!");
+        }
 
         $this->setDefaultDomain($default);
     }
