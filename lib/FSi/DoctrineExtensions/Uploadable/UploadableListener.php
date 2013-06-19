@@ -182,17 +182,9 @@ class UploadableListener extends MappedEventSubscriber
     {
         $propertyObserver = $this->getPropertyObserver($objectManager);
 
-        $key = array();
-        foreach ($meta->identifier as $keyField) {
-            $reflection = new \ReflectionProperty($object, $keyField);
-            $reflection->setAccessible(true);
-            $key[] = $reflection->getValue($object);
-        }
-        $key = implode('-', $key);
-
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             if (!$propertyObserver->hasSavedValue($object, $config['targetField']) || $propertyObserver->hasValueChanged($object, $config['targetField'])) {
-                $file = PropertyAccess::createPropertyAccessor()->getValue($object, $config['targetField']);
+                $file = PropertyAccess::getPropertyAccessor()->getValue($object, $config['targetField']);
                 // Save its current value, so if another fetch would be called, there wouldn't be another saving.
                 $propertyObserver->saveValue($object, $config['targetField']);
                 $reflection = new \ReflectionProperty($object, $property);
@@ -207,8 +199,8 @@ class UploadableListener extends MappedEventSubscriber
 
                 if ($file instanceof File) {
                     if ($domain !== $this->filesystemMap->seek($file->getFilesystem())) {
-                        $newKey = $keymaker->createKey($object, $property, $key, $file->getName());
-                        $file = File::fetchFrom($file, $newKey, $this->filesystemMap->get($domain));
+                        $newKey = $keymaker->createKey($object, $property, $file->getName());
+                        $file = FileFactory::fetchFrom($file, $newKey, $this->filesystemMap->get($domain));
                     }
                     $reflection->setValue($object, $file->getKey());
                 } elseif ($file instanceof \SplFileInfo) {
@@ -217,8 +209,8 @@ class UploadableListener extends MappedEventSubscriber
                     } else {
                         $path = $file->getRealPath();
                     }
-                    $newKey = $keymaker->createKey($object, $property, $key, $path);
-                    $file = File::fromLocalFile($file, $newKey, $this->filesystemMap->get($domain));
+                    $newKey = $keymaker->createKey($object, $property, $path);
+                    $file = FileFactory::fromLocalFile($file, $newKey, $this->filesystemMap->get($domain));
                     $reflection->setValue($object, $file->getKey());
                 } else {
                     throw new Exception\RuntimeException(sprintf('Can\'t handle resource of type "%s".', is_object($file) ? get_class($file) : gettype($file)));

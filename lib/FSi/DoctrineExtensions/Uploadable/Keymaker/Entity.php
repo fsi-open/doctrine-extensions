@@ -14,7 +14,7 @@ class Entity implements KeymakerInterface
     /**
      * {@inheritDoc}
      */
-    public function createKey($object, $property, $key, $originalName)
+    public function createKey($object, $property, $originalName)
     {
         $namespaceChunks = explode('\\', get_class($object));
         $name = array_pop($namespaceChunks);
@@ -28,7 +28,11 @@ class Entity implements KeymakerInterface
             }
         }
 
-        $name .= '/' . $key . '/' . $property . '/' . basename($originalName);
+        $hash = md5(uniqid());
+        $hash = array(substr($hash, 0, 2), substr($hash, 2));
+        $hash = implode('/', $hash);
+
+        $name .= '/' . $property . '/' . $hash . '/' . basename($originalName);
 
         return '/' . $name;
     }

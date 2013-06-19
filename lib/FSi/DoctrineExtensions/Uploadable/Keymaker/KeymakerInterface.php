@@ -16,9 +16,8 @@ interface KeymakerInterface
      *
      * @param object $object
      * @param string $property
-     * @param string $key
      * @param string $originalName
      * @return string
      */
-    public function createKey($object, $property, $key, $originalName);
+    public function createKey($object, $property, $originalName);
 }
