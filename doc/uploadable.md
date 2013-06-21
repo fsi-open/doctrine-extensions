@@ -9,16 +9,24 @@ Features:
 ## Creating and attaching the UploadableListener to the event manager
 
 ```php
-$evm = new \Doctrine\Common\EventManager();
-$uploadableListener = new \FSi\DoctrineExtensions\Uploadable\UploadableListener(array(
-    'filesystems' => array(/* (...) */), // Required. List of domains and filesystems. For details see below.
-    'default' => '', // Default filesystem domain name. If empty string, first filesystem will be chosen as default.
-    'keymaker' => null, // Strategy for creating file keys, null by default. Can be set explicitly per field. Instance of
-    'keylength' => 255, // Allowed key length, 255 by default. Can be set explicitly per field.
+
+use Doctrine\Common\EventManager;
+use FSi\DoctrineExtensions\Uploadable\UploadableListener
+
+$evm = new EventManager();
+$uploadableListener = new UploadableListener(array(
+    'filesystems' => array(/* (...) */), // See description below.
 ));
 $evm->addEventSubscriber($uploadableListener);
 // now this event manager should be passed to entity manager constructor
 ```
+
+Options of `UploadableListener`:
+- **filesystems** - Required. List of domains and filesystems. For details see below.
+- **default** - Default filesystem domain name. If empty string, first filesystem will be chosen as default.
+- **keymaker** - Strategy for creating file keys, null by default. Can be set explicitly per field. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
+- **keyLength** - Allowed key length, 255 by default. Can be set explicitly per field.
+
 ## Filesystems
 
 To make uploadable work, you must pass array of filesystems to `UploadableListener`. Each filesystem must be instance of `Gaufrette\Filesystem`.
@@ -40,7 +48,7 @@ $filesystems = array(
 // $uploadableListener = new \FSi\DoctrineExtensions\Uploadable\UploadableListener(array('filesystems' => $filesystems));
 ```
 
-## Simple entity annotations and usage example ##
+## Simple entity annotations and usage example
 
 Here is an example of an entity with uploadable property:
 
@@ -107,7 +115,70 @@ class User
 }
 ```
 
-Things you must consider:
-- `targetField` is **mandatory**
-- If you intend to use this with `Symfony/Form`, construct `setFile` as you see above, otherwise you will lose file each time you edit your entity, if you're not updating file at the moment.
-- **domain** is optional. If not specified default one will be chosen.
+## Uploadable annotation options
+
+- **targetField** - Required. Attribute of entity, the file object will be loaded to.
+- **default** - Filesystem domain name. If not set, default filesystem will be chosen.
+- **keymaker** - Strategy for creating file keys, null by default. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
+- **keyLength** - Allowed key length, 255 by default.
+
+## Files must be deleted from filesystems explicitly!
+
+Since one file can be bounded to many fields and entities, files aren't deleted implicitly. It's up to you to take care of these files.
+
+Please note, that file deletion (from filesystem) isn't part of Doctrine's transaction, so *if something go wrong, file will be irrevocably deleted*.
+
+Still you can automate that process:
+
+```php
+<?php
+
+class User
+{
+    // (...)
+
+    public function deleteFile()
+    {
+        if ($this->file) {
+            $this->file->delete();
+        }
+        $this->file = null;
+    }
+
+    // (...)
+}
+
+```
+
+## Usage with `Symfony\Form`
+
+If you intend to use this with `Symfony\Form`, construct `setFile` as you see above, otherwise you will lose file each time you
+edit your entity (through form), if you're not updating file at the moment.
+
+To use it, just remember to set `data_class` to `FSi\\DoctrineExtensions\\Uploadable\\File` and use standard `file` type:
+
+```php
+<?php
+
+namespace Acme\DemoBundle\Form;
+
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+
+class UserType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder->add('name', 'text');
+        $builder->add('file', 'file', array('required' => false, 'data_class' => 'FSi\\DoctrineExtensions\\Uploadable\\File'));
+    }
+
+    public function getName()
+    {
+        return 'user';
+    }
+}
+
+```
+
+It's up to you to make optional preview or any action, that would delete that file.
