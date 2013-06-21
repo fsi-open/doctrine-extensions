@@ -34,14 +34,38 @@ class KeymakerTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function provider2()
+    {
+        return array(
+            array(255),
+            array(100),
+            array(73),
+            array(60),
+            array(58),
+            array(54),
+        );
+    }
+
     /**
      * @dataProvider provider
      */
     public function testKeymaker($keyLength)
     {
         $object = new User();
-        // This will generate name with 73 characters, so after name shortening (of original name) it should generate key with minimum 58 characters.
-        $this->assertLessThanOrEqual($keyLength, mb_strlen($this->keymaker->createKey($object, 'someProperty', 'originalFilename.jpg', $keyLength)));
+        // This will generate name with 74 characters, so after name shortening (of original name) it should generate key with minimum 58 characters.
+        $this->assertLessThanOrEqual($keyLength, mb_strlen($this->keymaker->createKey($object, 'someProperty', 'originalFilename.jpg2', $keyLength)));
+    }
+
+    /**
+     * Test with original name without extension.
+     *
+     * @dataProvider provider2
+     */
+    public function testKeymakerWithoutExtension($keyLength)
+    {
+        $object = new User();
+        // This will generate name with 69 characters, so after name shortening (of original name) it should generate key with minimum 54 characters.
+        $this->assertLessThanOrEqual($keyLength, mb_strlen($this->keymaker->createKey($object, 'someProperty', 'originalFilename', $keyLength)));
     }
 
     public function testKeymakerWithoutEnoughSpace()

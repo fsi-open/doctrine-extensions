@@ -38,47 +38,65 @@ class Entity implements KeymakerInterface
         $hash = md5(uniqid());
         $tmpHash = array(substr($hash, 0, 2), substr($hash, 2));
         $tmpHash = implode('/', $tmpHash);
-        $fileName = basename($originalName);
 
-        $rootName = '/'. $baseName . '/' . $property . '/' . $tmpHash . '/';
-        $name = $rootName . $fileName;
+        $name = '/'. $baseName . '/' . $property . '/' . $tmpHash . '/' . basename($originalName);
 
-        $length = mb_strlen($name);
-        if ($length <= $keyLength) {
-            return $name;
+        return $this->shortenKey($name, $keyLength);
+    }
+
+    /**
+     * Shortening key when original filename is too long.
+     *
+     * It make that name from 'originalname(.longextension)' to minimum form as 'o(.lon)'.
+     * If there is still not enough space, exception is thrown.
+     *
+     * @param string $key
+     * @param integer $keyLength
+     * @return string
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     */
+    private function shortenKey($key, $keyLength)
+    {
+        $length = mb_strlen($key);
+        // $diff says how many characters must be removed.
+        $diff = $length - $keyLength;
+
+        if (0 > $diff) {
+            return $key;
         }
 
-        // Case when original filename is too long.
-        // It make that name from 'originalname.longextension' to minimum form as 'o.lon'.
-        // If there is still not enough space, exception is thrown.
+        $tmp = explode('/', $key);
+        $basename = array_pop($tmp);
+        $dirname = implode('/', $tmp) . '/';
 
-        $parts = pathinfo($fileName);
-        $filenameLength = mb_strlen($parts['filename']);
-        // $diff says how much name must be shorten
-        $diff = $filenameLength - ($length - $keyLength);
-        $stripExtension = 0;
-        if ($diff < 1) {
-            // $stripExtension says how many characters needs to be cut off from extension.
-            $stripExtension = $diff * -1 + 1;
-            $diff = 1;
-        }
-        $parts['filename'] = substr($parts['filename'], 0, $diff);
+        $tmp = explode('.', $basename);
+        $extension = (1 < count($tmp)) ? array_pop($tmp) : null;
+        $filename = implode('.', $tmp);
 
-        if (0 != $stripExtension) {
-            // And now $stripExtension says how many digits we need to leave as they are.
-            $stripExtension = mb_strlen($parts['extension'] - $stripExtension);
-            if ($stripExtension < 3) {
-                $stripExtension = 3;
+        $filenameLength = mb_strlen($filename);
+        $newLength = $filenameLength - $diff - 1;
+        if ($newLength < 1) {
+            $newLength = 1;
+            // If extension is set, we try to shorten extension.
+            if ($extension) {
+                $newExtensionLength =  $diff * -1;
+                if ($newExtensionLength < 3) {
+                    $newExtensionLength = 3;
+                }
+                $extension = mb_substr($extension, 0, $newExtensionLength);
             }
-            $parts['extension'] = substr($parts['extension'], 0, $stripExtension);
+        }
+        $filename = mb_substr($filename, 0, $newLength);
+
+        $key = $dirname . $filename;
+        if ($extension) {
+            $key .= '.' . $extension;
         }
 
-        $name = $rootName . $parts['filename'] . '.' . $parts['extension'];
-
-        if (mb_strlen($name) > $keyLength) {
-            throw new RuntimeException(sprintf("Not enough space for creating key (there must be minimum \"%d\" characters space.", mb_strlen($name)));
+        if (mb_strlen($key) > $keyLength) {
+            throw new RuntimeException(sprintf("Not enough space for creating key (there must be minimum \"%d\" characters space.", mb_strlen($key)));
         }
 
-        return $name;
+        return $key;
     }
 }

@@ -13,6 +13,9 @@ use FSi\Component\Metadata\AbstractClassMetadata;
 
 class ClassMetadata extends AbstractClassMetadata
 {
+    /**
+     * @var array
+     */
     protected $uploadableProperties = array();
 
     /**
