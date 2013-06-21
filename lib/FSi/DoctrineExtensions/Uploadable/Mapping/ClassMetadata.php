@@ -20,11 +20,13 @@ class ClassMetadata extends AbstractClassMetadata
      *
      * @param string $property
      * @param string $targetField
+     * @param object $keymaker
+     * @param integer $keyLength
      * @param string $domain
      */
-    public function addUploadableProperty($property, $targetField, $domain = null)
+    public function addUploadableProperty($property, $targetField, $domain = null, $keymaker = null, $keyLength = null)
     {
-        $this->uploadableProperties[$property] = array('targetField' => $targetField, 'domain' => $domain);
+        $this->uploadableProperties[$property] = array('targetField' => $targetField, 'domain' => $domain, 'keymaker' => $keymaker, 'keyLength' => $keyLength);
     }
 
     /**

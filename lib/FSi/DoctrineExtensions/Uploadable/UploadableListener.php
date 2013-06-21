@@ -44,6 +44,16 @@ class UploadableListener extends MappedEventSubscriber
     protected $propertyObservers;
 
     /**
+     * @var Keymaker/KeymakerInterface
+     */
+    protected $keymaker;
+
+    /**
+     * @var integer
+     */
+    protected $keyLength;
+
+    /**
      * {@inheritDoc}
      */
     public function getSubscribedEvents()
@@ -58,7 +68,7 @@ class UploadableListener extends MappedEventSubscriber
     {
         $resolver = new OptionsResolver();
         $resolver->setRequired(array('filesystems'));
-        $resolver->setDefaults(array('default' => '', 'keymaker' => null, 'keylength' => 255));
+        $resolver->setDefaults(array('default' => '', 'keymaker' => null, 'keyLength' => 255));
         $resolver->setAllowedTypes(array('filesystems' => 'array', 'default' => 'string'));
         $options = $resolver->resolve($options);
 
@@ -69,11 +79,26 @@ class UploadableListener extends MappedEventSubscriber
             if (empty($default)) {
                 $default = $domain;
             }
+            if (!$filesystem instanceof \Gaufrette\Filesystem) {
+                throw new Exception\RuntimeException(sprintf(
+                   "Filesystem for domain \"%s\" must be instance of Gaufrette\\Filesystem, \"%s\" given",
+                    $domain,
+                    is_object($filesystem) ? get_class($filesystem) : gettype($filesystem)
+                ));
+            }
             $this->filesystemMap->set($domain, $filesystem);
         }
+
         if (0 === count($this->filesystemMap->all())) {
             throw new Exception\RuntimeException("You must give at least one filesystem!");
         }
+
+        if (1 > $options['keyLength']) {
+            throw new Exception\RuntimeException(sprintf("Key length must be greater than 0 (\"%s\" given)", $options['keyLength']));
+        }
+
+        $this->keyLength = $options['keyLength'];
+        $this->keymaker = $options['keymaker'] ? $options['keymaker'] : new Keymaker\Entity();
 
         $this->setDefaultDomain($default);
     }
@@ -112,8 +137,7 @@ class UploadableListener extends MappedEventSubscriber
             if (!$uploadableMeta->hasUploadableProperties()) {
                 continue;
             }
-            $meta = $entityManager->getClassMetadata($class);
-            $this->updateFiles($entityManager, $meta, $uploadableMeta, $object);
+            $this->updateFiles($entityManager, $uploadableMeta, $object);
         }
 
         foreach ($unitOfWork->getIdentityMap() as $class => $entities) {
@@ -121,12 +145,11 @@ class UploadableListener extends MappedEventSubscriber
             if (!$uploadableMeta->hasUploadableProperties()) {
                 continue;
             }
-            $meta = $entityManager->getClassMetadata($class);
             foreach ($entities as $object) {
                 if ($object instanceof Proxy) {
                     continue;
                 }
-                $this->updateFiles($entityManager, $meta, $uploadableMeta, $object);
+                $this->updateFiles($entityManager, $uploadableMeta, $object);
             }
         }
     }
@@ -176,12 +199,11 @@ class UploadableListener extends MappedEventSubscriber
      * Updating files keys.
      *
      * @param ObjectManager $objectManager
-     * @param $meta
-     * @param $uploadableMeta
-     * @param $object
+     * @param \FSi\DoctrineExtensions\Uploadable\Mapping\UploadableListener $uploadableMeta
+     * @param object $object
      * @throws Exception\RuntimeException
      */
-    protected function updateFiles(ObjectManager $objectManager, $meta, $uploadableMeta, $object)
+    protected function updateFiles(ObjectManager $objectManager, $uploadableMeta, $object)
     {
         $propertyObserver = $this->getPropertyObserver($objectManager);
 
@@ -199,10 +221,11 @@ class UploadableListener extends MappedEventSubscriber
                 }
                 $domain = $this->getDomain($config);
                 $keymaker = $this->getKeymaker($config);
+                $keyLength = $this->getKeyLength($config);
 
                 if ($file instanceof File) {
                     if ($domain !== $this->filesystemMap->seek($file->getFilesystem())) {
-                        $newKey = $keymaker->createKey($object, $property, $file->getName());
+                        $newKey = $keymaker->createKey($object, $property, $file->getName(), $keyLength);
                         $file = FileFactory::fetchFrom($file, $newKey, $this->filesystemMap->get($domain));
                     }
                     $reflection->setValue($object, $file->getKey());
@@ -212,7 +235,7 @@ class UploadableListener extends MappedEventSubscriber
                     } else {
                         $path = $file->getRealPath();
                     }
-                    $newKey = $keymaker->createKey($object, $property, $path);
+                    $newKey = $keymaker->createKey($object, $property, $path, $keyLength);
                     $file = FileFactory::fromLocalFile($file, $newKey, $this->filesystemMap->get($domain));
                     $reflection->setValue($object, $file->getKey());
                 } else {
@@ -270,12 +293,25 @@ class UploadableListener extends MappedEventSubscriber
      * @param array $config
      * @return Keymaker\KeymakerInterface
      */
-    protected function getKeymaker($config)
+    private function getKeymaker($config)
     {
-        if (isset($config['keymaker']) and !empty($config['keymaker'])) {
+        if (!empty($config['keymaker'])) {
             return $config['keymaker'];
         }
 
-        return new Keymaker\Entity();
+        return $this->keymaker;
+    }
+
+    /**
+     * @param $config
+     * @return integer
+     */
+    private function getKeyLength($config)
+    {
+        if (!empty($config['keyLength'])) {
+            return $config['keyLength'];
+        }
+
+        return $this->keyLength;
     }
 }

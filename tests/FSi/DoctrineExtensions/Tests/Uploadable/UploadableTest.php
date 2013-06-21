@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace FSi\DoctrineExtensions\Tests\Uploadable;
+
+use DirectoryIterator;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -168,6 +178,26 @@ class UploadableTest extends BaseORMTest
     {
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
         new UploadableListener(array('filesystems' => array()));
+    }
+
+    public function testConstructWithKeyLengthAsZero()
+    {
+        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        $filesystem = $this->getMockBuilder('Gaufrette\\Filesystem')->disableOriginalConstructor()->getMock();
+        new UploadableListener(array('filesystems' => array('one' => $filesystem), 'keyLength' => 0));
+    }
+
+    public function testConstructWithNegativeKeyLength()
+    {
+        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        $filesystem = $this->getMockBuilder('Gaufrette\\Filesystem')->disableOriginalConstructor()->getMock();
+        new UploadableListener(array('filesystems' => array('one' => $filesystem), 'keyLength' => -1));
+    }
+
+    public function testConstructWithWrongFilesystem()
+    {
+        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        new UploadableListener(array('filesystems' => array('one' => 'certainly_not_a_filesystem')));
     }
 
     protected function tearDown()

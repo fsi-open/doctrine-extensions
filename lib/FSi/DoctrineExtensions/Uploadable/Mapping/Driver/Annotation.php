@@ -42,10 +42,14 @@ class Annotation extends AbstractAnnotationDriver
                     throw new AnnotationException(sprintf('Annotation \'Uploadable\' in property \'%s\' of class \'%s\' has empty \'targetField\' attribute', $property, $baseClassMetadata->name));
                 }
 
+
+
                 $extendedClassMetadata->addUploadableProperty(
                     $property->getName(),
                     $uploadableAnnotation->targetField,
-                    $uploadableAnnotation->domain
+                    $uploadableAnnotation->domain,
+                    $uploadableAnnotation->keymaker,
+                    $uploadableAnnotation->keyLength
                 );
             }
         }
