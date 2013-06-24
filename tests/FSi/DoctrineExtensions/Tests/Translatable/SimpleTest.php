@@ -34,12 +34,6 @@ class SimpleTest extends BaseORMTest
 
     protected $_languageEn = 'en';
 
-    protected function setUp()
-    {
-        parent::setUp();
-        $this->_em = $this->getEntityManager();
-    }
-
     /**
      * Test simple entity creation with translation its state after $em->flush()
      */

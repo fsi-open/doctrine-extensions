@@ -12,7 +12,7 @@ namespace FSi\DoctrineExtensions\Mapping;
 use Doctrine\Common\Persistence\ObjectManager;
 use FSi\Component\Metadata\Driver\AbstractAnnotationDriver;
 use FSi\Component\Metadata\Driver\AbstractFileDriver;
-use FSi\Component\Metadata\Driver\DriverChain;
+use FSi\DoctrineExtensions\Mapping\Driver\DriverChain;
 use FSi\Component\Metadata\MetadataFactory;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception;
@@ -92,7 +92,7 @@ final class ExtendedMetadataFactory extends MetadataFactory
             }
             $driver = new $driverClassName();
             if (!($driver instanceof DriverInterface)) {
-                throw new Exception\RuntimeException(sprintf("Driver of class %s does not implement required FSi\DoctrineExtensions\Mapping\Driver\DriverInterface", get_class($driver)));
+                throw new Exception\RuntimeException(sprintf("Driver of class %s does not implement required FSi\\DoctrineExtensions\\Mapping\\Driver\\DriverInterface", get_class($driver)));
             }
             if ($driver instanceof AbstractFileDriver) {
                 /** @var $driver FileDriver */

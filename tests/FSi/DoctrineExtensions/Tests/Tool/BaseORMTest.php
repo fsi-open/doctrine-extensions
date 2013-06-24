@@ -10,13 +10,17 @@
 namespace FSi\DoctrineExtensions\Tests\Tool;
 
 use Doctrine\Common\EventManager;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Common\Util\Debug;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
+use FSi\DoctrineExtensions\Uploadable\UploadableListener;
 use FSi\DoctrineExtensions\Versionable\VersionableListener;
 use FSi\DoctrineExtensions\LoStorage\LoStorageListener;
+use Gaufrette\Adapter\Local;
+use Gaufrette\Filesystem;
 
 /**
  * This is the base test class for other Doctrine related tests
@@ -46,6 +50,22 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
     protected $_loListener;
 
     /**
+     * @var \FSi\DoctrineExtensions\Uploadable\UploadableListener
+     */
+    protected $_uploadableListener;
+
+
+    /**
+     * @var \Gaufrette\Filesystem
+     */
+    protected $_filesystem1;
+
+    /**
+     * @var \Gaufrette\Filesystem
+     */
+    protected $_filesystem2;
+
+    /**
      * @var \Doctrine\DBAL\Logging\DebugStack
      */
     protected $_logger;
@@ -58,6 +78,12 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
     protected function getMetadataDriverImplementation()
     {
         return new AnnotationDriver($_ENV['annotation_reader'], __DIR__.'/../LoStorage/Fixture');
+    }
+
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->_em = $this->getEntityManager();
     }
 
     protected function getMockAnnotatedConfig()
@@ -138,25 +164,26 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $this->_loListener = new LoStorageListener(array('basePath' => TESTS_TEMP_DIR . '/cache'));
         $evm->addEventSubscriber($this->_loListener);
 
-/*        $connectionParams = array(
-            'driver'    => 'pdo_mysql',
-            'host'      => 'localhost',
-            'dbname'    => 'fsite2-lukasz',
-            'user'      => 'fsite2-lukasz',
-            'password'  => 'chahtaekotie'
-        );*/
+        $this->_filesystem1 = new Filesystem(new Local(FILESYSTEM1));
+        $this->_filesystem2 = new Filesystem(new Local(FILESYSTEM2));
+
+        $this->_uploadableListener = new UploadableListener(array('filesystems' => array('one' => $this->_filesystem1, 'two' => $this->_filesystem2)));
+        $evm->addEventSubscriber($this->_uploadableListener);
+
         $connectionParams = array(
             'driver'    => 'pdo_sqlite',
             'memory'    => true,
         );
 
         $config = $this->getMockAnnotatedConfig();
-        $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config, $evm);
+        $conn = DriverManager::getConnection($connectionParams, $config, $evm);
         $em = EntityManager::create($conn, $config, $evm);
 
         $schema = array_map(function($class) use ($em) {
-            return $em->getClassMetadata($class);
-        }, (array)$this->getUsedEntityFixtures());
+                return $em->getClassMetadata($class);
+            },
+            (array) $this->getUsedEntityFixtures()
+        );
 
         $schemaTool = new SchemaTool($em);
         $schemaTool->dropSchema($schema);
@@ -165,4 +192,8 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         return $em;
     }
 
+    /**
+     * @return array
+     */
+    abstract protected function getUsedEntityFixtures();
 }
