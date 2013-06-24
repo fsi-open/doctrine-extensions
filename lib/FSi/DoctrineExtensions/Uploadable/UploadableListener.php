@@ -14,6 +14,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Proxy;
+use Gaufrette\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -64,6 +65,9 @@ class UploadableListener extends MappedEventSubscriber
         );
     }
 
+    /**
+     * @param array $options
+     */
     public function __construct(array $options = array())
     {
         $resolver = new OptionsResolver();
@@ -74,33 +78,13 @@ class UploadableListener extends MappedEventSubscriber
 
         $this->filesystemMap = new FilesystemMap();
 
-        $default = $options['default'];
-        foreach ($options['filesystems'] as $domain => $filesystem) {
-            if (empty($default)) {
-                $default = $domain;
-            }
-            if (!$filesystem instanceof \Gaufrette\Filesystem) {
-                throw new Exception\RuntimeException(sprintf(
-                   "Filesystem for domain \"%s\" must be instance of Gaufrette\\Filesystem, \"%s\" given",
-                    $domain,
-                    is_object($filesystem) ? get_class($filesystem) : gettype($filesystem)
-                ));
-            }
-            $this->filesystemMap->set($domain, $filesystem);
-        }
-
-        if (0 === count($this->filesystemMap->all())) {
-            throw new Exception\RuntimeException("You must give at least one filesystem!");
-        }
-
-        if (1 > $options['keyLength']) {
-            throw new Exception\RuntimeException(sprintf("Key length must be greater than 0 (\"%s\" given)", $options['keyLength']));
-        }
+        $this->setDefaultDomain($options['default']);
+        $this->setFilesystems($options['filesystems']);
 
         $this->keyLength = $options['keyLength'];
-        $this->keymaker = $options['keymaker'] ? $options['keymaker'] : new Keymaker\Entity();
+        $this->validateKeyLength();
 
-        $this->setDefaultDomain($default);
+        $this->keymaker = $options['keymaker'] ? $options['keymaker'] : new Keymaker\Entity();
     }
 
     /**
@@ -285,6 +269,54 @@ class UploadableListener extends MappedEventSubscriber
     protected function getDomain(array $config)
     {
         return !empty($config['domain']) ? $config['domain'] : $this->getDefaultDomain();
+    }
+
+    /**
+     * Checks if filesystem map is not empty.
+     *
+     * @throws Exception\RuntimeException
+     */
+    protected function validateFilesystemMap()
+    {
+        if (0 === count($this->filesystemMap->all())) {
+            throw new Exception\RuntimeException("You must give at least one filesystem!");
+        }
+    }
+
+    /**
+     * Checks if key length is proper.
+     *
+     * @throws Exception\RuntimeException
+     */
+    protected function validateKeyLength()
+    {
+        if (1 > $this->keyLength) {
+            throw new Exception\RuntimeException(sprintf("Key length must be greater than 0 (\"%s\" given)", $this->keyLength));
+        }
+    }
+
+    /**
+     * @param $filesystems
+     * @throws Exception\RuntimeException
+     */
+    protected function setFilesystems($filesystems)
+    {
+        $default = $this->defaultDomain;
+        foreach ($filesystems as $domain => $filesystem) {
+            if (empty($default)) {
+                $default = $domain;
+            }
+            if (!$filesystem instanceof Filesystem) {
+                throw new Exception\RuntimeException(sprintf(
+                    "Filesystem for domain \"%s\" must be instance of Gaufrette\\Filesystem, \"%s\" given",
+                    $domain,
+                    is_object($filesystem) ? get_class($filesystem) : gettype($filesystem)
+                ));
+            }
+            $this->filesystemMap->set($domain, $filesystem);
+        }
+        $this->validateFilesystemMap();
+        $this->setDefaultDomain($domain);
     }
 
     /**
