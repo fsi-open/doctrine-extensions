@@ -21,38 +21,37 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
     const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
 
-    public function testIsNotInitializableWithoutFilesystems1()
+    public function testIsInitializableWithoutFilesystems1()
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener(array(), $this->getFileHandlerMock());
+        new UploadableListener(array(), $this->getFileHandlerMock(), $this->getKeymakerMock());
     }
 
     public function testIsNotInitializableWithoutFilesystems2()
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener(array('one' => 'not a filesystem'), $this->getFileHandlerMock());
+        $this->setExpectedException('PHPUnit_Framework_Error');
+        new UploadableListener(array('one' => 'not a filesystem'), $this->getFileHandlerMock(), $this->getKeymakerMock());
     }
 
     public function testIsNotInitializableWithoutFilesystems3()
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener(array('one' => new User()), $this->getFileHandlerMock());
+        $this->setExpectedException('PHPUnit_Framework_Error');
+        new UploadableListener(array('one' => new User()), $this->getFileHandlerMock(), $this->getKeymakerMock());
     }
 
     public function testIsNotInitializableWithoutFilesystems4()
     {
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener('definitely not an array', $this->getFileHandlerMock());
+        new UploadableListener('definitely not an array', $this->getFileHandlerMock(), $this->getKeymakerMock());
     }
 
     public function testIsInitializableWithFilesystems()
     {
-        new UploadableListener(array('one' => $this->getFilesystemMock()), $this->getFileHandlerMock());
+        new UploadableListener(array('one' => $this->getFilesystemMock()), $this->getFileHandlerMock(), $this->getKeymakerMock());
     }
 
     public function testAllowsGetFilesystems()
     {
-        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $this->getFileHandlerMock());
+        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $this->getFileHandlerMock(), $this->getKeymakerMock());
         $listener->getFilesystems();
     }
 
@@ -60,60 +59,20 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
     {
         $map = new FilesystemMap();
         $map->set('one', $this->getFilesystemMock(), $this->getFileHandlerMock());
-        $listener = new UploadableListener($map, $this->getFileHandlerMock());
+        $listener = new UploadableListener($map, $this->getFileHandlerMock(), $this->getKeymakerMock());
         $this->assertSame($map->all(), $listener->getFilesystems());
     }
 
-    public function testIsNotInitializableWithEmptyFilesystemMap()
+    public function testIsInitializableWithEmptyFilesystemMap()
     {
         $map = new FilesystemMap();
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener($map, $this->getFileHandlerMock());
+        new UploadableListener($map, $this->getFileHandlerMock(), $this->getKeymakerMock());
     }
 
     public function testIsInstanceOfMappedSubscriber()
     {
-        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $this->getFileHandlerMock());
+        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $this->getFileHandlerMock(), $this->getKeymakerMock());
         $this->assertTrue($listener instanceof MappedEventSubscriber);
-    }
-
-    public function testAllowsToSetDefaultFilesystem()
-    {
-        $filesystems = array(
-            'one' => $this->getFilesystemMock(),
-            'two' => $this->getFilesystemMock(),
-        );
-
-        $default = 'two';
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock(), array('default' => $default));
-        $this->assertEquals($default, $listener->getDefaultDomain());
-
-        // If no default domain specified, listener should set first one as default.
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
-        $this->assertEquals(key($filesystems), $listener->getDefaultDomain());
-
-        // When setting wrong filesystem.
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener($filesystems, $this->getFileHandlerMock(), array('default' => 'three'));
-    }
-
-    public function testAllowsToSetDefaultFilesystemWithFilesystemMap()
-    {
-        $map = new FilesystemMap();
-        $map->set('one', $this->getFilesystemMock());
-        $map->set('two', $this->getFilesystemMock());
-
-        $default = 'one';
-        $listener = new UploadableListener($map, $this->getFileHandlerMock(), array('default' => $default));
-        $this->assertEquals($default, $listener->getDefaultDomain());
-
-        // If no default domain specified, listener should set first one as default.
-        $listener = new UploadableListener($map, $this->getFileHandlerMock());
-        $this->assertEquals('one', $listener->getDefaultDomain());
-
-        // When setting wrong filesystem.
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener($map, $this->getFileHandlerMock(), array('default' => 'three'));
     }
 
     public function testAllowsToCheckAndGetFilesystem()
@@ -123,10 +82,10 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
             'two' => $this->getFilesystemMock(),
         );
 
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
-        $this->assertTrue($listener->has('one'));
-        $this->assertTrue($listener->has('two'));
-        $this->assertFalse($listener->has('three'));
+        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock(), $this->getKeymakerMock());
+        $this->assertTrue($listener->hasFilesystem('one'));
+        $this->assertTrue($listener->hasFilesystem('two'));
+        $this->assertFalse($listener->hasFilesystem('three'));
 
         $listener->getFilesystem('one');
         $listener->getFilesystem('two');
@@ -134,57 +93,26 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
         $listener->getFilesystem('three');
     }
 
-    public function testAllowsToSetDefaultKeylength()
-    {
-        $filesystems = array('one' => $this->getFilesystemMock());
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
-
-        // Check if default keyLength is greater than 0.
-        $this->assertGreaterThan(0, $listener->getDefaultKeyLength());
-
-        $length = 100;
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock(), array('keyLength' => $length));
-        $this->assertEquals($length, $listener->getDefaultKeyLength());
-
-        $length2 = 50;
-        $listener->setDefaultKeyLength($length2);
-        $this->assertEquals($length2, $listener->getDefaultKeyLength());
-    }
-
-    public function testCreationWithZeroKeyLength()
-    {
-        $filesystems = array('one' => $this->getFilesystemMock());
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener($filesystems, $this->getFileHandlerMock(), array('keyLength' => 0));
-    }
-
     public function testSetZeroKeyLength()
     {
         $filesystems = array('one' => $this->getFilesystemMock());
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
+        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock(), $this->getKeymakerMock());
         $listener->setDefaultKeyLength(0);
-    }
-
-    public function testCreationWithNegativeKeyLength()
-    {
-        $filesystems = array('one' => $this->getFilesystemMock());
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new UploadableListener($filesystems, $this->getFileHandlerMock(), array('keyLength' => -1));
     }
 
     public function testSetNegativeKeyLength()
     {
         $filesystems = array('one' => $this->getFilesystemMock());
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
+        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock(), $this->getKeymakerMock());
         $listener->setDefaultKeyLength(-1);
     }
 
     public function testDefaultKeymaker()
     {
         $filesystems = array('one' => $this->getFilesystemMock());
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
+        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock(), $this->getKeymakerMock());
         $this->assertTrue($listener->getDefaultKeymaker() instanceof KeymakerInterface);
     }
 
@@ -192,38 +120,15 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
     {
         $keymaker = $this->getKeymakerMock();
         $filesystems = array('one' => $this->getFilesystemMock());
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
+        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock(), $this->getKeymakerMock());
         $listener->setDefaultKeymaker($keymaker);
         $this->assertSame($keymaker, $listener->getDefaultKeymaker());
-    }
-
-    public function testSetDefaultKeymakerThroughConstructor()
-    {
-        $keymaker = $this->getKeymakerMock();
-        $filesystems = array('one' => $this->getFilesystemMock());
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock(), array('keymaker' => $keymaker));
-        $this->assertSame($keymaker, $listener->getDefaultKeymaker());
-    }
-
-    public function testSetWrongKeymakerThroughConstructor()
-    {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        $filesystems = array('one' => $this->getFilesystemMock());
-        new UploadableListener($filesystems, $this->getFileHandlerMock(), array('keymaker' => 'wrong'));
-    }
-
-    public function testSetWrongKeymaker()
-    {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        $filesystems = array('one' => $this->getFilesystemMock());
-        $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
-        $listener->setDefaultKeymaker('wrong');
     }
 
     public function testSetFileHandlerInConstructor()
     {
         $fileHandler = $this->getFileHandlerMock();
-        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $fileHandler);
+        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $fileHandler, $this->getKeymakerMock());
         $this->assertSame($fileHandler, $listener->getFileHandler());
     }
 
@@ -231,9 +136,73 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
     {
         $fileHandler1 = $this->getFileHandlerMock();
         $fileHandler2 = $this->getFileHandlerMock();
-        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $fileHandler1);
+        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $fileHandler1, $this->getKeymakerMock());
         $listener->setFileHandler($fileHandler2);
         $this->assertSame($fileHandler2, $listener->getFileHandler());
+    }
+
+    public function testSettingDefaultFilesystem()
+    {
+        $f1 = $this->getFilesystemMock();
+        $f2 = $this->getFilesystemMock();
+
+        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $this->getFileHandlerMock(), $this->getKeymakerMock());
+        $this->assertFalse($listener->hasDefaultFilesystem());
+
+        $listener->setDefaultFilesystem($f1);
+        $this->assertSame($f1, $listener->getDefaultFilesystem());
+
+        $listener->setDefaultFilesystem($f2);
+        $this->assertSame($f2, $listener->getDefaultFilesystem());
+    }
+
+    public function testGettingFilesystemWhenNotSet()
+    {
+        $listener = new UploadableListener(array('one' => $this->getFilesystemMock()), $this->getFileHandlerMock(), $this->getKeymakerMock());
+        $this->assertFalse($listener->hasDefaultFilesystem());
+
+        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        $listener->getDefaultFilesystem();
+    }
+
+    public function testSettingFilesystems()
+    {
+        $filesystems = array('one' => $this->getFilesystemMock(), 'two' => $this->getFilesystemMock());
+
+        $listener = new UploadableListener(array('three' => $this->getFilesystemMock()), $this->getFileHandlerMock(), $this->getKeymakerMock());
+        $this->assertEquals(1, count($listener->getFilesystems()));
+        $listener->setFilesystems($filesystems);
+        $this->assertEquals(2, count($listener->getFilesystems()));
+
+        $this->assertSame($filesystems, $listener->getFilesystems());
+
+        $this->assertTrue($listener->hasFilesystem('one'));
+        $this->assertTrue($listener->hasFilesystem('two'));
+        $this->assertFalse($listener->hasFilesystem('three'));
+    }
+
+    public function testSettingAndRemovingSingleFilesystem()
+    {
+        $f1 = $this->getFilesystemMock();
+        $f2 = $this->getFilesystemMock();
+
+        $listener = new UploadableListener(array(), $this->getFileHandlerMock(), $this->getKeymakerMock());
+
+        $listener->setFilesystem('one', $f1);
+        $this->assertTrue($listener->hasFilesystem('one'));
+        $this->assertSame($f1, $listener->getFilesystem('one'));
+
+        $listener->setFilesystem('two', $f2);
+        $this->assertTrue($listener->hasFilesystem('two'));
+        $this->assertSame($f2, $listener->getFilesystem('two'));
+
+        $listener->removeFilesystem('one');
+        $this->assertFalse($listener->hasFilesystem('one'));
+
+        $listener->removeFilesystem('two');
+        $this->assertFalse($listener->hasFilesystem('two'));
+
+        $this->assertEquals(0, count($listener->getFilesystems()));
     }
 
     protected function tearDown()

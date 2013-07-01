@@ -17,7 +17,8 @@ use Doctrine\Common\Annotations\Annotation;
 final class Uploadable extends Annotation
 {
     public $targetField;
-    public $domain;
+    public $filesystem;
     public $keymaker;
     public $keyLength;
+    public $keyPattern;
 }

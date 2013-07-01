@@ -31,7 +31,7 @@ class User
      * @var string
      *
      * @ORM\Column(length=255, nullable=true)
-     * @Uploadable(targetField="file", domain="one")
+     * @Uploadable(targetField="file", filesystem="one")
      */
     protected $fileKey;
 
@@ -44,7 +44,7 @@ class User
      * @var string
      *
      * @ORM\Column(length=255, nullable=true)
-     * @Uploadable(targetField="file2", domain="two")
+     * @Uploadable(targetField="file2", filesystem="two")
      */
     protected $file2Key;
 
@@ -101,5 +101,4 @@ class User
     {
         $this->file2 = null;
     }
-
 }

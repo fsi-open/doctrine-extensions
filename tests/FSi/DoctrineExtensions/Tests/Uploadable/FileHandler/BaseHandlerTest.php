@@ -11,12 +11,9 @@ namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 
 use FSi\DoctrineExtensions\Tests\Uploadable\Utils;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
-use Gaufrette\Adapter\Local;
-use Gaufrette\Filesystem;
 
 abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
 {
-    const KEY = '/sampleKey';
     const CONTENT = 'sampleContent';
 
     /**
@@ -32,9 +29,10 @@ abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider wrongInputs
      */
-    public function testNotHandle($input, $key, $filesystem)
+    public function testGetContentForWrongInputs($input)
     {
-        $this->assertNull($this->handler->handle($input, $key, $filesystem));
+        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        $this->assertNull($this->handler->getContent($input));
     }
 
     /**
@@ -42,7 +40,16 @@ abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetNameForWrongInput($input)
     {
+        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
         $this->assertNull($this->handler->getName($input));
+    }
+
+    /**
+     * @dataProvider wrongInputs
+     */
+    public function testNotSupports($input)
+    {
+        $this->assertFalse($this->handler->supports($input));
     }
 
     protected function tearDown()
@@ -53,12 +60,11 @@ abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
 
     public static function wrongInputs()
     {
-        $filesystem = new Filesystem(new Local(FILESYSTEM1));
         return array(
-            array('not file', self::KEY, $filesystem),
-            array(array(), self::KEY, $filesystem),
-            array(new \stdClass(), self::KEY, $filesystem),
-            array(42, self::KEY, $filesystem),
+            array('not file'),
+            array(array()),
+            array(new \stdClass()),
+            array(42),
         );
     }
 }

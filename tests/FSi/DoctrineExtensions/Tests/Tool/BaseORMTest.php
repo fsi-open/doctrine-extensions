@@ -12,9 +12,11 @@ namespace FSi\DoctrineExtensions\Tests\Tool;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Common\Util\Debug;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
+use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 use FSi\DoctrineExtensions\Uploadable\UploadableListener;
 use FSi\DoctrineExtensions\Versionable\VersionableListener;
 use FSi\DoctrineExtensions\LoStorage\LoStorageListener;
@@ -122,6 +124,12 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             }))
             ;
 
+        $config
+            ->expects($this->any())
+            ->method('getRepositoryFactory')
+            ->will($this->returnValue(new DefaultRepositoryFactory()))
+        ;
+
         $mappingDriver = $this->getMetadataDriverImplementation();
 
         $config
@@ -164,7 +172,9 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             new FileHandler\GaufretteHandler(),
             new FileHandler\SplFileInfoHandler(),
         ));
-        $this->_uploadableListener = new UploadableListener(array('one' => $this->_filesystem1, 'two' => $this->_filesystem2), $handler);
+        $keyMaker = new Entity();
+        $this->_uploadableListener = new UploadableListener(array('one' => $this->_filesystem1, 'two' => $this->_filesystem2), $handler, $keyMaker);
+        $this->_uploadableListener->setDefaultFilesystem($this->_filesystem1);
         $evm->addEventSubscriber($this->_uploadableListener);
 
         $connectionParams = array(
@@ -187,4 +197,10 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         return $em;
     }
 
+    /**
+     * Get array of classes of entities used in test.
+     *
+     * @return array
+     */
+    abstract protected function getUsedEntityFixtures();
 }

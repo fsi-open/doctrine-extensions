@@ -9,21 +9,17 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
-use Gaufrette\Filesystem;
-use FSi\DoctrineExtensions\Uploadable\File;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 
-class SplFileInfoHandler implements FileHandlerInterface
+class SplFileInfoHandler extends AbstractHandler
 {
     /**
      * {@inheritDoc}
-     *
-     * @throws RuntimeException
      */
-    public function handle($file, $key, Filesystem $filesystem)
+    public function getContent($file)
     {
-        if (!$file instanceof \SplFileInfo) {
-            return;
+        if (!$this->supports($file)) {
+            throw $this->generateNotSupportedException($file);
         }
 
         $level = error_reporting(0);
@@ -34,10 +30,7 @@ class SplFileInfoHandler implements FileHandlerInterface
             throw new RuntimeException($error['message']);
         }
 
-        $file = new File($key, $filesystem);
-        $file->setContent($content);
-
-        return $file;
+        return $content;
     }
 
     /**
@@ -45,10 +38,18 @@ class SplFileInfoHandler implements FileHandlerInterface
      */
     public function getName($file)
     {
-        if (!$file instanceof \SplFileInfo) {
-            return;
+        if (!$this->supports($file)) {
+            throw $this->generateNotSupportedException($file);
         }
 
         return basename($file->getRealpath());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function supports($file)
+    {
+        return $file instanceof \SplFileInfo;
     }
 }

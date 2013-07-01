@@ -10,85 +10,38 @@
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
+use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 
 class KeymakerTest extends \PHPUnit_Framework_TestCase
 {
+    const PROPERTY = 'property';
     const ID = 1;
+    const ORIGINAL_NAME = 'originalName.txt';
 
-    protected $keyLength = 255;
-
-    protected $keymaker;
-
-    public function setUp()
+    public function testCreation()
     {
-        $this->keymaker = new Entity();
-    }
-
-    public function provider()
-    {
-        return array(
-            array(255),
-            array(100),
-            array(73),
-            array(60),
-            array(30),
-            array(26),
-        );
-    }
-
-    public function provider2()
-    {
-        return array(
-            array(255),
-            array(100),
-            array(73),
-            array(60),
-            array(30),
-            array(22),
-        );
+        $keyMaker = new Entity();
+        $this->assertTrue($keyMaker instanceof KeymakerInterface);
     }
 
     /**
-     * @dataProvider provider
+     * @dataProvider inputs
      */
-    public function testKeymaker($keyLength)
+    public function testKeyGeneration($pattern, $expected)
     {
-        $object = new User();
-        // This will generate name with 42 characters, so after name shortening (of original name) it should generate key (with one character id) with minimum 26 characters.
-        $this->assertLessThanOrEqual($keyLength, mb_strlen($this->keymaker->createKey($object, 'someProperty', self::ID, 'originalFilename.jpg2', $keyLength)));
+        $keyMaker = new Entity();
+        $user = new User();
+
+        $this->assertEquals($expected, $keyMaker->createKey($user, self::PROPERTY, self::ID, self::ORIGINAL_NAME, $pattern));
     }
 
-    /**
-     * Test with original name without extension.
-     *
-     * @dataProvider provider2
-     */
-    public function testKeymakerWithoutExtension($keyLength)
+    public static function inputs()
     {
-        $object = new User();
-        // This will generate name with 37 characters, so after name shortening (of original name) it should generate key (with one character id) with minimum 22 characters.
-        $this->assertLessThanOrEqual($keyLength, mb_strlen($this->keymaker->createKey($object, 'someProperty', self::ID, 'originalFilename', $keyLength)));
-    }
-
-    public function testKeymakerWithoutEnoughSpace()
-    {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        $object = new User();
-        $this->keymaker->createKey($object, 'someProperty', self::ID, 'originalFilename.jpg', 25);
-    }
-
-    public function testKeymakerWithZeroKeyLength()
-    {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        $object = new User();
-        $this->keymaker->createKey($object, 'someProperty', self::ID, 'originalName.jpg', 0);
-    }
-
-    public function testKeymakerWithNegativeKeyLength()
-    {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        $object = new User();
-        $this->keymaker->createKey($object, 'someProperty', self::ID, 'originalName.jpg', -1);
+        return array(
+            array(null, '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/User/' . self::PROPERTY . '/' . self::ID . '/' . self::ORIGINAL_NAME),
+            array('{fqcn}/{id}/constant', 'FSi/DoctrineExtensions/Tests/Uploadable/Fixture/User/' . self::ID . '/constant'),
+            array('{fqcn}/{property}/{wrong_tag}/{id}/{original_name}', 'FSi/DoctrineExtensions/Tests/Uploadable/Fixture/User/' . self::PROPERTY . '/{wrong_tag}/' . self::ID . '/' . self::ORIGINAL_NAME),
+        );
     }
 }

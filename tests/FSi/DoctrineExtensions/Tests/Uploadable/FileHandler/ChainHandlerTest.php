@@ -12,8 +12,13 @@ namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\ChainHandler;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
 
-class ChainHandlerTest extends \PHPUnit_Framework_TestCase
+class ChainHandlerTest extends BaseHandlerTest
 {
+    protected function setUp()
+    {
+        $this->handler = new ChainHandler();
+    }
+
     public function testImplementation()
     {
         $handler = new ChainHandler();
@@ -51,61 +56,52 @@ class ChainHandlerTest extends \PHPUnit_Framework_TestCase
         $four = $this->getHandlerMock();
 
         $input = 'someInput';
-        $key = 'someKey';
-        $filesystem = $this->getMockBuilder('Gaufrette\\Filesystem')->disableOriginalConstructor()->getMock();
         $result = 'someResult';
         $name = 'someName';
 
         $counter = 0;
         $nameCounter = 0;
+        $contentCounter = 0;
         $that = $this;
 
         $one
-            ->expects($this->once())
-            ->method('getName')
+            ->expects($this->any())
+            ->method('supports')
             ->with($input)
-            ->will($this->returnCallback(
-                function() use (&$nameCounter, $that) {
-                    $nameCounter++;
-                    $that->assertEquals(1, $nameCounter);
-                }
-            ))
-        ;
-        $one
-            ->expects($this->once())
-            ->method('handle')
-            ->with($input, $key, $filesystem)
             ->will($this->returnCallback(
                 function() use (&$counter, $that) {
                     $counter++;
-                    $that->assertEquals(1, $counter);
+                    $that->assertEquals(1, $counter % 3);
+                    return false;
                 }
             ))
         ;
 
         $two
-            ->expects($this->once())
-            ->method('getName')
+            ->expects($this->any())
+            ->method('supports')
             ->with($input)
-            ->will($this->returnCallback(
-                function() use (&$nameCounter, $that) {
-                    $nameCounter++;
-                    $that->assertEquals(2, $nameCounter);
-                }
-            ))
-        ;
-        $two
-            ->expects($this->once())
-            ->method('handle')
-            ->with($input, $key, $filesystem)
             ->will($this->returnCallback(
                 function() use (&$counter, $that) {
                     $counter++;
-                    $that->assertEquals(2, $counter);
+                    $that->assertEquals(2, $counter % 3);
+                    return false;
                 }
             ))
         ;
 
+        $three
+            ->expects($this->any())
+            ->method('supports')
+            ->with($input)
+            ->will($this->returnCallback(
+                function() use (&$counter, $that, $result) {
+                    $counter++;
+                    $that->assertEquals(0, $counter % 3);
+                    return true;
+                }
+            ))
+        ;
         $three
             ->expects($this->once())
             ->method('getName')
@@ -113,33 +109,34 @@ class ChainHandlerTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnCallback(
                 function() use (&$nameCounter, $that, &$name) {
                     $nameCounter++;
-                    $that->assertEquals(3, $nameCounter);
+                    $that->assertEquals(1, $nameCounter);
                     return $name;
                 }
             ))
         ;
         $three
             ->expects($this->once())
-            ->method('handle')
-            ->with($input, $key, $filesystem)
+            ->method('getContent')
+            ->with($input)
             ->will($this->returnCallback(
-                function() use (&$counter, $that, $result) {
-                    $counter++;
-                    $that->assertEquals(3, $counter);
+                function() use (&$contentCounter, $that, &$result) {
+                    $contentCounter++;
+                    $that->assertEquals(1, $contentCounter);
                     return $result;
                 }
             ))
         ;
 
-        // Fourth handler should never be reached, since third returns not null.
+        // Fourth handler should never be reached, since third supports input.
         $four
             ->expects($this->never())
             ->method($this->anything())
         ;
 
         $handler = new ChainHandler(array($one, $two, $three, $four));
+        $this->assertTrue($handler->supports($input));
         $this->assertEquals($name, $handler->getName($input));
-        $this->assertEquals($result, $handler->handle($input, $key, $filesystem));
+        $this->assertEquals($result, $handler->getContent($input));
     }
 
     protected function getHandlerMock()

@@ -9,24 +9,21 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
-use Gaufrette\Filesystem;
 use Gaufrette\File;
-use FSi\DoctrineExtensions\Uploadable\File as FSiFile;
 
-class GaufretteHandler implements FileHandlerInterface
+class GaufretteHandler extends AbstractHandler
 {
     /**
      * {@inheritDoc}
+     *
      */
-    public function handle($file, $key, Filesystem $filesystem)
+    public function getContent($file)
     {
-        if (!$file instanceof File) {
-            return;
+        if (!$this->supports($file)) {
+            throw $this->generateNotSupportedException($file);
         }
 
-        $newFile = new FSiFile($key, $filesystem);
-        $newFile->setContent($file->getContent());
-        return $newFile;
+        return $file->getContent();
     }
 
     /**
@@ -34,10 +31,18 @@ class GaufretteHandler implements FileHandlerInterface
      */
     public function getName($file)
     {
-        if (!$file instanceof File) {
-            return;
+        if (!$this->supports($file)) {
+            throw $this->generateNotSupportedException($file);
         }
 
         return $file->getName();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function supports($file)
+    {
+        return $file instanceof File;
     }
 }

@@ -9,15 +9,22 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
-use Gaufrette\Filesystem;
-
 interface FileHandlerInterface
 {
+    /**
+     * Check if handler can handle given $file.
+     *
+     * @param $file
+     * @return bool
+     */
+    public function supports($file);
+
     /**
      * Get name of resource, that will be a part of its key.
      *
      * This can be for example base name of file path.
      *
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException when resource not supported
      * @param mixed $file
      * @return string
      */
@@ -27,10 +34,9 @@ interface FileHandlerInterface
      * Method must return instance of FSi\DoctrineExtensions\Uploadable\File or null,
      * if can't handle given resource.
      *
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException when resource not supported
      * @param mixed $file
-     * @param string $key
-     * @param \Gaufrette\Filesystem $filesystem
-     * @return \FSi\DoctrineExtensions\Uploadable\File|null
+     * @return string
      */
-    public function handle($file, $key, Filesystem $filesystem);
+    public function getContent($file);
 }

@@ -4,25 +4,13 @@
 
 Features:
 - it uses Gaufrette in background (https://github.com/KnpLabs/Gaufrette) so you can use all of its adapters (local. amazon s3, opencloud and many more)
-- multiple domains even in scope of one entity (so you can store each file in different domain)
+- multiple filesystems even in scope of one entity (so you can store each file in different filesystem)
 
 ## Creating and attaching the UploadableListener to the event manager
 
-```php
-
-use Doctrine\Common\EventManager;
-use FSi\DoctrineExtensions\Uploadable\UploadableListener
-
-$evm = new EventManager();
-
-$uploadableListener = new UploadableListener($filesystems, $fileHandler, $options);
-$evm->addEventSubscriber($uploadableListener);
-// now this event manager should be passed to entity manager constructor
-```
-
 ### Filesystems
 
-First argument must be an array with filesystems, where keys are *domains* of filesystems. Each filesystem must be instance of `Gaufrette\Filesystem`.
+First argument must be an array with filesystems, where keys are later identifiers of filesystems. Each filesystem must be instance of `Gaufrette\Filesystem`.
 
 ```php
 <?php
@@ -34,8 +22,8 @@ $filesystem1 = new Filesystem(new Adapter\Local('/some/path'));
 $filesystem2 = new Filesystem(new Adapter\Ftp('/other/path', 'example.com'));
 
 $filesystems = array(
-    'domain1' => $filesystem1,
-    'domain2' => $filesystem2,
+    'filesystem1' => $filesystem1,
+    'filesystem2' => $filesystem2,
 );
 ```
 
@@ -61,10 +49,37 @@ This configuration will allow you to handle instances of `Gaufrette\File` (inclu
 
 File handler must be instance of `FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface`.
 
-### Options:
-- **default** - Default filesystem domain name. If empty string, first filesystem will be chosen as default.
-- **keymaker** - Strategy for creating file keys, null by default. Can be set explicitly per field. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
-- **keyLength** - Allowed key length, 255 by default. Can be set explicitly per field.
+### Keymaker
+
+Third argument is object, that is responsible for creating keys for new files.
+
+```php
+<?php
+
+use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
+
+$keyMaker = new Entity();
+```
+
+It must be instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`.
+
+### Result
+
+```php
+
+use Doctrine\Common\EventManager;
+use FSi\DoctrineExtensions\Uploadable\UploadableListener
+
+$evm = new EventManager();
+
+$uploadableListener = new UploadableListener($filesystems, $fileHandler, $keymaker);
+$evm->addEventSubscriber($uploadableListener);
+// now this event manager should be passed to entity manager constructor
+
+// It's also good idea to set default filesystem if you want to use annotations without
+// specifying filesystem.
+$uploadableListener->setDefaultFilesystem($filesystem1);
+```
 
 ## Simple entity annotations and usage example
 
@@ -103,7 +118,7 @@ class User
 
 	/**
 	 * @ORM\Column(length=255, nullable=true)
-	 * @Uploadable(targetField="file", domain="domain1")
+	 * @Uploadable(targetField="file", filesystem="filesystem1")
 	 */
 	protected $fileKey;
 
@@ -136,9 +151,10 @@ class User
 ## Uploadable annotation options
 
 - **targetField** - Required. Attribute of entity, the file object will be loaded to.
-- **default** - Filesystem domain name. If not set, default filesystem will be chosen.
+- **filesystem** - Filesystem name. If not set, default filesystem will be chosen.
 - **keymaker** - Strategy for creating file keys, null by default. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
 - **keyLength** - Allowed key length, 255 by default.
+- **keyPattern** - Pattern of key. Depend on keymaker, can contain replaceable variables.
 
 ## Usage
 
@@ -178,9 +194,21 @@ $tmpFile2->exists(); // false
 
 ```
 
+## Update of content
+
+If file is already attached, you can modify file directly.
+
+```php
+<?php
+
+$user->getFile()->setContent('some content');
+```
+
+**Heads up!** This way if something fails **changes won't be undone!** Remember that replacing it with something new is much more safer.
+
 ## Deletion and update
 
-After update/delete old files will be *automatically* removed from adequate domains.
+After update/delete old files will be *automatically* removed from adequate filesystems.
 
 ## Deletion and update when Doctrine update fails
 

@@ -9,7 +9,6 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 
-use FSi\DoctrineExtensions\Uploadable\File as FSiFile;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\SplFileInfoHandler;
 use FSi\DoctrineExtensions\Tests\Uploadable\Utils;
 use Gaufrette\Adapter\Local;
@@ -17,34 +16,29 @@ use Gaufrette\Filesystem;
 
 class SplFileInfoHandlerTest extends BaseHandlerTest
 {
+    const KEY = '/someKey';
+
     protected function setUp()
     {
         $this->handler = new SplFileInfoHandler();
     }
 
-    public function testHandle()
+    public function testSupports()
     {
-        $filesystem = new Filesystem(new Local(FILESYSTEM1));
+        $this->assertTrue($this->handler->supports($this->getInput()));
+    }
 
-        $input = new \SplFileInfo(FILESYSTEM1  . self::KEY);
-        $fileObj = $input->openFile('a');
-        $fileObj->fwrite(self::CONTENT);
+    public function testGetContent()
+    {
+        $input = $this->getInput();
 
-        $key = self::KEY;
-
-        $file = $this->handler->handle($input, $key, $filesystem);
-        $this->assertTrue($file instanceof FSiFile);
-        $this->assertSame($filesystem, $file->getFilesystem());
-        $this->assertEquals($key, $file->getKey());
-        $this->assertTrue(file_exists(FILESYSTEM1 . $file->getKey()));
-        $this->assertEquals(self::CONTENT, $file->getContent());
+        $content = $this->handler->getContent($input);
+        $this->assertEquals(self::CONTENT, $content);
     }
 
     public function testGetName()
     {
-        $input = new \SplFileInfo(FILESYSTEM1  . self::KEY);
-        $fileObj = $input->openFile('a');
-        $fileObj->fwrite(self::CONTENT);
+        $input = $this->getInput();
 
         $name = $this->handler->getName($input);
         $this->assertEquals(basename(FILESYSTEM1 . self::KEY), $name);
@@ -57,6 +51,14 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
         $key = self::KEY;
 
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        $this->handler->handle($input, $key, $filesystem);
+        $this->handler->getContent($input, $key, $filesystem);
+    }
+
+    protected function getInput()
+    {
+        $input = new \SplFileInfo(FILESYSTEM1  . self::KEY);
+        $fileObj = $input->openFile('a');
+        $fileObj->fwrite(self::CONTENT);
+        return $input;
     }
 }

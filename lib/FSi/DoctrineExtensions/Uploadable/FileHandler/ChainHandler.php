@@ -10,15 +10,18 @@
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
-use Gaufrette\Filesystem;
 
-class ChainHandler implements FileHandlerInterface
+class ChainHandler extends AbstractHandler
 {
     /**
      * @var array
      */
-    protected $handlers;
+    protected $handlers = array();
 
+    /**
+     * @param array $handlers
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     */
     public function __construct(array $handlers = array())
     {
         $i = 0;
@@ -32,7 +35,6 @@ class ChainHandler implements FileHandlerInterface
             }
 
             $this->handlers[] = $handler;
-
             $i++;
         }
     }
@@ -40,13 +42,14 @@ class ChainHandler implements FileHandlerInterface
     /**
      * {@inheritDoc}
      */
-    public function handle($file, $key, Filesystem $filesystem)
+    public function getContent($file)
     {
         foreach ($this->handlers as $handler) {
-            if ($result = $handler->handle($file, $key, $filesystem)) {
-                return $result;
+            if ($handler->supports($file)) {
+                return $handler->getContent($file);
             }
         }
+        throw $this->generateNotSupportedException($file);
     }
 
     /**
@@ -55,9 +58,23 @@ class ChainHandler implements FileHandlerInterface
     public function getName($file)
     {
         foreach ($this->handlers as $handler) {
-            if ($result = $handler->getName($file)) {
-                return $result;
+            if ($handler->supports($file)) {
+                return $handler->getName($file);
             }
         }
+        throw $this->generateNotSupportedException($file);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function supports($file)
+    {
+        foreach ($this->handlers as $handler) {
+            if ($handler->supports($file)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

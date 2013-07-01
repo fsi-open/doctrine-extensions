@@ -12,7 +12,6 @@ namespace FSi\DoctrineExtensions\Uploadable\Mapping\Driver;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use FSi\Component\Reflection\ReflectionClass;
 use FSi\Component\Metadata\ClassMetadataInterface;
-use FSi\DoctrineExtensions\Uploadable\Exception\AnnotationException;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractAnnotationDriver;
 
 class Annotation extends AbstractAnnotationDriver
@@ -34,20 +33,13 @@ class Annotation extends AbstractAnnotationDriver
             }
 
             if ($uploadableAnnotation = $this->getAnnotationReader()->getPropertyAnnotation($property, self::UPLOADABLE)) {
-                if (!isset($uploadableAnnotation->targetField)) {
-                    throw new AnnotationException(sprintf('Annotation \'Uploadable\' in property \'%s\' of class \'%s\' does not have required \'targetField\' attribute', $property, $baseClassMetadata->name));
-                }
-
-                if (empty($uploadableAnnotation->targetField)) {
-                    throw new AnnotationException(sprintf('Annotation \'Uploadable\' in property \'%s\' of class \'%s\' has empty \'targetField\' attribute', $property, $baseClassMetadata->name));
-                }
-
                 $extendedClassMetadata->addUploadableProperty(
                     $property->getName(),
                     $uploadableAnnotation->targetField,
-                    $uploadableAnnotation->domain,
+                    $uploadableAnnotation->filesystem,
                     $uploadableAnnotation->keymaker,
-                    $uploadableAnnotation->keyLength
+                    $uploadableAnnotation->keyLength,
+                    $uploadableAnnotation->keyPattern
                 );
             }
         }

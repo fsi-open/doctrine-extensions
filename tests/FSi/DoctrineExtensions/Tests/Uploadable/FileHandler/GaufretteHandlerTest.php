@@ -25,14 +25,18 @@ class GaufretteHandlerTest extends BaseHandlerTest
     /**
      * @dataProvider goodInputs
      */
-    public function testHandle($input, $key, $filesystem)
+    public function testSupports($input)
     {
-        $file = $this->handler->handle($input, $key, $filesystem);
-        $this->assertTrue($file instanceof FSiFile);
-        $this->assertSame($filesystem, $file->getFilesystem());
-        $this->assertEquals($key, $file->getKey());
-        $this->assertTrue(file_exists(FILESYSTEM2 . $file->getKey()));
-        $this->assertEquals(self::CONTENT, $file->getContent());
+        $this->assertTrue($this->handler->supports($input));
+    }
+
+    /**
+     * @dataProvider goodInputs
+     */
+    public function testGetContent($input)
+    {
+        $content = $this->handler->getContent($input);
+        $this->assertEquals(self::CONTENT, $content);
     }
 
     /**
@@ -47,7 +51,6 @@ class GaufretteHandlerTest extends BaseHandlerTest
     public static function goodInputs()
     {
         $filesystem1 = new Filesystem(new Local(FILESYSTEM1));
-        $filesystem2 = new Filesystem(new Local(FILESYSTEM2));
 
         $gaufrette = new File('key1', $filesystem1);
         $gaufrette->setContent(self::CONTENT);
@@ -56,8 +59,8 @@ class GaufretteHandlerTest extends BaseHandlerTest
         $file->setContent(self::CONTENT);
 
         return array(
-            array($gaufrette, self::KEY, $filesystem2),
-            array($file, self::KEY, $filesystem2),
+            array($gaufrette),
+            array($file),
         );
     }
 }
