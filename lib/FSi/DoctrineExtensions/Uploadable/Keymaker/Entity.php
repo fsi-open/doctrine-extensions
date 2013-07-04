@@ -30,7 +30,7 @@ class Entity implements KeymakerInterface
                 '/\{original_name\}/',
             ),
             array(
-                preg_replace('/\\\\/', '/', get_class($object)),
+                preg_replace('/\\\\/', '', get_class($object)),
                 $property,
                 $id,
                 $originalName,

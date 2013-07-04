@@ -172,9 +172,10 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             new FileHandler\GaufretteHandler(),
             new FileHandler\SplFileInfoHandler(),
         ));
-        $keyMaker = new Entity();
-        $this->_uploadableListener = new UploadableListener(array('one' => $this->_filesystem1, 'two' => $this->_filesystem2), $handler, $keyMaker);
+        $keymaker = new Entity();
+        $this->_uploadableListener = new UploadableListener(array('one' => $this->_filesystem1, 'two' => $this->_filesystem2), $handler);
         $this->_uploadableListener->setDefaultFilesystem($this->_filesystem1);
+        $this->_uploadableListener->setDefaultKeymaker($keymaker);
         $evm->addEventSubscriber($this->_uploadableListener);
 
         $connectionParams = array(

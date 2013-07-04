@@ -68,22 +68,22 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * @param array|\Gaufrette\FilesystemMap $filesystems
      * @param FileHandler\FileHandlerInterface $fileHandler
-     * @param Keymaker\KeymakerInterface $keymaker
      * @throws Exception\RuntimeException
      * @internal param array $options
      */
-    public function __construct($filesystems, FileHandler\FileHandlerInterface $fileHandler, KeymakerInterface $keymaker)
+    public function __construct($filesystems, FileHandler\FileHandlerInterface $fileHandler)
     {
         // Filesystems.
         $this->setFilesystems($filesystems);
 
         // Set file handler.
         $this->setFileHandler($fileHandler);
-
-        // Set keymaker.
-        $this->setDefaultKeymaker($keymaker);
     }
 
+    /**
+     * @param array|\Gaufrette\FilesystemMap $filesystems
+     * @throws Exception\RuntimeException
+     */
     public function setFilesystems($filesystems)
     {
         $this->filesystems = array();
@@ -104,18 +104,25 @@ class UploadableListener extends MappedEventSubscriber
         }
     }
 
+    /**
+     * @param $id
+     * @param \Gaufrette\Filesystem $filesystem
+     */
     public function setFilesystem($id, Filesystem $filesystem)
     {
         $this->filesystems[$id] = $filesystem;
     }
 
+    /**
+     * @param $id
+     */
     public function removeFilesystem($id)
     {
         unset($this->filesystems[$id]);
     }
 
     /**
-     * @return array
+     * @return \Gaufrette\Filesystem[]
      */
     public function getFilesystems()
     {
@@ -304,10 +311,23 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
+     * @return bool
+     */
+    public function hasDefaultKeymaker()
+    {
+        return isset($this->defaultKeymaker);
+    }
+
+    /**
+     * @throws Exception\RuntimeException
      * @return Keymaker\KeymakerInterface
      */
     public function getDefaultKeymaker()
     {
+        if (!$this->hasDefaultKeymaker()) {
+            throw new RuntimeException('There is no default keymaker set.');
+        }
+
         return $this->defaultKeymaker;
     }
 
@@ -397,7 +417,7 @@ class UploadableListener extends MappedEventSubscriber
                 $keyLength = $this->computeKeyLength($config);
                 $keyPattern = $config['keyPattern'] ? $config['keyPattern'] : null;
 
-                $fileName = $this->getFileHandler()->getname($file);
+                $fileName = $this->getFileHandler()->getName($file);
 
                 $newKey = $this->generateNewKey($keymaker, $object, $property, $id, $fileName, $keyLength, $keyPattern, $filesystem);
 
@@ -564,8 +584,7 @@ class UploadableListener extends MappedEventSubscriber
             }
 
             $i++;
-            $testFile = new File($newKey, $filesystem);
-        } while ($testFile->exists());
+        } while ($filesystem->has($newKey));
 
         return $newKey;
     }
