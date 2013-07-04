@@ -12,7 +12,7 @@ namespace FSi\DoctrineExtensions\Mapping;
 use Doctrine\Common\Persistence\ObjectManager;
 use FSi\Component\Metadata\Driver\AbstractAnnotationDriver;
 use FSi\Component\Metadata\Driver\AbstractFileDriver;
-use FSi\Component\Metadata\Driver\DriverChain;
+use FSi\DoctrineExtensions\Mapping\Driver\DriverChain;
 use FSi\Component\Metadata\MetadataFactory;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception;

@@ -4,9 +4,11 @@ This is a set of Doctrine 2 behavioral extensions.
 
 Documentation for each extension can be found in ``/doc`` folder:
 
+- [doc/mapping.md](doc/mapping.md) - *Mapping*
 - [doc/lostorage.md](doc/lostorage.md) - *Large Objects Storage*
 - [doc/translatable.md](doc/translatable.md) - *Translatable*
 - [doc/versionable.md](doc/versionable.md) - *Versionable*
+- [doc/uploadable.md](doc/uploadable.md) - *Uploadable*
 
 
 ## 1. Download Doctrine Extensions
