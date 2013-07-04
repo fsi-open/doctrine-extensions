@@ -49,26 +49,13 @@ This configuration will allow you to handle instances of `Gaufrette\File` (inclu
 
 File handler must be instance of `FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface`.
 
-### Keymaker
-
-Third argument is object, that is responsible for creating keys for new files.
-
-```php
-<?php
-
-use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
-
-$keyMaker = new Entity();
-```
-
-It must be instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`.
-
 ### Result
 
 ```php
 
 use Doctrine\Common\EventManager;
 use FSi\DoctrineExtensions\Uploadable\UploadableListener
+use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 
 $evm = new EventManager();
 
@@ -76,9 +63,16 @@ $uploadableListener = new UploadableListener($filesystems, $fileHandler, $keymak
 $evm->addEventSubscriber($uploadableListener);
 // now this event manager should be passed to entity manager constructor
 
-// It's also good idea to set default filesystem if you want to use annotations without
+// It's good idea to set default filesystem if you want to use annotations without
 // specifying filesystem.
 $uploadableListener->setDefaultFilesystem($filesystem1);
+
+// It's also good idea to set default keymaker if you want to use annotations without
+// specifying keymaker.
+$keymaker = new Entity();
+$uploadableListener->setDefaultKeymaker($keymaker);
+// It must be instance of FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface.
+
 ```
 
 ## Simple entity annotations and usage example
