@@ -12,11 +12,17 @@ namespace FSi\DoctrineExtensions\Tests\Tool;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Common\Util\Debug;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
+use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
+use FSi\DoctrineExtensions\Uploadable\UploadableListener;
 use FSi\DoctrineExtensions\Versionable\VersionableListener;
 use FSi\DoctrineExtensions\LoStorage\LoStorageListener;
+use FSi\DoctrineExtensions\Uploadable\FileHandler;
+use Gaufrette\Adapter\Local;
+use Gaufrette\Filesystem;
 
 /**
  * This is the base test class for other Doctrine related tests
@@ -46,9 +52,24 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
     protected $_loListener;
 
     /**
+     * @var \FSi\DoctrineExtensions\Uploadable\UploadableListener
+     */
+    protected $_uploadableListener;
+
+    /**
      * @var \Doctrine\DBAL\Logging\DebugStack
      */
     protected $_logger;
+
+    /**
+     * @var \Gaufrette\Filesystem
+     */
+    protected $_filesystem1;
+
+    /**
+     * @var \Gaufrette\Filesystem
+     */
+    protected $_filesystem2;
 
     /**
      * Creates default mapping driver
@@ -103,6 +124,12 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             }))
             ;
 
+        $config
+            ->expects($this->any())
+            ->method('getRepositoryFactory')
+            ->will($this->returnValue(new DefaultRepositoryFactory()))
+        ;
+
         $mappingDriver = $this->getMetadataDriverImplementation();
 
         $config
@@ -138,13 +165,19 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $this->_loListener = new LoStorageListener(array('basePath' => TESTS_TEMP_DIR . '/cache'));
         $evm->addEventSubscriber($this->_loListener);
 
-/*        $connectionParams = array(
-            'driver'    => 'pdo_mysql',
-            'host'      => 'localhost',
-            'dbname'    => 'fsite2-lukasz',
-            'user'      => 'fsite2-lukasz',
-            'password'  => 'chahtaekotie'
-        );*/
+        $this->_filesystem1 = new Filesystem(new Local(FILESYSTEM1));
+        $this->_filesystem2 = new Filesystem(new Local(FILESYSTEM2));
+
+        $handler = new FileHandler\ChainHandler(array(
+            new FileHandler\GaufretteHandler(),
+            new FileHandler\SplFileInfoHandler(),
+        ));
+        $keymaker = new Entity();
+        $this->_uploadableListener = new UploadableListener(array('one' => $this->_filesystem1, 'two' => $this->_filesystem2), $handler);
+        $this->_uploadableListener->setDefaultFilesystem($this->_filesystem1);
+        $this->_uploadableListener->setDefaultKeymaker($keymaker);
+        $evm->addEventSubscriber($this->_uploadableListener);
+
         $connectionParams = array(
             'driver'    => 'pdo_sqlite',
             'memory'    => true,
@@ -165,4 +198,10 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         return $em;
     }
 
+    /**
+     * Get array of classes of entities used in test.
+     *
+     * @return array
+     */
+    abstract protected function getUsedEntityFixtures();
 }
