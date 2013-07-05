@@ -1,5 +1,7 @@
 # Large Objects' Storage behavioral extension for Doctrine 2
 
+**Deprecated** - please use uploadable extension instead.
+
 **LoStorage** behaviour will automate storing and retrieving large objects (BLOBs) in entities. It simplifies operation of
 storing any file's contents in a BLOB field to setting its filepath (or URL) in specially annotated entity property which is
 not persisted. Retrieving the BLOB's contents after loading an entity is as simple as referring to the cached file pointed by

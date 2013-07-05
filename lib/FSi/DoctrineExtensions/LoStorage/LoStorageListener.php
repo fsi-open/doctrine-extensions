@@ -24,6 +24,7 @@ use FSi\DoctrineExtensions\LoStorage\Mapping\ClassMetadata as LoStorageClassMeta
 
 /**
  * @author Lukasz Cybula <lukasz.cybula@fsi.pl>
+ * @deprecated please use uploadable extension instead
  */
 class LoStorageListener extends MappedEventSubscriber
 {
