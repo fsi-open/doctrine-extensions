@@ -75,6 +75,8 @@ $uploadableListener->setDefaultKeymaker($keymaker);
 
 ```
 
+You can find documentation to keymaker shipped with uploadable extension here [/doc/uploadable/keymaker.md](/doc/uploadable/keymaker.md).
+
 ## Simple entity annotations and usage example
 
 Here is an example of an entity with uploadable property:
