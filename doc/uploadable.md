@@ -77,6 +77,14 @@ $uploadableListener->setDefaultKeymaker($keymaker);
 
 You can find documentation to keymaker shipped with uploadable extension here [/doc/uploadable/keymaker.md](/doc/uploadable/keymaker.md).
 
+## Uploadable annotation options
+
+- **targetField** - Required. Attribute of entity, the file object will be loaded to.
+- **filesystem** - Filesystem name. If not set, default filesystem will be chosen.
+- **keymaker** - Strategy for creating file keys, null by default. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
+- **keyLength** - Allowed key length, 255 by default.
+- **keyPattern** - Pattern of key. Depend on keymaker, can contain replaceable variables.
+
 ## Simple entity annotations and usage example
 
 Here is an example of an entity with uploadable property:
@@ -144,28 +152,18 @@ class User
 }
 ```
 
-## Uploadable annotation options
-
-- **targetField** - Required. Attribute of entity, the file object will be loaded to.
-- **filesystem** - Filesystem name. If not set, default filesystem will be chosen.
-- **keymaker** - Strategy for creating file keys, null by default. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
-- **keyLength** - Allowed key length, 255 by default.
-- **keyPattern** - Pattern of key. Depend on keymaker, can contain replaceable variables.
-
 ## Usage
 
+In every exeample below class `Acme\DemoBundle\Entity\User` is as defined above.
+
+### Adding files when inserting new entity.
 ```php
 <?php
 
-use Acme\DemoBundle\Entity\User; // See declaration above.
+use Acme\DemoBundle\Entity\User;
 
-// Must be instances of something, that $fileHandler can handle.
-$file;
-$file2;
-
-// Insertion.
 $user = new User();
-$user->setFile($file);
+$user->setFile($file); // $file must be instances of something, that $fileHandler can handle.
 
 $entityManager->persist($user);
 $entityManager->flush();
@@ -174,19 +172,57 @@ $user->getFileKey(); // Returns new key of file.
 $user->getFile()->getKey(); // Returns the same as line above, but you must check if getFile doesn't return null.
 $tmpFile1 = $user->getFile(); // Instance of FSi\DoctrineExtensions\Uploadable\File.
 $tmpFile1->exists(); // true
+```
 
-// Update.
+### Updating uploadable property with new file.
+```php
+<?php
+
+use Acme\DemoBundle\Entity\User;
+
+// $user = (...) // Obtain instance of User from database.
+
+$file1 = $user->getFile();
 $user->setFile($file2);
 $entityManager->flush();
-$tmpFile1->exists(); // false;
+$file1->exists(); // false
+```
 
-$tmpFile2 = $user->getFile();
+Note, that old file, that was attached to entity earlier was automatically deleted.
 
-// Deletion.
+### Deletion of files and entities with files.
+
+You can delete single file from entity.
+
+```php
+<?php
+
+use Acme\DemoBundle\Entity\User;
+
+// $user = (...) // Obtain instance of User from database.
+$file = $user->getFile();
+
+$user->deleteFile();
+$entityManager->flush();
+
+$file2->exists(); // false
+
+```
+
+Or you can just delete whole entity. All its files will be deleted automatically with that entity.
+
+```php
+<?php
+
+use Acme\DemoBundle\Entity\User;
+
+// $user = (...) // Obtain instance of User from database.
+$file = $user->getFile();
+
 $entityManager->remove($user);
 $entityManager->flush();
 
-$tmpFile2->exists(); // false
+$file2->exists(); // false
 
 ```
 
@@ -200,11 +236,17 @@ If file is already attached, you can modify file directly.
 $user->getFile()->setContent('some content');
 ```
 
-**Heads up!** This way if something fails **changes won't be undone!** Remember that replacing it with something new is much more safer.
+**Heads up!** This way if something fails, **changes won't be undone!** Remember that replacing it with something new is much more safer, so preferable way is:
 
-## Deletion and update
+```php
+<?php
 
-After update/delete old files will be *automatically* removed from adequate filesystems.
+$file = new \SplFileInfo(tempname(sys_get_tmp_dir(), ''));
+$fileObj = $file->openFile('a');
+$fileObj->fwrite('some content');
+$user->setFile($file);
+
+```
 
 ## Deletion and update when Doctrine update fails
 
