@@ -58,6 +58,16 @@ class User
         return $this->id;
     }
 
+    public function setFileKey($key)
+    {
+        $this->fileKey = $key;
+    }
+
+    public function getFileKey()
+    {
+        return $this->fileKey;
+    }
+
     public function setFile($file)
     {
         if (!empty($file)) {
@@ -70,14 +80,19 @@ class User
         return $this->file;
     }
 
-    public function getFileKey()
-    {
-        return $this->fileKey;
-    }
-
     public function deleteFile()
     {
         $this->file = null;
+    }
+
+    public function setFile2Key($key)
+    {
+        $this->file2Key = $key;
+    }
+
+    public function getFile2Key()
+    {
+        return $this->file2Key;
     }
 
     public function setFile2($file)
@@ -90,11 +105,6 @@ class User
     public function getFile2()
     {
         return $this->file2;
-    }
-
-    public function getFile2Key()
-    {
-        return $this->file2Key;
     }
 
     public function deleteFile2()

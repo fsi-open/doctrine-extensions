@@ -128,6 +128,16 @@ class User
 
 	protected $file;
 
+	public function setFileKey($key)
+	{
+		$this->fileKey = $key;
+	}
+
+	public function getFileKey()
+	{
+	    return $this->fileKey;
+	}
+
 	public function setFile($file)
 	{
 	    if (!empty($file)) {
@@ -140,17 +150,14 @@ class User
 	    return $this->file;
 	}
 
-	public function getFileKey()
-	{
-	    return $this->fileKey;
-	}
-
 	public function deleteFile()
 	{
 		$this->file = null;
 	}
 }
 ```
+
+Note that both `$fileKey` and `$file` properties **MUST** have defined getters and setters.
 
 ## Usage
 

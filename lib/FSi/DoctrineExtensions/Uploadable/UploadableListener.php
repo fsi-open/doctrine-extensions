@@ -361,9 +361,7 @@ class UploadableListener extends MappedEventSubscriber
         $propertyObserver = $this->getPropertyObserver($objectManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             // File key.
-            $reflection = new \ReflectionProperty($object, $property);
-            $reflection->setAccessible(true);
-            $key = $reflection->getValue($object);
+            $key = PropertyAccess::getPropertyAccessor()->getValue($object, $property);
 
             // Injecting file.
             if (!empty($key)) {
@@ -392,21 +390,20 @@ class UploadableListener extends MappedEventSubscriber
 
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             if (!$propertyObserver->hasSavedValue($object, $config['targetField']) || $propertyObserver->hasValueChanged($object, $config['targetField'])) {
-                $file = PropertyAccess::getPropertyAccessor()->getValue($object, $config['targetField']);
-                $reflection = new \ReflectionProperty($object, $property);
-                $reflection->setAccessible(true);
+                $accessor = PropertyAccess::getPropertyAccessor();
+                $file = $accessor->getValue($object, $config['targetField']);
 
                 $filesystem = $this->computeFilesystem($config);
 
                 // Since file has changed, the old one should be removed.
-                if ($oldKey = $reflection->getValue($object)) {
+                if ($oldKey = $accessor->getValue($object, $property)) {
                     if ($oldFile = $propertyObserver->getSavedValue($object, $config['targetField'])) {
                         $this->addToDelete($oldFile);
                     }
                 }
 
                 if (empty($file)) {
-                    $reflection->setValue($object, null);
+                    $accessor->setValue($object, $property, null);
                     $propertyObserver->saveValue($object, $config['targetField']);
                     continue;
                 }
@@ -425,7 +422,7 @@ class UploadableListener extends MappedEventSubscriber
 
                 $newFile = new File($newKey, $filesystem);
                 $newFile->setContent($this->getFileHandler()->getContent($file));
-                $reflection->setValue($object, $newFile->getKey());
+                $accessor->setValue($object, $property, $newFile->getKey());
                 // Save its current value, so if another update will be called, there won't be another saving.
                 $propertyObserver->setValue($object, $config['targetField'], $newFile);
             }
@@ -442,10 +439,7 @@ class UploadableListener extends MappedEventSubscriber
     protected function deleteFiles($uploadableMeta, $object)
     {
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            $reflection = new \ReflectionProperty($object, $property);
-            $reflection->setAccessible(true);
-
-            if ($oldKey = $reflection->getValue($object)) {
+            if ($oldKey = PropertyAccess::getPropertyAccessor()->getValue($object, $property)) {
                 $this->addToDelete(new File($oldKey, $this->computeFilesystem($config)));
             }
         }
