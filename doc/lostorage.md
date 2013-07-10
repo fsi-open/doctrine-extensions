@@ -202,7 +202,7 @@ class News
 }
 ```
 
-Additionaly helper entity which really holds the BLOB field must be defined i.e:
+Additionally helper entity which really holds the BLOB field must be defined i.e:
 
 ```php
 namespace Entity;
@@ -267,6 +267,38 @@ The physical path where cache file will be saved is imploded from following dire
 - ``LoStorageListener``'s basePath
 - Entity annotation ``@LO\Filepath`` value attribute (or default directory taken from class name)
 - Field annotation ``@LO\Filepath`` value attribute for specific Large Object (if present)
+
+**options:**
+
+- ``lo`` - (``string``) _optional_ default: ``'lo'``, this is the name of this large object; each entity can contain multiple LOs
+- ``value`` - (``string``) _optional_, name of subdirectory where this LO's cache files will be stored
+
+example:
+
+```php
+    /**
+     * @LO\Filepath(lo="thumbnail", value="thumb")
+     */
+    private $thumbnail_filepath;
+
+    /**
+     * @LO\Filepath(lo="photo", value="photo")
+     */
+    private $photo_filepath;
+```
+
+### @FSi\DoctrineExtensions\LoStorage\Mapping\Annotation\File (required)
+
+**property** annotation
+
+Field marked with this annotation holds ``SplFileInfo`` object of the real file. You can set source file's SplFileInfo
+before persisting or updating the entity and retrieve cached SplFileInfo after ``$em->flush()``. This field must not be
+an ORM persisted field.
+
+The physical path where cache file will be saved is imploded from following directory levels:
+- ``LoStorageListener``'s basePath
+- Entity annotation ``@LO\Filepath`` value attribute (or default directory taken from class name)
+- Field annotation ``@LO\File`` value attribute for specific Large Object (if present)
 
 **options:**
 

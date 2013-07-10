@@ -20,6 +20,7 @@ class Annotation extends AbstractAnnotationDriver
     const TIMESTAMP = 'FSi\\DoctrineExtensions\\LoStorage\\Mapping\\Annotation\\Timestamp';
     const FILENAME = 'FSi\\DoctrineExtensions\\LoStorage\\Mapping\\Annotation\\Filename';
     const FILEPATH = 'FSi\\DoctrineExtensions\\LoStorage\\Mapping\\Annotation\\Filepath';
+    const FILE = 'FSi\\DoctrineExtensions\\LoStorage\\Mapping\\Annotation\\File';
     const MIMETYPE = 'FSi\\DoctrineExtensions\\LoStorage\\Mapping\\Annotation\\MimeType';
     const SIZE = 'FSi\\DoctrineExtensions\\LoStorage\\Mapping\\Annotation\\Size';
     const DATA = 'FSi\\DoctrineExtensions\\LoStorage\\Mapping\\Annotation\\Data';
@@ -29,6 +30,7 @@ class Annotation extends AbstractAnnotationDriver
         'timestamp' => self::TIMESTAMP,
         'filename' => self::FILENAME,
         'filepath' => self::FILEPATH,
+        'file' => self::FILE,
         'mimetype' => self::MIMETYPE,
         'size' => self::SIZE,
         'data' => self::DATA
@@ -63,8 +65,13 @@ class Annotation extends AbstractAnnotationDriver
                                 . '". Multiple large objects in the same entity need to be named unambiguously.');
                     }
                     $largeObjects[$annotation->lo]['fields'][$field] = $property->getName();
-                    if (isset($annotation->value))
-                        $largeObjects[$annotation->lo]['values'][$field] = $annotation->value;
+                    if (isset($annotation->value)) {
+                        if ($field == 'file') {
+                            $largeObjects[$annotation->lo]['values']['filepath'] = $annotation->value;
+                        } else {
+                            $largeObjects[$annotation->lo]['values'][$field] = $annotation->value;
+                        }
+                    }
                 }
             }
             if ($storage = $this->getAnnotationReader()->getPropertyAnnotation($property, self::STORAGE)) {
