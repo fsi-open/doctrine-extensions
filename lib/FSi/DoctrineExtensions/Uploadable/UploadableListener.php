@@ -260,7 +260,9 @@ class UploadableListener extends MappedEventSubscriber
     public function postFlush(PostFlushEventArgs $eventArgs)
     {
         foreach ($this->toDelete as $file) {
-            $file->delete();
+            if ($file->exists()) {
+                $file->delete();
+            }
         }
     }
 
