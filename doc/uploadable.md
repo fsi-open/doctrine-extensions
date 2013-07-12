@@ -150,7 +150,7 @@ class User
 	    return $this->file;
 	}
 
-	public function deleteFile()
+	public function removeFile()
 	{
 		$this->file = null;
 	}
@@ -209,7 +209,7 @@ use Acme\DemoBundle\Entity\User;
 // $user = (...) // Obtain instance of User from database.
 $file = $user->getFile();
 
-$user->deleteFile();
+$user->removeFile();
 $entityManager->flush();
 
 $file2->exists(); // false
@@ -264,7 +264,7 @@ If you update/delete file and flush will raise an exception, old files will stil
 
 try {
     $file1 = $user->getFile1();
-    $user->deleteFile1();
+    $user->removeFile();
     $file2 = $user->getFile2();
     $user->setFile2($someFile);
 
@@ -290,7 +290,7 @@ $entityManager->getConnection()->beginTransaction(); // Suspend auto-commit.
 
 try {
     $file1 = $user->getFile1();
-    $user->deleteFile1();
+    $user->removeFile();
     $file2 = $user->getFile2();
     $user->setFile2($someFile);
 
