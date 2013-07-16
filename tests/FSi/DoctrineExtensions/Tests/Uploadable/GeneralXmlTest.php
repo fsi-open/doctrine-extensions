@@ -22,7 +22,7 @@ class GeneralXmlTest extends GeneralTest
      */
     public function testWrongAnnotations($class)
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\MappingException');
         $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
     }
 

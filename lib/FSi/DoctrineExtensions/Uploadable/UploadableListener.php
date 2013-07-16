@@ -19,6 +19,7 @@ use FSi\Component\PropertyObserver\PropertyObserver;
 use FSi\DoctrineExtensions\Mapping\Event\AdapterInterface;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
+use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use Gaufrette\Filesystem;
@@ -466,32 +467,32 @@ class UploadableListener extends MappedEventSubscriber
     {
         foreach ($extendedClassMetadata->getUploadableProperties() as $field => $options) {
             if (empty($options['targetField'])) {
-                throw new RuntimeException(sprintf('Metadata "Uploadable" in property "%s" of class "%s" does not have required "targetField" attribute, or attribute is empty.', $field, $baseClassMetadata->name));
+                throw new MappingException(sprintf('Mapping "Uploadable" in property "%s" of class "%s" does not have required "targetField" attribute, or attribute is empty.', $field, $baseClassMetadata->name));
             }
 
             if (!property_exists($baseClassMetadata->name, $options['targetField'])) {
-                throw new RuntimeException(sprintf('Metadata "Uploadable" in property "%s" of class "%s" has "targetField" set to "%s", which doesn\'t exist.', $field, $baseClassMetadata->name, $options['targetField']));
+                throw new MappingException(sprintf('Mapping "Uploadable" in property "%s" of class "%s" has "targetField" set to "%s", which doesn\'t exist.', $field, $baseClassMetadata->name, $options['targetField']));
             }
 
             if ($baseClassMetadata->hasField($options['targetField'])) {
-                throw new RuntimeException(sprintf('Metadata "Uploadable" in property "%s" of class "%s" have "targetField" that points at already mapped field ("%s").', $field, $baseClassMetadata->name, $options['targetField']));
+                throw new MappingException(sprintf('Mapping "Uploadable" in property "%s" of class "%s" have "targetField" that points at already mapped field ("%s").', $field, $baseClassMetadata->name, $options['targetField']));
             }
 
             if (!$baseClassMetadata->hasField($field)) {
-                throw new RuntimeException(sprintf('Property "%s" of class "%s" have metadata "Uploadable" but isn\'t mapped as Doctrine\'s column.', $field, $baseClassMetadata->name, $options['targetField']));
+                throw new MappingException(sprintf('Property "%s" of class "%s" have mapping "Uploadable" but isn\'t mapped as Doctrine\'s column.', $field, $baseClassMetadata->name, $options['targetField']));
             }
 
             if (!is_null($options['keyLength']) and !is_numeric($options['keyLength'])) {
-                throw new RuntimeException(sprintf('Property "%s" of class "%s" have metadata "Uploadable" with key length is not a number.', $field, $baseClassMetadata->name, $options['targetField']));
+                throw new MappingException(sprintf('Property "%s" of class "%s" have mapping "Uploadable" with key length is not a number.', $field, $baseClassMetadata->name, $options['targetField']));
             }
 
             if (!is_null($options['keyLength']) and $options['keyLength'] < 1) {
-                throw new RuntimeException(sprintf('Property "%s" of class "%s" have metadata "Uploadable" with key length less than 1.', $field, $baseClassMetadata->name, $options['targetField']));
+                throw new MappingException(sprintf('Property "%s" of class "%s" have mapping "Uploadable" with key length less than 1.', $field, $baseClassMetadata->name, $options['targetField']));
             }
 
             if (!is_null($options['keymaker']) and !$options['keymaker'] instanceof KeymakerInterface) {
-                throw new RuntimeException(sprintf(
-                    'Metadata "Uploadable" in property "%s" of class "%s" does have keymaker that isn\'t instance of expected FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface ("%s" given).',
+                throw new MappingException(sprintf(
+                    'Mapping "Uploadable" in property "%s" of class "%s" does have keymaker that isn\'t instance of expected FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface ("%s" given).',
                     $field,
                     $baseClassMetadata->name,
                     is_object($options['keymaker']) ? get_class($options['keymaker']) : gettype($options['keymaker'])
