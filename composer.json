@@ -22,6 +22,7 @@
         "fsi/property-observer": "0.9.*",
         "knplabs/gaufrette": "dev-master"
     },
+    "minimum-stability": "dev",
     "require-dev": {
         "doctrine/dbal": "~2.3@dev",
         "doctrine/orm": "~2.3@dev"
