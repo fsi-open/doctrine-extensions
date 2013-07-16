@@ -159,6 +159,16 @@ class User
 
 Note that both `$fileKey` and `$file` properties **MUST** have defined getters and setters.
 
+There is also example with xml mapping - [/doc/uploadable/xml.md](/doc/uploadable/xml.md).
+
+## Uploadable options
+
+- **targetField** - Required. Attribute of entity, the file object will be loaded to.
+- **filesystem** - Filesystem name. If not set, default filesystem will be chosen.
+- **keymaker** - Strategy for creating file keys, null by default. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
+- **keyLength** - Allowed key length, 255 by default.
+- **keyPattern** - Pattern of key. Depend on keymaker, can contain replaceable variables.
+
 ## Usage
 
 In every exeample below class `Acme\DemoBundle\Entity\User` is as defined above.

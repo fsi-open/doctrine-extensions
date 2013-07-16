@@ -10,14 +10,14 @@
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
-use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use FSi\DoctrineExtensions\Uploadable\File;
 
-class GeneralTest extends BaseORMTest
+abstract class GeneralTest extends BaseORMTest
 {
-    const USER = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\User';
     const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
+
+    protected $_em;
 
     protected function setUp()
     {
@@ -25,9 +25,14 @@ class GeneralTest extends BaseORMTest
         $this->_em = $this->getEntityManager();
     }
 
+    /**
+     * Return instance of entity to use in test.
+     */
+    abstract protected function getUser();
+
     public function testInsertSplFileInfo()
     {
-        $user = new User();
+        $user = $this->getUser();
         $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file);
@@ -44,7 +49,7 @@ class GeneralTest extends BaseORMTest
     {
         $key = 'some/key';
 
-        $user = new User();
+        $user = $this->getUser();
         $file = new File($key, $this->_filesystem1);
         $file->setContent('');
 
@@ -58,7 +63,7 @@ class GeneralTest extends BaseORMTest
 
     public function testUpdate()
     {
-        $user = new User();
+        $user = $this->getUser();
         $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
         $file2 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE2);
 
@@ -81,7 +86,7 @@ class GeneralTest extends BaseORMTest
 
     public function testDelete()
     {
-        $user = new User();
+        $user = $this->getUser();
         $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
@@ -100,7 +105,7 @@ class GeneralTest extends BaseORMTest
 
     public function testDeleteWithFailure()
     {
-        $user = new User();
+        $user = $this->getUser();
         $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
@@ -127,7 +132,7 @@ class GeneralTest extends BaseORMTest
 
     public function testUpdateWithFailure()
     {
-        $user = new User();
+        $user = $this->getUser();
         $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
         $file2 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE2);
 
@@ -157,7 +162,7 @@ class GeneralTest extends BaseORMTest
 
     public function testDeleteEntity()
     {
-        $user = new User();
+        $user = $this->getUser();
         $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
@@ -177,7 +182,7 @@ class GeneralTest extends BaseORMTest
     {
         $content = 'some content';
 
-        $user = new User();
+        $user = $this->getUser();
         $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
@@ -201,7 +206,7 @@ class GeneralTest extends BaseORMTest
     {
         $content = 'some content';
 
-        $user = new User();
+        $user = $this->getUser();
         $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
@@ -233,7 +238,7 @@ class GeneralTest extends BaseORMTest
     {
         $key = 'some/key' . str_repeat('/aaaa', 60);
 
-        $user = new User();
+        $user = $this->getUser();
         $file = new File($key, $this->_filesystem1);
         $file->setContent('');
 
@@ -245,7 +250,7 @@ class GeneralTest extends BaseORMTest
 
     public function testLoadingFiles()
     {
-        $user = new User();
+        $user = $this->getUser();
         $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file);
@@ -253,7 +258,7 @@ class GeneralTest extends BaseORMTest
         $this->_em->flush();
 
         $this->_em->clear();
-        $all = $this->_em->getRepository(self::USER)->findAll();
+        $all = $this->_em->getRepository(get_class($user))->findAll();
         $user = array_shift($all);
 
         $path = FILESYSTEM1 . $user->getFileKey();
@@ -266,15 +271,5 @@ class GeneralTest extends BaseORMTest
     {
         Utils::deleteRecursive(FILESYSTEM1);
         Utils::deleteRecursive(FILESYSTEM2);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected function getUsedEntityFixtures()
-    {
-        return array(
-            self::USER,
-        );
     }
 }

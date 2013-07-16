@@ -135,8 +135,9 @@ abstract class MappedEventSubscriber implements EventSubscriber
         $factory = $this->getExtendedMetadataFactory($objectManager);
         $extendedMetadata = $factory->getClassMetadata($class);
         $metadata = $objectManager->getClassMetadata($class);
-        if (!$metadata->isMappedSuperclass)
+        if (!$metadata->isMappedSuperclass) {
             $this->validateExtendedMetadata($metadata, $extendedMetadata);
+        }
         return $extendedMetadata;
     }
 
