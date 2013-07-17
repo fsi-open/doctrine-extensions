@@ -5,11 +5,10 @@
     http://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd"
     xmlns:fsi="fsi">
 
-    <entity name="FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\BaseUser">
-        <id name="id" type="integer" column="id">
-            <generator strategy="AUTO"/>
-        </id>
-        <field type="string" name="name" length="255"/>
+    <entity name="FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User5">
+        <field type="string" name="fileKey" nullable="true">
+            <fsi:uploadable targetField="file" keyLength="0"/>
+        </field>
     </entity>
 
 </doctrine-mapping>

@@ -5,9 +5,9 @@
     http://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd"
     xmlns:fsi="fsi">
 
-    <entity name="FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\User2">
+    <entity name="FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User6">
         <field type="string" name="fileKey" nullable="true">
-            <fsi:uploadable targetField=""/>
+            <fsi:uploadable targetField="file" keyLength="-1"/>
         </field>
     </entity>
 

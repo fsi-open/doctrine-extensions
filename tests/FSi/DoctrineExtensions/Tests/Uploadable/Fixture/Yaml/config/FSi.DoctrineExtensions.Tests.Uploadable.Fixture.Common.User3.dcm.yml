@@ -1,0 +1,10 @@
+FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User3:
+    type: entity
+    fields:
+        fileKey:
+            type: string
+            length: 255
+            nullable: true
+            fsi:
+                uploadable:
+                    targetField:

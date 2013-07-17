@@ -10,9 +10,9 @@
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
-use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Doctrine\ORM\Mapping\Driver\YamlDriver;
 
-class GeneralXmlTest extends GeneralTest
+class GeneralYamlTest extends GeneralTest
 {
     const USER = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\User';
     const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Common\\';
@@ -20,7 +20,7 @@ class GeneralXmlTest extends GeneralTest
     /**
      * @dataProvider wrongClasses
      */
-    public function testWrongAnnotations($class)
+    public function testWrongMapping($class)
     {
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\MappingException');
         $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
@@ -40,7 +40,7 @@ class GeneralXmlTest extends GeneralTest
      */
     protected function getMetadataDriverImplementation()
     {
-        return new XmlDriver(__DIR__.'/Fixture/Xml/config');
+        return new YamlDriver(__DIR__.'/Fixture/Yaml/config');
     }
 
     /**

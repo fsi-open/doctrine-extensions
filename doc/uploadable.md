@@ -159,7 +159,7 @@ class User
 
 Note that both `$fileKey` and `$file` properties **MUST** have defined getters and setters.
 
-There is also example with xml mapping - [/doc/uploadable/xml.md](/doc/uploadable/xml.md).
+There is also example with xml mapping - [/doc/uploadable/xml.md](/doc/uploadable/xml.md) and yaml mapping [/doc/uploadable/yaml.md](/doc/uploadable/yaml.md).
 
 ## Uploadable options
 
