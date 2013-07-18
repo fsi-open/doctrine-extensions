@@ -55,8 +55,9 @@ final class ExtendedMetadataFactory extends MetadataFactory
         $omDriver = $objectManager->getConfiguration()->getMetadataDriverImpl();
         $omCache = $this->objectManager->getMetadataFactory()->getCacheDriver();
         $metadataClassName = null;
-        if (class_exists($this->extensionNamespace . '\Mapping\ClassMetadata'))
+        if (class_exists($this->extensionNamespace . '\Mapping\ClassMetadata')) {
             $metadataClassName = $this->extensionNamespace . '\Mapping\ClassMetadata';
+        }
         $driver = $this->getDriver($omDriver);
         $driver->setBaseMetadataFactory($objectManager->getMetadataFactory());
         parent::__construct($driver, $omCache, $extensionNamespace, $metadataClassName);
@@ -91,12 +92,12 @@ final class ExtendedMetadataFactory extends MetadataFactory
                 }
             }
             $driver = new $driverClassName();
-            if (!($driver instanceof DriverInterface)) {
+            if (!$driver instanceof DriverInterface) {
                 throw new Exception\RuntimeException(sprintf("Driver of class %s does not implement required FSi\DoctrineExtensions\Mapping\Driver\DriverInterface", get_class($driver)));
             }
             if ($driver instanceof AbstractFileDriver) {
                 /** @var $driver FileDriver */
-                $driver->setLocator($omDriver->getLocator());
+                $driver->setFileLocator($omDriver->getLocator());
             }
             if ($driver instanceof AbstractAnnotationDriver) {
                 $driver->setAnnotationReader($this->annotationReader);

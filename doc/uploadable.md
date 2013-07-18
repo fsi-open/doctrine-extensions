@@ -63,11 +63,11 @@ $uploadableListener = new UploadableListener($filesystems, $fileHandler, $keymak
 $evm->addEventSubscriber($uploadableListener);
 // now this event manager should be passed to entity manager constructor
 
-// It's good idea to set default filesystem if you want to use annotations without
+// It's good idea to set default filesystem if you want to use uploadable without
 // specifying filesystem.
 $uploadableListener->setDefaultFilesystem($filesystem1);
 
-// It's also good idea to set default keymaker if you want to use annotations without
+// It's also good idea to set default keymaker if you want to use uploadable without
 // specifying keymaker.
 $keymaker = new Entity();
 $uploadableListener->setDefaultKeymaker($keymaker);
@@ -77,7 +77,7 @@ $uploadableListener->setDefaultKeymaker($keymaker);
 
 You can find documentation to keymaker shipped with uploadable extension here [/doc/uploadable/keymaker.md](/doc/uploadable/keymaker.md).
 
-## Uploadable annotation options
+## Uploadable options
 
 - **targetField** - Required. Attribute of entity, the file object will be loaded to.
 - **filesystem** - Filesystem name. If not set, default filesystem will be chosen.
@@ -158,6 +158,16 @@ class User
 ```
 
 Note that both `$fileKey` and `$file` properties **MUST** have defined getters and setters.
+
+There is also example with xml mapping - [/doc/uploadable/xml.md](/doc/uploadable/xml.md) and yaml mapping [/doc/uploadable/yaml.md](/doc/uploadable/yaml.md).
+
+## Uploadable options
+
+- **targetField** - Required. Attribute of entity, the file object will be loaded to.
+- **filesystem** - Filesystem name. If not set, default filesystem will be chosen.
+- **keymaker** - Strategy for creating file keys, null by default. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
+- **keyLength** - Allowed key length, 255 by default.
+- **keyPattern** - Pattern of key. Depend on keymaker, can contain replaceable variables.
 
 ## Usage
 
