@@ -17,6 +17,7 @@
         "php": ">=5.3.0",
         "doctrine/common": "~2.3@dev",
         "symfony/property-access": "~2.2",
+        "symfony/yaml": "~2.2",
         "fsi/reflection": "0.9.*",
         "fsi/metadata": "0.9.*",
         "fsi/property-observer": "0.9.*",

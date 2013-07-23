@@ -9,6 +9,8 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\Exception;
 
-class AnnotationException extends RuntimeException
+use FSi\DoctrineExtensions\Exception\MappingException as BaseMappingException;
+
+class MappingException extends BaseMappingException implements ExceptionInterface
 {
 }

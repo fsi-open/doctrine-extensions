@@ -1,0 +1,11 @@
+FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\BaseUser:
+    type: entity
+    id:
+        id:
+            type: integer
+            generator:
+                strategy: AUTO
+    fields:
+        name:
+            type: string
+            length: 255

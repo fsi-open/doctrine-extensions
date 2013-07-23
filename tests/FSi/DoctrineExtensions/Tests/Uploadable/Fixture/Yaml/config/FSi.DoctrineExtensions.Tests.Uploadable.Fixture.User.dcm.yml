@@ -1,0 +1,25 @@
+FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User:
+    type: entity
+    id:
+        id:
+            type: integer
+            generator:
+                strategy: AUTO
+    fields:
+        name:
+            type: string
+            length: 255
+        fileKey:
+            type: string
+            length: 255
+            nullable: true
+            fsi:
+                uploadable:
+                    targetField: file
+        file2Key:
+            type: string
+            length: 255
+            nullable: true
+            fsi:
+                uploadable:
+                    targetField: file2
