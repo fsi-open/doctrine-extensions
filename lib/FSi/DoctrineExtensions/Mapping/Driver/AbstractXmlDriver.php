@@ -81,11 +81,15 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
         );
 
         // Elements from unknown namespaces are removed before validation.
-        $known = array('xml', 'xsi', 'fsi');
+        $known = array(
+            'http://fsi.pl/schemas/orm/doctrine-extensions-mapping',
+            'http://doctrine-project.org/schemas/orm/doctrine-mapping',
+            'http://www.w3.org/XML/1998/namespace',
+            'http://www.w3.org/2001/XMLSchema-instance',
+        );
         $xpath = new DOMXPath($dom);
         foreach ($xpath->query('namespace::*', $dom->documentElement) as $xmlns) {
-            $parts = explode(':', $xmlns->nodeName);
-            if (count($parts) < 2 || in_array($parts[1], $known)) {
+            if (in_array($xmlns->nodeValue, $known)) {
                 continue;
             }
 
@@ -94,7 +98,7 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
             }
         }
 
-        // Importing
+        // Importing schemas.
         $imports = '';
         foreach ($schemaLocations as $namespace => $location) {
             $imports .= sprintf('<xsd:import namespace="%s" schemaLocation="%s" />'."\n", $namespace, $location);
