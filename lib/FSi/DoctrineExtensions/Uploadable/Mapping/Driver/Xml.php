@@ -22,7 +22,7 @@ class Xml extends AbstractXmlDriver
         if (isset($mapping->field)) {
             foreach ($mapping->field as $fieldMapping) {
                 $fieldMappingDoctrine = $fieldMapping;
-                $fieldMapping = $fieldMapping->children('fsi');
+                $fieldMapping = $fieldMapping->children(self::FSI_NAMESPACE_URI);
                 if (isset($fieldMapping->uploadable)) {
                     $data = $fieldMapping->uploadable;
                     $extendedClassMetadata->addUploadableProperty(

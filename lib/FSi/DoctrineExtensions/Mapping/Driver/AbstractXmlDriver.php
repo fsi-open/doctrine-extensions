@@ -10,11 +10,16 @@
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use FSi\Component\Metadata\ClassMetadataInterface;
+use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 use SimpleXmlElement;
+use DOMDocument;
+use ReflectionClass;
+use DOMXPath;
 
 abstract class AbstractXmlDriver extends AbstractFileDriver
 {
     const DOCTRINE_NAMESPACE_URI = 'http://doctrine-project.org/schemas/orm/doctrine-mapping';
+    const FSI_NAMESPACE_URI = 'http://fsi.pl/schemas/orm/doctrine-extensions-mapping';
 
     /**
      * @param ClassMetadataInterface $extendedClassMetadata
@@ -22,7 +27,14 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
      */
     protected function getFileMapping(ClassMetadataInterface $extendedClassMetadata)
     {
-        $xmlElement = simplexml_load_file($this->findMappingFile($extendedClassMetadata));
+        $fileLocation = $this->findMappingFile($extendedClassMetadata);
+        $dom = new DOMDocument();
+        $dom->load($fileLocation);
+        if (!$this->validateFile($dom)) {
+            throw new MappingException(sprintf('There are wrong mappings in xml mapping for class "%s" in file "%s"', $extendedClassMetadata->getClassName(), $fileLocation));
+        }
+
+        $xmlElement = simplexml_load_file($fileLocation);
         $xmlElement = $xmlElement->children(self::DOCTRINE_NAMESPACE_URI);
 
         $className = $extendedClassMetadata->getClassName();
@@ -53,5 +65,73 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
             return;
         }
         return (string) $attributes[$name];
+    }
+
+    /**
+     * Validatin xml file.
+     *
+     * @return bool
+     */
+    private function validateFile(DOMDocument $dom)
+    {
+        // Schemas for validation.
+        $schemaLocations = array(
+            'http://fsi.pl/schemas/orm/doctrine-extensions-mapping' => realpath(__DIR__ . '/../../../../../doctrine-extensions-mapping.xsd'),
+            'http://doctrine-project.org/schemas/orm/doctrine-mapping' => $this->getDoctrineSchemePath(),
+        );
+
+        // Elements from unknown namespaces are removed before validation.
+        $known = array('xml', 'xsi', 'fsi');
+        $xpath = new DOMXPath($dom);
+        foreach ($xpath->query('namespace::*', $dom->documentElement) as $xmlns) {
+            $parts = explode(':', $xmlns->nodeName);
+            if (count($parts) < 2 || in_array($parts[1], $known)) {
+                continue;
+            }
+
+            foreach ($dom->getElementsByTagNameNS($xmlns->nodeValue, '*') as $elem) {
+                $elem->parentNode->removeChild($elem);
+            }
+        }
+
+        // Importing
+        $imports = '';
+        foreach ($schemaLocations as $namespace => $location) {
+            $imports .= sprintf('<xsd:import namespace="%s" schemaLocation="%s" />'."\n", $namespace, $location);
+        }
+
+        $source = <<<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns="http://symfony.com/schema"
+xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+targetNamespace="http://symfony.com/schema"
+elementFormDefault="qualified">
+
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    $imports
+</xsd:schema>
+EOF
+        ;
+
+        $valid = @$dom->schemaValidateSource($source);
+        return $valid;
+    }
+
+    /**
+     * Retreive path to doctrine xsd mapping file.
+     *
+     * @return string
+     */
+    private function getDoctrineSchemePath()
+    {
+        static $path;
+
+        if ($path) {
+            return $path;
+        }
+
+        $reflector = new ReflectionClass('Doctrine\\ORM\\UnitOfWork');
+        $path = realpath(dirname($reflector->getFileName()) . '/../../../doctrine-mapping.xsd');
+        return $path;
     }
 }
