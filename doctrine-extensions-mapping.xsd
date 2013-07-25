@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="fsi"
-    xmlns:fsi="fsi"
+    targetNamespace="http://fsi.pl/schemas/orm/doctrine-extensions-mapping"
+    xmlns:fsi="http://fsi.pl/schemas/orm/doctrine-extensions-mapping"
     elementFormDefault="qualified">
 
     <xs:element name="uploadable" type="fsi:uploadable"/>

@@ -38,9 +38,9 @@ Xml:
 <?xml version="1.0" encoding="UTF-8"?>
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:fsi="http://fsi.pl/schemas/orm/doctrine-extensions-mapping"
     xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
-    http://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd"
-    xmlns:fsi="fsi">
+    http://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
     <entity name="Acme\DemoBundle\Entity\User">
         <id name="id" type="integer" column="id">
