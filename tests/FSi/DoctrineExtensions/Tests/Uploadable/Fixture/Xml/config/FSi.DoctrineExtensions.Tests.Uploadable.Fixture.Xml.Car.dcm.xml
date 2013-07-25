@@ -2,18 +2,18 @@
 <doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:fsi="http://fsi.pl/schemas/orm/doctrine-extensions-mapping"
+    xmlns:foo="http://foo.bar/schemas/mapping"
     xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping http://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <entity name="FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User">
+    <entity name="FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\Car">
         <id name="id" type="integer" column="id">
             <generator strategy="AUTO"/>
         </id>
-        <field type="string" name="name" length="255" />
+        <field type="string" name="name" length="255">
+            <foo:bar attr="value" />
+        </field>
         <field type="string" name="fileKey" nullable="true">
             <fsi:uploadable targetField="file"/>
-        </field>
-        <field type="string" name="file2Key" nullable="true">
-            <fsi:uploadable targetField="file2"/>
         </field>
     </entity>
 

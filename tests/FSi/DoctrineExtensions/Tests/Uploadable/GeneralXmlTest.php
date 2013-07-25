@@ -20,7 +20,7 @@ class GeneralXmlTest extends GeneralTest
     /**
      * @dataProvider wrongClasses
      */
-    public function testWrongAnnotations($class)
+    public function testWrongMapping($class)
     {
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\MappingException');
         $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
@@ -33,6 +33,11 @@ class GeneralXmlTest extends GeneralTest
             $classes[] = array(self::BASE . 'User' . $i);
         }
         return $classes;
+    }
+
+    public function testMappingWithOtherNamespaces()
+    {
+        $this->_uploadableListener->getExtendedMetadata($this->_em, 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Xml\\Car');
     }
 
     /**
