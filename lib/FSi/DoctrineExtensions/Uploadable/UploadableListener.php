@@ -561,26 +561,22 @@ class UploadableListener extends MappedEventSubscriber
      */
     private function generateNewKey(KeymakerInterface $keymaker, $object, $property, $id, $fileName, $keyLength, $keyPattern, Filesystem $filesystem)
     {
-        if ($match = preg_match('/_(\d+)(\.[^\.]*)?$/', $fileName, $matches)) {
-            $i = (int) $matches[1] + 1;
-        } else {
-            $i = 0;
+        while ($filesystem->has($newKey = $keymaker->createKey($object, $property, $id, $fileName, $keyPattern))) {
+            if ($match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches)) {
+                $fileName = $matches[1].'_'.strval( $matches[2] + 1 ).$matches[3];
+            } else {
+                $fileParts = explode('.', $fileName);
+                if (count($fileParts) > 1) {
+                    $fileParts[count($fileParts)  - 1] .= '_1';
+                    $fileName = implode('.', $fileParts);
+                } else
+                    $fileName .= '_1';
+            }
         }
 
-        do {
-            if ($i != 0) {
-                $tmpName = preg_replace('/^(.*)_?(\d+)?(\.[^\.]*)?$/U', '$1_' . $i . '$3', $fileName);
-            } else {
-                $tmpName = $fileName;
-            }
-
-            $newKey = $keymaker->createKey($object, $property, $id, $tmpName, $keyPattern);
-            if (mb_strlen($newKey) > $keyLength) {
-                throw new RuntimeException(sprintf('Generated key exceeded limit of %d characters (had %d characters).', $keyLength, mb_strlen($newKey)));
-            }
-
-            $i++;
-        } while ($filesystem->has($newKey));
+        if (mb_strlen($newKey) > $keyLength) {
+            throw new RuntimeException(sprintf('Generated key exceeded limit of %d characters (had %d characters).', $keyLength, mb_strlen($newKey)));
+        }
 
         return $newKey;
     }
