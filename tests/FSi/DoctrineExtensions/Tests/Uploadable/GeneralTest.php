@@ -16,6 +16,7 @@ abstract class GeneralTest extends BaseORMTest
 {
     const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
+    const TEST_FILE3 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lh_01.jpg';
 
     protected $_em;
 
@@ -34,6 +35,7 @@ abstract class GeneralTest extends BaseORMTest
     {
         $user = $this->getUser();
         $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $originalFilename = $file->getFilename();
 
         $user->setFile($file);
         $this->_em->persist($user);
@@ -43,6 +45,41 @@ abstract class GeneralTest extends BaseORMTest
         $this->assertNotEquals($path, FILESYSTEM1);
         $this->assertTrue(file_exists($path));
         $this->assertTrue($user->getFile() instanceof File);
+        $this->assertEquals(basename($user->getFile()->getKey()), $originalFilename);
+    }
+
+    public function testInsertFileWithNumericSuffix()
+    {
+        $user = $this->getUser();
+        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE3);
+        $originalFilename = $file->getFilename();
+
+        $user->setFile($file);
+        $this->_em->persist($user);
+        $this->_em->flush();
+
+        $path = FILESYSTEM1 . $user->getFileKey();
+        $this->assertNotEquals($path, FILESYSTEM1);
+        $this->assertTrue(file_exists($path));
+        $this->assertTrue($user->getFile() instanceof File);
+        $this->assertEquals(basename($user->getFile()->getKey()), $originalFilename);
+    }
+
+    public function testInsertFileWithDuplicatedNumericSuffix()
+    {
+        $user = $this->getUser();
+        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE3);
+
+        $user->setFile($file);
+        $this->_em->persist($user);
+        $this->_em->flush();
+
+        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE3);
+        $user->setFile($file);
+        $this->_em->persist($user);
+        $this->_em->flush();
+
+        $this->assertEquals(basename($user->getFile()->getKey()), 'lh_2.jpg');
     }
 
     public function testInsertFile()
