@@ -23,21 +23,21 @@ use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 
 class User
 {
-	// (...)
+    // (...)
 
-	/**
-	 * @ORM\Column()
-	 * @Uploadable(targetField="someField", keymaker=@Entity, keyPattern="/{fqcn}/{property}/{original_name}")
-	 */
-	protected $field;
+    /**
+     * @ORM\Column()
+     * @Uploadable(targetField="someField", keymaker=@Entity, keyPattern="/{fqcn}/{property}/{original_name}")
+     */
+    protected $field;
 
-	/**
-	 * @ORM\Column()
-	 * @Uploadable(targetField="someField2", keyPattern="/some/directory/{fqcn}/{id}/{original_name}")
-	 */
-	protected $field2;
+    /**
+     * @ORM\Column()
+     * @Uploadable(targetField="someField2", keyPattern="/some/directory/{fqcn}/{id}/{original_name}")
+     */
+    protected $field2;
 
-	// (...)
+    // (...)
 }
 ```
 

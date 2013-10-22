@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -20,30 +20,30 @@ use FSi\DoctrineExtensions\Mapping\Exception;
 final class ExtendedMetadataFactory extends MetadataFactory
 {
     /**
-     * Object manager, entity or document
+     * Object manager, entity or document.
      *
      * @var \Doctrine\Common\Persistence\ObjectManager
      */
     private $objectManager;
 
     /**
-     * Extension namespace
+     * Extension namespace.
      *
      * @var string
      */
     private $extensionNamespace;
 
     /**
-     * Annotation reader
+     * Annotation reader.
      *
      * @var object
      */
     private $annotationReader;
 
     /**
-     * Initializes extension driver
+     * Initializes extension driver.
      *
-     * @param ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $extensionNamespace
      * @param object $annotationReader
      */
@@ -65,7 +65,7 @@ final class ExtendedMetadataFactory extends MetadataFactory
 
     /**
      * Get the extended driver instance which will
-     * read the metadata required by extension
+     * read the metadata required by extension.
      *
      * @param object $omDriver
      * @throws \FSi\DoctrineExtensions\Mapping\Exception\RuntimeException if driver was not found in extension or it is not compatible

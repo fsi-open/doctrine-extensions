@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -214,23 +214,32 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
         Utils::deleteRecursive(FILESYSTEM2);
     }
 
+    /**
+     * @return \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface
+     */
     private function getKeymakerMock()
     {
         return $this->getMock('FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface');
     }
 
+    /**
+     * @return \Gaufrette\Filesystem
+     */
     private function getFilesystemMock()
     {
         return $this->getMockBuilder('Gaufrette\\Filesystem')->disableOriginalConstructor()->getMock();
     }
 
+    /**
+     * @return \FSi\DoctrineExtensios\Uploadable\FileHandler\FileHandlerInterface
+     */
     private function getFileHandlerMock()
     {
         return $this->getMock('FSi\\DoctrineExtensions\\Uploadable\\FileHandler\\FileHandlerInterface');
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function getUsedEntityFixtures()
     {

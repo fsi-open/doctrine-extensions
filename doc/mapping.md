@@ -87,7 +87,7 @@ class Annotation extends AbstractAnnotationDriver
 {
 
     /**
-    * {@inheritDoc}
+    * {@inheritdoc}
     */
     protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {

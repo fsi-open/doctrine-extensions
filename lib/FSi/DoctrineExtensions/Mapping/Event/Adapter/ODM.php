@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,16 +18,12 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Proxy\Proxy;
 
 /**
- * Doctrine event adapter for ODM specific
- * event arguments
- *
- * @author Gediminas Morkevicius <gediminas.morkevicius@gmail.com>
- * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * Doctrine event adapter for ODM specific event arguments.
  */
 class ODM implements AdapterInterface
 {
     /**
-     * @var EventArgs
+     * @var \Doctrine\Common\EventArgs
      */
     private $args;
 
@@ -56,9 +52,9 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Extracts identifiers from object or proxy
+     * Extracts identifiers from object or proxy.
      *
-     * @param DocumentManager $dm
+     * @param \Doctrine\ODM\MongoDB\DocumentManager $dm
      * @param object $object
      * @param bool $single
      * @return mixed - array or single identifier
@@ -80,7 +76,7 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Call event specific method
+     * Call event specific method.
      *
      * @param string $method
      * @param array $args
@@ -93,10 +89,10 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Get the object changeset from a UnitOfWork
+     * Get the object changeset from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
-     * @param Object $object
+     * @param \Doctrine\ODM\MongoDB\UnitOfWork $uow
+     * @param object $object
      * @return array
      */
     public function getObjectChangeSet(UnitOfWork $uow, $object)
@@ -105,9 +101,9 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Get the single identifier field name
+     * Get the single identifier field name.
      *
-     * @param ClassMetadataInfo $meta
+     * @param \Doctrine\ODM\MongoDB\Mapping\ClassMetadataInfo $meta
      * @return string
      */
     public function getSingleIdentifierFieldName(ClassMetadataInfo $meta)
@@ -116,12 +112,12 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Recompute the single object changeset from a UnitOfWork
+     * Recompute the single object changeset from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
-     * @param ClassMetadataInfo $meta
-     * @param Object $object
-     * @return void
+     * @param \Doctrine\ODM\MongoDB\UnitOfWork $uow
+     * @param \Doctrine\ODM\MongoDB\Mapping\ClassMetadataInfo $meta
+     * @param object $object
+     * @return null
      */
     public function recomputeSingleObjectChangeSet(UnitOfWork $uow, ClassMetadataInfo $meta, $object)
     {
@@ -129,9 +125,9 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Get the scheduled object updates from a UnitOfWork
+     * Get the scheduled object updates from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ODM\MongoDB\UnitOfWork $uow
      * @return array
      */
     public function getScheduledObjectUpdates(UnitOfWork $uow)
@@ -140,9 +136,9 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Get the scheduled object insertions from a UnitOfWork
+     * Get the scheduled object insertions from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ODM\MongoDB\UnitOfWork $uow
      * @return array
      */
     public function getScheduledObjectInsertions(UnitOfWork $uow)
@@ -151,9 +147,9 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Get the scheduled object deletions from a UnitOfWork
+     * Get the scheduled object deletions from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ODM\MongoDB\UnitOfWork $uow
      * @return array
      */
     public function getScheduledObjectDeletions(UnitOfWork $uow)
@@ -162,13 +158,13 @@ class ODM implements AdapterInterface
     }
 
     /**
-     * Sets a property value of the original data array of an object
+     * Sets a property value of the original data array of an object.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ODM\MongoDB\UnitOfWork $uow
      * @param string $oid
      * @param string $property
      * @param mixed $value
-     * @return void
+     * @return null
      */
     public function setOriginalObjectProperty(UnitOfWork $uow, $oid, $property, $value)
     {
@@ -178,7 +174,7 @@ class ODM implements AdapterInterface
     /**
      * Clears the property changeset of the object with the given OID.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ODM\MongoDB\UnitOfWork $uow
      * @param string $oid The object's OID.
      */
     public function clearObjectChangeSet(UnitOfWork $uow, $oid)
