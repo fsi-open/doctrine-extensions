@@ -562,7 +562,7 @@ class UploadableListener extends MappedEventSubscriber
     {
         while ($filesystem->has($newKey = $keymaker->createKey($object, $property, $id, $fileName, $keyPattern))) {
             if ($match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches)) {
-                $fileName = $matches[1].'_'.strval($matches[2] + 1).$matches[3];
+                $fileName = sprintf('%s_%s%s', $matches[1], strval($matches[2] + 1), $matches[3]);
             } else {
                 $fileParts = explode('.', $fileName);
                 if (count($fileParts) > 1) {
