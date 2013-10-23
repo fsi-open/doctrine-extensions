@@ -23,7 +23,7 @@ $filesystem2 = new Filesystem(new Adapter\Ftp('/other/path', 'example.com'));
 
 $filesystems = array(
     'filesystem1' => $filesystem1,
- null'filesystem2' => $filesystem2,
+    'filesystem2' => $filesystem2,
 );
 ```
 
