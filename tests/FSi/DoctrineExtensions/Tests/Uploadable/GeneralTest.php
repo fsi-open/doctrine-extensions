@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -17,14 +17,6 @@ abstract class GeneralTest extends BaseORMTest
     const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
     const TEST_FILE3 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lh_01.jpg';
-
-    protected $_em;
-
-    protected function setUp()
-    {
-        parent::setUp();
-        $this->_em = $this->getEntityManager();
-    }
 
     /**
      * Return instance of entity to use in test.

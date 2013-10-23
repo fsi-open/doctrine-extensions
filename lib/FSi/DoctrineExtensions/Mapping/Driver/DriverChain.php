@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,7 +13,6 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
 use FSi\Component\Metadata\Driver\DriverChain as BaseDriverChain;
 use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
 
-
 class DriverChain extends BaseDriverChain implements DriverInterface
 {
     /**
@@ -22,7 +21,7 @@ class DriverChain extends BaseDriverChain implements DriverInterface
     private $baseMetadataFactory;
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory)
     {
@@ -35,7 +34,7 @@ class DriverChain extends BaseDriverChain implements DriverInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getBaseMetadataFactory()
     {

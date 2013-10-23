@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -56,7 +56,7 @@ class UploadableListener extends MappedEventSubscriber
     protected $defaultKeymaker;
 
     /**
-     * @var array()
+     * @var array
      */
     protected $toDelete = array();
 
@@ -67,9 +67,8 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param array|\Gaufrette\FilesystemMap $filesystems
-     * @param FileHandler\FileHandlerInterface $fileHandler
-     * @throws Exception\RuntimeException
-     * @internal param array $options
+     * @param \FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface $fileHandler
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     public function __construct($filesystems, FileHandler\FileHandlerInterface $fileHandler)
     {
@@ -82,7 +81,7 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param array|\Gaufrette\FilesystemMap $filesystems
-     * @throws Exception\RuntimeException
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     public function setFilesystems($filesystems)
     {
@@ -105,7 +104,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param $id
+     * @param string $id
      * @param \Gaufrette\Filesystem $filesystem
      */
     public function setFilesystem($id, Filesystem $filesystem)
@@ -114,7 +113,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param $id
+     * @param string $id
      */
     public function removeFilesystem($id)
     {
@@ -130,7 +129,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getSubscribedEvents()
     {
@@ -144,7 +143,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param Filesystem $filesystem
+     * @param \Gaufrette\Filesystem $filesystem
      */
     public function setDefaultFilesystem(Filesystem $filesystem)
     {
@@ -160,8 +159,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @return Filesystem
-     * @throws Exception\RuntimeException
+     * @return \Gaufrette\Filesystem
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     public function getDefaultFilesystem()
     {
@@ -172,7 +171,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param $id
+     * @param string $id
      * @return bool
      */
     public function hasFilesystem($id)
@@ -181,9 +180,9 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param $id
-     * @return Filesystem
-     * @throws Exception\RuntimeException
+     * @param string $id
+     * @return \Gaufrette\Filesystem
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     public function getFilesystem($id)
     {
@@ -196,7 +195,7 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * After loading the entity load file if any.
      *
-     * @param LifecycleEventArgs $eventArgs
+     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
      */
     public function postLoad(LifecycleEventArgs  $eventArgs)
     {
@@ -212,7 +211,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param LifecycleEventArgs $eventArgs
+     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
      */
     public function postPersist(LifecycleEventArgs $eventArgs)
     {
@@ -232,7 +231,7 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * Check and eventually update files keys.
      *
-     * @param PreFlushEventArgs $eventArgs
+     * @param \Doctrine\ORM\Event\PreFlushEventArgs $eventArgs
      */
     public function preFlush(PreFlushEventArgs $eventArgs)
     {
@@ -255,7 +254,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param PostFlushEventArgs $eventArgs
+     * @param \Doctrine\ORM\Event\PostFlushEventArgs $eventArgs
      */
     public function postFlush(PostFlushEventArgs $eventArgs)
     {
@@ -267,7 +266,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param LifecycleEventArgs $eventArgs
+     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
      */
     public function postRemove(LifecycleEventArgs $eventArgs)
     {
@@ -283,8 +282,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param $length
-     * @throws Exception\RuntimeException
+     * @param int $length
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     public function setDefaultKeyLength($length)
     {
@@ -304,8 +303,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param Keymaker\KeymakerInterface $keymaker
-     * @throws Exception\RuntimeException
+     * @param \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface $keymaker
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     public function setDefaultKeymaker(KeymakerInterface $keymaker)
     {
@@ -321,8 +320,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @throws Exception\RuntimeException
-     * @return Keymaker\KeymakerInterface
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @return \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface
      */
     public function getDefaultKeymaker()
     {
@@ -334,7 +333,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param Filehandler\FileHandlerInterface $fileHandler
+     * @param \FSi\DoctrineExtensions\Uploadable\Filehandler\FileHandlerInterface $fileHandler
      */
     public function setFileHandler(Filehandler\FileHandlerInterface $fileHandler)
     {
@@ -375,11 +374,11 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * Updating files keys.
      *
-     * @param ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param \FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata $uploadableMeta
      * @param object $object
-     * @param AdapterInterface $eventAdapter
-     * @throws Exception\RuntimeException
+     * @param \FSi\DoctrineExtensions\Mapping\Event\AdapterInterface $eventAdapter
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     protected function updateFiles(ObjectManager $objectManager, $uploadableMeta, $object, AdapterInterface $eventAdapter)
     {
@@ -434,7 +433,7 @@ class UploadableListener extends MappedEventSubscriber
      *
      * @param \FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata $uploadableMeta
      * @param object $object
-     * @throws Exception\RuntimeException
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     protected function deleteFiles($uploadableMeta, $object)
     {
@@ -448,7 +447,7 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * Returns PropertyObserver for specified ObjectManager
      *
-     * @param ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @return mixed
      */
     protected function getPropertyObserver(ObjectManager $objectManager)
@@ -461,7 +460,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
@@ -502,7 +501,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function getNamespace()
     {
@@ -510,7 +509,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param File $file
+     * @param \FSi\DoctrineExtensions\Uploadable\File $file
      */
     protected function addToDelete(File $file)
     {
@@ -519,7 +518,7 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param array $config
-     * @return Filesystem
+     * @return \Gaufrette\Filesystem
      */
     private function computeFilesystem(array $config)
     {
@@ -528,7 +527,7 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param array $config
-     * @return Keymaker\KeymakerInterface
+     * @return \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface
      */
     private function computeKeymaker($config)
     {
@@ -536,7 +535,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param $config
+     * @param array $config
      * @return integer
      */
     private function computeKeyLength($config)
@@ -548,29 +547,30 @@ class UploadableListener extends MappedEventSubscriber
      * Algorithm to transform names from name.txt to name_i.txt and name_i.txt into name_{i++}.txt
      * when given key already exists and can't be reused.
      *
-     * @param KeymakerInterface $keymaker
+     * @param \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface $keymaker
      * @param object $object
      * @param string $property
      * @param mixed $id
      * @param string $fileName
      * @param integer $keyLength
      * @param string $keyPattern
-     * @param Filesystem $filesystem
-     * @throws Exception\RuntimeException
+     * @param \FSi\DoctrineExtensions\Uploadable\Filesystem $filesystem
+     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      * @return string
      */
     private function generateNewKey(KeymakerInterface $keymaker, $object, $property, $id, $fileName, $keyLength, $keyPattern, Filesystem $filesystem)
     {
         while ($filesystem->has($newKey = $keymaker->createKey($object, $property, $id, $fileName, $keyPattern))) {
             if ($match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches)) {
-                $fileName = $matches[1].'_'.strval( $matches[2] + 1 ).$matches[3];
+                $fileName = sprintf('%s_%s%s', $matches[1], strval($matches[2] + 1), $matches[3]);
             } else {
                 $fileParts = explode('.', $fileName);
                 if (count($fileParts) > 1) {
                     $fileParts[count($fileParts)  - 1] .= '_1';
                     $fileName = implode('.', $fileParts);
-                } else
+                } else {
                     $fileName .= '_1';
+                }
             }
         }
 

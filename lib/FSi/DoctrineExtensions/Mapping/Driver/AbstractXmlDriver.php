@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -22,8 +22,8 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
     const FSI_NAMESPACE_URI = 'http://fsi.pl/schemas/orm/doctrine-extensions-mapping';
 
     /**
-     * @param ClassMetadataInterface $extendedClassMetadata
-     * @return SimpleXmlElement|null
+     * @param \FSi\Component\Metadata\ClassMetadataInterface $extendedClassMetadata
+     * @return \SimpleXmlElement|null
      */
     protected function getFileMapping(ClassMetadataInterface $extendedClassMetadata)
     {
@@ -54,7 +54,7 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
     }
 
     /**
-     * @param SimpleXmlElement $node
+     * @param \SimpleXmlElement $node
      * @param string $name
      * @return string
      */
@@ -70,6 +70,7 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
     /**
      * Validatin xml file.
      *
+     * @param \DOMDocument $dom
      * @return bool
      */
     private function validateFile(DOMDocument $dom)

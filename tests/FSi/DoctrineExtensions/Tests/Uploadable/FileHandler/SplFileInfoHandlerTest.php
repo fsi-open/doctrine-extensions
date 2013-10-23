@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -47,7 +47,7 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
     public function testException()
     {
         $filesystem = new Filesystem(new Local(FILESYSTEM1));
-        $input = new \SplFileInfo(FILESYSTEM1  . self::KEY);
+        $input = new \SplFileInfo(FILESYSTEM1 . self::KEY);
         $key = self::KEY;
 
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
@@ -56,7 +56,7 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
 
     protected function getInput()
     {
-        $input = new \SplFileInfo(FILESYSTEM1  . self::KEY);
+        $input = new \SplFileInfo(FILESYSTEM1 . self::KEY);
         $fileObj = $input->openFile('a');
         $fileObj->fwrite(self::CONTENT);
         return $input;

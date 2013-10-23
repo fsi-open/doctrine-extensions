@@ -105,55 +105,55 @@ use Symfony\Component\Validator\Constraints as Assert;
 class User
 {
     /**
-	 * @var integer
-	 *
-	 * @ORM\Column(type="integer")
-	 * @ORM\Id
-	 * @ORM\GeneratedValue(strategy="AUTO")
-	 */
-	public $id;
+     * @var integer
+     *
+     * @ORM\Column(type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
+     */
+    public $id;
 
-	/**
-	 * @var string
-	 *
-	 * @ORM\Column(length=255)
-	 */
-	public $name;
+    /**
+     * @var string
+     *
+     * @ORM\Column(length=255)
+     */
+    public $name;
 
-	/**
-	 * @ORM\Column(length=255, nullable=true)
-	 * @Uploadable(targetField="file", filesystem="filesystem1")
-	 */
-	protected $fileKey;
+    /**
+     * @ORM\Column(length=255, nullable=true)
+     * @Uploadable(targetField="file", filesystem="filesystem1")
+     */
+    protected $fileKey;
 
-	protected $file;
+    protected $file;
 
-	public function setFileKey($key)
-	{
-		$this->fileKey = $key;
-	}
+    public function setFileKey($key)
+    {
+        $this->fileKey = $key;
+    }
 
-	public function getFileKey()
-	{
-	    return $this->fileKey;
-	}
+    public function getFileKey()
+    {
+        return $this->fileKey;
+    }
 
-	public function setFile($file)
-	{
-	    if (!empty($file)) {
-	        $this->file = $file;
-	    }
-	}
+    public function setFile($file)
+    {
+        if (!empty($file)) {
+            $this->file = $file;
+        }
+    }
 
-	public function getFile()
-	{
-	    return $this->file;
-	}
+    public function getFile()
+    {
+        return $this->file;
+    }
 
-	public function removeFile()
-	{
-		$this->file = null;
-	}
+    public function removeFile()
+    {
+        $this->file = null;
+    }
 }
 ```
 

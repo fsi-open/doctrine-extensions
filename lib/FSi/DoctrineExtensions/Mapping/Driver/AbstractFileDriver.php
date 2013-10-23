@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -23,7 +23,7 @@ abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterf
     private $baseMetadataFactory;
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory)
     {
@@ -32,7 +32,7 @@ abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterf
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getBaseMetadataFactory()
     {
@@ -43,7 +43,7 @@ abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterf
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function loadClassMetadata(ClassMetadataInterface $metadata)
     {
@@ -54,8 +54,8 @@ abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterf
      * Load extended class metadata based on class metadata coming from underlying
      * ORM or ODM and this driver abilities to read extended metadata.
      *
-     * @param ClassMetadata $baseClassMetadata
-     * @param ClassMetadataInterface $extendedClassMetadata
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
+     * @param \FSi\Component\Metadata\ClassMetadataInterface $extendedClassMetadata
      */
     abstract protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
 }

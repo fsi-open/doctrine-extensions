@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -41,7 +41,7 @@ class GeneralXmlTest extends GeneralTest
     }
 
     /**
-     * {@inehritDoc}
+     * {@inheritdoc}
      */
     protected function getMetadataDriverImplementation()
     {
@@ -49,9 +49,9 @@ class GeneralXmlTest extends GeneralTest
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
-     * @return FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\User
+     * @return \FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\User
      */
     protected function getUser()
     {
@@ -59,7 +59,7 @@ class GeneralXmlTest extends GeneralTest
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function getUsedEntityFixtures()
     {

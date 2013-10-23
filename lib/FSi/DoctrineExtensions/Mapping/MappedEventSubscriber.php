@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -25,50 +25,45 @@ use FSi\DoctrineExtensions\Mapping\Exception;
  *
  * It dries up some reusable code which is common for
  * all extensions who mapps additional metadata through
- * extended drivers
+ * extended drivers.
  *
- * Extension is based at Gedmo\Mapping
- *
- * @author Gediminas Morkevicius <gediminas.morkevicius@gmail.com>
- * @author Norbert Orzechowicz <norbert@fsi.pl>
- * @author Lukasz Cybula <lukasz@fsi.pl>
+ * Extension is based at Gedmo\Mapping.
  */
 abstract class MappedEventSubscriber implements EventSubscriber
 {
     /**
      * ExtensionMetadataFactory used to read the extension
-     * metadata through the extension drivers
+     * metadata through the extension drivers.
      *
      * @var \FSi\DoctrineExtensions\Mapping\ExtensionMetadataFactory[]
      */
     private $extensionMetadataFactory = array();
 
     /**
-     * List of event adapters used for this listener
+     * List of event adapters used for this listener.
      *
      * @var array
      */
     private $adapters = array();
 
     /**
-     * Custom annotation reader
+     * Custom annotation reader.
      *
      * @var \Doctrine\Common\Annotations\Reader
      */
     private $annotationReader;
 
     /**
-     * Default annotation reader
+     * Default annotation reader.
      *
      * @var \Doctrine\Common\Annotations\Reader
      */
     private $defaultAnnotationReader;
 
     /**
-     * Get an event adapter to handle event specific
-     * methods
+     * Get an event adapter to handle event specific methods.
      *
-     * @param EventArgs $args
+     * @param \Doctrine\Common\EventArgs $args
      * @throws \FSi\DoctrineExtensions\Mapping\Exception\RuntimeException - if event is not recognized
      * @return \FSi\DoctrineExtensions\Mapping\Event\AdapterInterface
      */
@@ -91,9 +86,9 @@ abstract class MappedEventSubscriber implements EventSubscriber
     }
 
     /**
-     * Get extended metadata mapping reader
+     * Get extended metadata mapping reader.
      *
-     * @param ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @return \FSi\DoctrineExtensions\Mapping\ExtensionMetadataFactory
      */
     protected function getExtendedMetadataFactory(ObjectManager $objectManager)
@@ -113,7 +108,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
     }
 
     /**
-     * Sets the annotation reader which is passed further to the annotation driver
+     * Sets the annotation reader which is passed further to the annotation driver.
      *
      * @param \Doctrine\Common\Annotations\Reader $reader
      */
@@ -124,9 +119,9 @@ abstract class MappedEventSubscriber implements EventSubscriber
 
     /**
      * Scans the objects for extended annotations
-     * event subscribers must subscribe to loadClassMetadata event
+     * event subscribers must subscribe to loadClassMetadata event.
      *
-     * @param ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $class
      * @return \FSi\Component\Metadata\ClassMetadataInterface
      */
@@ -142,24 +137,24 @@ abstract class MappedEventSubscriber implements EventSubscriber
     }
 
     /**
-     * Validate complete metadata for final class (i.e. that is not mapped-superclass)
+     * Validate complete metadata for final class (i.e. that is not mapped-superclass).
      *
-     * @param ClassMetadata $baseClassMetadata
-     * @param ClassMetadataInterface $extendedClassMetadata
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
+     * @param \FSi\Component\Metadata\ClassMetadataInterface $extendedClassMetadata
      */
     abstract protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
 
     /**
-     * Get the namespace of extension event subscriber.
+     * Get the namespace of extension event subscriber
      * used for cache id of extensions also to know where
-     * to find Mapping drivers and event adapters
+     * to find Mapping drivers and event adapters.
      *
      * @return string
      */
     abstract protected function getNamespace();
 
     /**
-     * Create default annotation reader for extensions
+     * Create default annotation reader for extensions.
      *
      * @return \Doctrine\Common\Annotations\AnnotationReader
      */

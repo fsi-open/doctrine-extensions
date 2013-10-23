@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,16 +18,12 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Proxy\Proxy;
 
 /**
- * Doctrine event adapter for ORM specific
- * event arguments
- *
- * @author Gediminas Morkevicius <gediminas.morkevicius@gmail.com>
- * @license MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * Doctrine event adapter for ORM specific event arguments.
  */
 class ORM implements AdapterInterface
 {
     /**
-     * @var EventArgs
+     * @var \Doctrine\Common\EventArgs;
      */
     private $args;
 
@@ -56,9 +52,9 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Extracts identifiers from object or proxy
+     * Extracts identifiers from object or proxy.
      *
-     * @param EntityManager $em
+     * @param \Doctrine\ORM\EntityManager $em
      * @param object $object
      * @param bool $single
      * @return mixed - array or single identifier
@@ -86,7 +82,7 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Call event specific method
+     * Call event specific method.
      *
      * @param string $method
      * @param array $args
@@ -99,10 +95,10 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Get the object changeset from a UnitOfWork
+     * Get the object changeset from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
-     * @param Object $object
+     * @param \Doctrine\ORM\UnitOfWork $uow
+     * @param object $object
      * @return array
      */
     public function getObjectChangeSet(UnitOfWork $uow, $object)
@@ -111,9 +107,9 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Get the single identifier field name
+     * Get the single identifier field name.
      *
-     * @param ClassMetadataInfo $meta
+     * @param \Doctrine\ORM\Mapping\ClassMetadataInfo $meta
      * @return string
      */
     public function getSingleIdentifierFieldName(ClassMetadataInfo $meta)
@@ -122,12 +118,12 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Recompute the single object changeset from a UnitOfWork
+     * Recompute the single object changeset from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
-     * @param ClassMetadataInfo $meta
-     * @param Object $object
-     * @return void
+     * @param \Doctrine\ORM\UnitOfWork $uow
+     * @param \Doctrine\ORM\Mapping\ClassMetadataInfo $meta
+     * @param object $object
+     * @return null
      */
     public function recomputeSingleObjectChangeSet(UnitOfWork $uow, ClassMetadataInfo $meta, $object)
     {
@@ -135,9 +131,9 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Get the scheduled object updates from a UnitOfWork
+     * Get the scheduled object updates from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ORM\UnitOfWork $uow
      * @return array
      */
     public function getScheduledObjectUpdates(UnitOfWork $uow)
@@ -146,9 +142,9 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Get the scheduled object insertions from a UnitOfWork
+     * Get the scheduled object insertions from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ORM\UnitOfWork $uow
      * @return array
      */
     public function getScheduledObjectInsertions(UnitOfWork $uow)
@@ -157,9 +153,9 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Get the scheduled object deletions from a UnitOfWork
+     * Get the scheduled object deletions from a UnitOfWork.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ORM\UnitOfWork $uow
      * @return array
      */
     public function getScheduledObjectDeletions(UnitOfWork $uow)
@@ -168,13 +164,13 @@ class ORM implements AdapterInterface
     }
 
     /**
-     * Sets a property value of the original data array of an object
+     * Sets a property value of the original data array of an object.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ORM\UnitOfWork $uow
      * @param string $oid
      * @param string $property
      * @param mixed $value
-     * @return void
+     * @return null
      */
     public function setOriginalObjectProperty(UnitOfWork $uow, $oid, $property, $value)
     {
@@ -184,7 +180,7 @@ class ORM implements AdapterInterface
     /**
      * Clears the property changeset of the object with the given OID.
      *
-     * @param UnitOfWork $uow
+     * @param \Doctrine\ORM\UnitOfWork $uow
      * @param string $oid The object's OID.
      */
     public function clearObjectChangeSet(UnitOfWork $uow, $oid)

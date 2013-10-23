@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,6 +15,9 @@ use FSi\Component\Metadata\ClassMetadataInterface;
 
 class Xml extends AbstractXmlDriver
 {
+    /**
+     * {@inheritdoc}
+     */
     protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
         $mapping = $this->getFileMapping($extendedClassMetadata);

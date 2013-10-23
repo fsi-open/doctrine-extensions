@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -25,9 +25,7 @@ use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
 
 /**
- * This is the base test class for other Doctrine related tests
- *
- * @author Lukasz Cybula <lukasz@fsi.pl>
+ * This is the base test class for other Doctrine related tests.
  */
 abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
 {
@@ -35,21 +33,6 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
      * @var \Doctrine\ORM\EntityManager
      */
     protected $_em;
-
-    /**
-     * @var \FSi\DoctrineExtensions\Translatable\TranslatableListener
-     */
-    protected $_translatableListener;
-
-    /**
-     * @var \FSi\DoctrineExtensions\Versionable\VersionableListener
-     */
-    protected $_versionableListener;
-
-    /**
-     * @var \FSi\DoctrineExtensions\LoStorage\LoStorageListener
-     */
-    protected $_loListener;
 
     /**
      * @var \FSi\DoctrineExtensions\Uploadable\UploadableListener
@@ -71,8 +54,13 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
      */
     protected $_filesystem2;
 
+    protected function setUp()
+    {
+        $this->_em = $this->getEntityManager();
+    }
+
     /**
-     * Creates default mapping driver
+     * Creates default mapping driver.
      *
      * @return \Doctrine\ORM\Mapping\Driver\Driver
      */
@@ -81,6 +69,9 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         return new AnnotationDriver($_ENV['annotation_reader'], __DIR__.'/../LoStorage/Fixture');
     }
 
+    /**
+     * @return \Doctrine\ORM\Configuration
+     */
     protected function getMockAnnotatedConfig()
     {
         $config = $this->getMock('Doctrine\ORM\Configuration');
@@ -88,31 +79,31 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getProxyDir')
             ->will($this->returnValue(TESTS_TEMP_DIR))
-            ;
+        ;
 
         $config
             ->expects($this->once())
             ->method('getProxyNamespace')
             ->will($this->returnValue('Proxy'))
-            ;
+        ;
 
         $config
             ->expects($this->once())
             ->method('getAutoGenerateProxyClasses')
             ->will($this->returnValue(true))
-            ;
+        ;
 
         $config
             ->expects($this->once())
             ->method('getClassMetadataFactoryName')
             ->will($this->returnValue('Doctrine\\ORM\\Mapping\\ClassMetadataFactory'))
-            ;
+        ;
 
         $config
             ->expects($this->any())
             ->method('getQuoteStrategy')
             ->will($this->returnValue(new \Doctrine\ORM\Mapping\DefaultQuoteStrategy()))
-            ;
+        ;
 
         $config
             ->expects($this->any())
@@ -122,7 +113,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
                     return 'FSi\DoctrineExtensions\ORM\Hydration\ObjectHydrator';
                 }
             }))
-            ;
+        ;
 
         $config
             ->expects($this->any())
@@ -142,7 +133,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             ->expects($this->any())
             ->method('getDefaultRepositoryClassName')
             ->will($this->returnValue('Doctrine\\ORM\\EntityRepository'))
-            ;
+        ;
 
         $this->_logger = new \Doctrine\DBAL\Logging\DebugStack();
         $this->_logger->enabled = false;
@@ -150,20 +141,18 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $config
             ->expects($this->any())
             ->method('getSQLLogger')
-            ->will($this->returnValue($this->_logger));
+            ->will($this->returnValue($this->_logger))
+        ;
 
         return $config;
     }
 
+    /**
+     * @return \Doctrine\Common\EventManager
+     */
     protected function getEntityManager()
     {
         $evm = new EventManager;
-        $this->_translatableListener = new TranslatableListener();
-        $evm->addEventSubscriber($this->_translatableListener);
-        $this->_versionableListener = new VersionableListener();
-        $evm->addEventSubscriber($this->_versionableListener);
-        $this->_loListener = new LoStorageListener(array('basePath' => TESTS_TEMP_DIR . '/cache'));
-        $evm->addEventSubscriber($this->_loListener);
 
         $this->_filesystem1 = new Filesystem(new Local(FILESYSTEM1));
         $this->_filesystem2 = new Filesystem(new Local(FILESYSTEM2));
