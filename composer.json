@@ -3,6 +3,7 @@
     "type": "library",
     "description": "FSi Behavioral Doctrine Extensions",
     "keywords": ["fsi", "doctrine-extensions"],
+    "license": "MIT",
     "authors": [
         {
             "name": "Lukasz Cybula",
