@@ -25,6 +25,7 @@ use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use Gaufrette\Filesystem;
 use Gaufrette\FilesystemMap;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Doctrine\ORM\Proxy\Proxy;
 
 class UploadableListener extends MappedEventSubscriber
 {
