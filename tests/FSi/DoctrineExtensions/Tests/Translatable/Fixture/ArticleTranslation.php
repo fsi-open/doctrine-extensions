@@ -53,7 +53,7 @@ class ArticleTranslation
 
     public function setTitle($title)
     {
-        $this->title = (string)$title;
+        $this->title = $title;
         return $this;
     }
 
@@ -64,7 +64,7 @@ class ArticleTranslation
 
     public function setContents($contents)
     {
-        $this->contents = (string)$contents;
+        $this->contents = $contents;
         return $this;
     }
 
