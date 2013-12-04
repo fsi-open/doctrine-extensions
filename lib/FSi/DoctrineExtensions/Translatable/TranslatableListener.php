@@ -177,7 +177,7 @@ class TranslatableListener extends MappedEventSubscriber
             }
 
             if (!isset($currentTranslation)) {
-                foreach ($translatableMeta->getTranslatableProperties() as $property => $translationField) {
+                foreach ($properties as $property => $translationField) {
                     $propertyObserver->setValue($object, $property, null);
                 }
                 continue;
