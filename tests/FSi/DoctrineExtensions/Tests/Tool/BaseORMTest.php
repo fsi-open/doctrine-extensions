@@ -35,6 +35,11 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
     protected $_em;
 
     /**
+     * @var \FSi\DoctrineExtensions\Translatable\TranslatableListener
+     */
+    protected $_translatableListener;
+
+    /**
      * @var \FSi\DoctrineExtensions\Uploadable\UploadableListener
      */
     protected $_uploadableListener;
@@ -153,6 +158,9 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
     protected function getEntityManager()
     {
         $evm = new EventManager;
+
+        $this->_translatableListener = new TranslatableListener();
+        $evm->addEventSubscriber($this->_translatableListener);
 
         $this->_filesystem1 = new Filesystem(new Local(FILESYSTEM1));
         $this->_filesystem2 = new Filesystem(new Local(FILESYSTEM2));
