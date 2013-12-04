@@ -42,6 +42,10 @@ $loader->add('FSi\\DoctrineExtensions\\Tests', __DIR__);
 );
 
 \Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace(
+    'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation',
+    VENDOR_PATH.'/../lib'
+);
+\Doctrine\Common\Annotations\AnnotationRegistry::registerAutoloadNamespace(
     'FSi\\DoctrineExtensions\\Uploadable\\Mapping\\Annotation',
     VENDOR_PATH.'/../lib'
 );
