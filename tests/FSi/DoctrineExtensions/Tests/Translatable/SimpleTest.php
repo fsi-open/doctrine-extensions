@@ -235,7 +235,10 @@ class SimpleTest extends BaseORMTest
         $article->setTitle(self::ENGLISH_TITLE_1);
         $article->setContents(self::ENGLISH_CONTENTS_1);
         $this->_em->flush();
+        $this->_em->clear();
 
+        $this->_translatableListener->setLocale($this->_languageEn);
+        $article = $this->_em->find(self::ARTICLE, $article->getId());
         $article->setTitle(null);
         $article->setContents(null);
 

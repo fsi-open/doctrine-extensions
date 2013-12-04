@@ -92,7 +92,7 @@ class Article
 
     public function setTitle($title)
     {
-        $this->title = (string)$title;
+        $this->title = $title;
         return $this;
     }
 
@@ -103,7 +103,7 @@ class Article
 
     public function setContents($contents)
     {
-        $this->contents = (string)$contents;
+        $this->contents = $contents;
         return $this;
     }
 
@@ -114,7 +114,7 @@ class Article
 
     public function setLocale($locale)
     {
-        $this->locale = (string)$locale;
+        $this->locale = $locale;
         return $this;
     }
 
