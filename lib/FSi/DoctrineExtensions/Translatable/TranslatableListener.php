@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -46,14 +46,6 @@ class TranslatableListener extends MappedEventSubscriber
     private $_defaultLocale;
 
     /**
-     * If this option is set to true, then TranslatableTreeWalker does not load objects which does not have translation in
-     * currentLocale nor in defaultLocale (or defaultLocale is not set)
-     *
-     * @var bool
-     */
-    private $_skipUntranslated = true;
-
-    /**
      * Array of PropertyObserver instances for each ObjectManager's context
      *
      * @var \FSi\Component\PropertyObserver\PropertyObserver[]
@@ -80,23 +72,27 @@ class TranslatableListener extends MappedEventSubscriber
     protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
         if ($extendedClassMetadata->hasTranslatableProperties()) {
-            if (!isset($extendedClassMetadata->localeProperty))
+            if (!isset($extendedClassMetadata->localeProperty)) {
                 throw new Exception\MappingException('Entity \'' . $baseClassMetadata->name . '\' has translatable properties so it must have property marked with @Translatable\Language annotation');
+            }
             $translatableProperties = $extendedClassMetadata->getTranslatableProperties();
             foreach ($translatableProperties as $translation => $properties) {
-                if (!$baseClassMetadata->hasAssociation($translation) || !$baseClassMetadata->isCollectionValuedAssociation($translation))
+                if (!$baseClassMetadata->hasAssociation($translation) || !$baseClassMetadata->isCollectionValuedAssociation($translation)) {
                     throw new Exception\MappingException('Field \'' . $translation . '\' in entity \'' . $baseClassMetadata->name . '\' has to be a OneToMany association');
+                }
             }
         }
         if (isset($extendedClassMetadata->localeProperty)) {
             if ($extendedClassMetadata->hasTranslatableProperties() && (
                     $baseClassMetadata->hasField($extendedClassMetadata->localeProperty) ||
-                    $baseClassMetadata->hasAssociation($extendedClassMetadata->localeProperty)))
+                    $baseClassMetadata->hasAssociation($extendedClassMetadata->localeProperty))) {
                 throw new Exception\MappingException('Entity \''.$baseClassMetadata->name.'\' seems to be a translatable entity so its \'' . $extendedClassMetadata->localeProperty . '\' field must not be persistent');
+            }
             else if (!$extendedClassMetadata->hasTranslatableProperties() &&
                     !$baseClassMetadata->hasField($extendedClassMetadata->localeProperty) &&
-                    !$baseClassMetadata->hasAssociation($extendedClassMetadata->localeProperty))
+                    !$baseClassMetadata->hasAssociation($extendedClassMetadata->localeProperty)) {
                 throw new Exception\MappingException('Entity \''.$baseClassMetadata->name.'\' seems to be a translation entity so its \'' . $extendedClassMetadata->localeProperty . '\' field must be persistent');
+            }
         }
     }
 
@@ -160,26 +156,30 @@ class TranslatableListener extends MappedEventSubscriber
         foreach ($translatableProperties as $translation => $properties) {
             $translations = $meta->getFieldValue($object, $translation);
             // Do not try to find translation if translations association is not yet initialized i.e. during postLoad
-            if (!isset($translations))
+            if (!isset($translations)) {
                 continue;
+            }
 
             $translationEntity = $meta->getAssociationTargetClass($translation);
             $translationMeta = $objectManager->getClassMetadata($translationEntity);
             $translationLanguageField = $this->getTranslationLanguageField($objectManager, $translationMeta->name);
 
             $currentTranslation = null;
-            if (isset($currentLocale) && isset($translations))
+            if (isset($currentLocale) && isset($translations)) {
                 $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $currentLocale);
+            }
 
             if (!isset($currentTranslation) && isset($this->_defaultLocale)) {
                 $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $this->_defaultLocale);
-                if (isset($currentTranslation))
+                if (isset($currentTranslation)) {
                     $currentLocale = $this->_defaultLocale;
+                }
             }
 
             if (!isset($currentTranslation)) {
-                foreach ($fields as $property => $translationField)
+                foreach ($translatableMeta->getTranslatableProperties() as $property => $translationField) {
                     $propertyObserver->setValue($object, $property, null);
+                }
                 continue;
             }
 
@@ -193,10 +193,11 @@ class TranslatableListener extends MappedEventSubscriber
             }
         }
 
-        if ($translationFound)
+        if ($translationFound) {
             $propertyObserver->setValue($object, $localeProperty, $currentLocale);
-        else
+        } else {
             $propertyObserver->setValue($object, $localeProperty, null);
+        }
         return $translationFound;
     }
 
@@ -232,7 +233,7 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * Helper method to insert, remove or update translations entities associated with specified object
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $meta
      * @param \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableMeta
      * @param object $object
@@ -241,7 +242,7 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $localeProperty = $translatableMeta->localeProperty;
         $propertyObserver = $this->getPropertyObserver($objectManager);
-        $objectLocale = PropertyAccess::getPropertyAccessor()->getValue($object, $localeProperty);
+        $objectLocale = PropertyAccess::createPropertyAccessor()->getValue($object, $localeProperty);
         if (!isset($objectLocale))
             $objectLocale = $this->getLocale();
         $objectLanguageChanged = !$propertyObserver->hasSavedValue($object, $localeProperty) || $propertyObserver->hasValueChanged($object, $localeProperty);
@@ -256,14 +257,15 @@ class TranslatableListener extends MappedEventSubscriber
 
             $translations = $meta->getFieldValue($object, $translation);
             $currentTranslation = null;
-            if (isset($translations))
+            if (isset($translations)) {
                 $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $objectLocale);
+            }
 
             $propertiesFound = false;
             foreach ($properties as $property => $translationField) {
                 if ($objectLanguageChanged || !$propertyObserver->hasSavedValue($object, $property) ||
                     $propertyObserver->hasValueChanged($object, $property)) {
-                    if ($propertyValue = PropertyAccess::getPropertyAccessor()->getValue($object, $property)) {
+                    if ($propertyValue = PropertyAccess::createPropertyAccessor()->getValue($object, $property)) {
                         $propertiesFound = true;
                         if (!isset($currentTranslation)) {
                             $currentTranslation = new $translationEntity();
@@ -272,17 +274,20 @@ class TranslatableListener extends MappedEventSubscriber
                             if (isset($translationAssociation['indexBy'])) {
                                 $index = $translationMeta->getFieldValue($currentTranslation, $translationAssociation['indexBy']);
                                 $translations[$index] = $currentTranslation;
-                            } else
+                            } else {
                                 $translations[] = $currentTranslation;
+                            }
                             $objectManager->persist($currentTranslation);
                         }
                         $translationMeta->setFieldValue($currentTranslation, $translationField, $propertyValue);
-                    } else if ($currentTranslation)
+                    } else if ($currentTranslation) {
                         $translationMeta->setFieldValue($currentTranslation, $translationField, null);
+                    }
                 }
             }
-            if ($propertiesFound && !isset($objectLocale))
+            if ($propertiesFound && !isset($objectLocale)) {
                 throw new Exception\RuntimeException('Neither object\'s locale nor the default locale was defined for translatable properties');
+            }
             if (!$propertiesFound && isset($currentTranslation)) {
                 $objectManager->remove($currentTranslation);
                 $translations->contains($currentTranslation);
@@ -307,20 +312,23 @@ class TranslatableListener extends MappedEventSubscriber
         foreach ($unitOfWork->getScheduledEntityInsertions() as $object) {
             $class = get_class($object);
             $translatableMeta = $this->getExtendedMetadata($entityManager, $class);
-            if (!$translatableMeta->hasTranslatableProperties())
+            if (!$translatableMeta->hasTranslatableProperties()) {
                 continue;
+            }
             $meta = $entityManager->getClassMetadata($class);
             $this->updateTranslations($entityManager, $meta, $translatableMeta, $object);
         }
 
         foreach ($unitOfWork->getIdentityMap() as $class => $entities) {
             $translatableMeta = $this->getExtendedMetadata($entityManager, $class);
-            if (!$translatableMeta->hasTranslatableProperties())
+            if (!$translatableMeta->hasTranslatableProperties()) {
                 continue;
+            }
             $meta = $entityManager->getClassMetadata($class);
             foreach ($entities as $object) {
-                if ($object instanceof \Doctrine\ORM\Proxy\Proxy)
+                if ($object instanceof \Doctrine\ORM\Proxy\Proxy) {
                     continue;
+                }
                 $this->updateTranslations($entityManager, $meta, $translatableMeta, $object);
             }
         }
@@ -371,31 +379,9 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * Set if untranslated objects should be skipped during loading translations with TranslatableTreeWalker
-     *
-     * @param bool $skip
-     * @return \FSi\DoctrineExtensions\Translatable\TranslatableListener
-     */
-    public function skipUntranslated($skip = true)
-    {
-        $this->_skipUntranslated = (bool)$skip;
-        return $this;
-    }
-
-    /**
-     * Returns true if untranslated objects should be skipped during loading translations with TranslatableTreeWalker
-     *
-     * @return boolean
-     */
-    public function isSkipUntranslated()
-    {
-        return $this->_skipUntranslated;
-    }
-
-    /**
      * Get current language from target entity
      *
-     * @param \Doctrine\Common\Persistance\ObjectManager $objectManager
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
 	 * @param string $targetEntity
 	 *
      * @return string
@@ -404,8 +390,9 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $translatableMeta = $this->getExtendedMetadata($objectManager, $translationEntity);
 
-        if(!isset($translatableMeta->localeProperty))
+        if (!isset($translatableMeta->localeProperty)) {
             throw new Exception\MappingException('Entity \''.$translationEntity.'\' seems to be a translation entity so it must have field mapped as translatable locale');
+        }
 
         return $translatableMeta->localeProperty;
     }
@@ -414,7 +401,7 @@ class TranslatableListener extends MappedEventSubscriber
      * Find translation entity by specified language using filter method from ArrayCollection class
      *
      * @param \Doctrine\Common\Collections\ArrayCollection $translates
-     * @param \Doctrine\Common\Persistance\Mapping\ClassMetadata $translationMeta
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $translationMeta
      * @param string $translationLocaleField
      * @param mixed $locale
      *
@@ -424,17 +411,19 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $translations = $translations->filter(function($translation) use ($locale, $translationMeta, $translationLocaleField) {
             $translationLocale = $translationMeta->getFieldValue($translation, $translationLocaleField);
-            if ($translationLocale === $locale)
+            if ($translationLocale === $locale) {
                 return true;
-            else
+            } else {
                 return false;
+            }
         });
 
-        if (!$translations->count())
+        if (!$translations->count()) {
             return null;
-        else if ($translations->count() > 1)
+        } else if ($translations->count() > 1) {
             throw new Exception\RuntimeException('Multiple translations found for one locale');
-        else
+        } else {
             return $translations->first();
+        }
     }
 }

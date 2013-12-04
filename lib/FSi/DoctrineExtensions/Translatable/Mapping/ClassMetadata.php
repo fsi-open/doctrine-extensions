@@ -1,7 +1,7 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -33,10 +33,12 @@ class ClassMetadata extends AbstractClassMetadata
      */
     public function addTranslatableProperty($translationAssociation, $property, $targetField = null)
     {
-        if (!isset($targetField))
+        if (!isset($targetField)) {
             $targetField = $property;
-        if (!isset($this->translatableProperties[$translationAssociation]))
+        }
+        if (!isset($this->translatableProperties[$translationAssociation])) {
             $this->translatableProperties[$translationAssociation] = array();
+        }
         $this->translatableProperties[$translationAssociation][$property] = $targetField;
     }
 
