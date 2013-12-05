@@ -624,6 +624,46 @@ class SimpleTest extends BaseORMTest
         );
     }
 
+    /**
+     * Test if call to getTranslation creates non existent translations
+     */
+    public function testCreatingNonExistentTranslationThroughRepository()
+    {
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $repository = $this->_em->getRepository(self::ARTICLE);
+        $article = new Article();
+        $article->setDate(new \DateTime());
+        $this->_em->persist($article);
+        $this->_em->flush();
+
+        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+
+        $translationPl = $repository->getTranslation($article, $this->_languagePl);
+
+        $this->assertTrue(
+            $article->getTranslations()->contains($translationEn)
+        );
+
+        $this->assertTrue(
+            $article->getTranslations()->contains($translationPl)
+        );
+
+        $this->assertSame(
+            $translationEn,
+            $article->getTranslations()->get($this->_languageEn)
+        );
+
+        $this->assertSame(
+            $translationPl,
+            $article->getTranslations()->get($this->_languagePl)
+        );
+
+        $this->assertSame(
+            $translationPl,
+            $repository->getTranslation($article, $this->_languagePl)
+        );
+    }
+
     protected function getUsedEntityFixtures()
     {
         return array(
