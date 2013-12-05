@@ -14,6 +14,7 @@ Features:
 - supports string or integer type for locale field; defining locale as an association to another entity is not supported
 - supports indexing translations collection by locale (or some other field) which simplifies accessing different translations
   at the same time from one instance of base entity
+- supports manipulating multiple translations in one ORM transaction
 
 ## Creating and attaching the TranslatableListener to the event manager ##
 
@@ -45,7 +46,7 @@ use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="\FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
  */
 class Article
 {
@@ -297,11 +298,15 @@ echo $article->getTranslation('pl')->getTitle();
 echo $article->getTranslation('pl')->getContent();
 ```
 
-As long as translations are regular entities you can manipulate them in as usual:
+## Using ``TranslatableRepository``
+
+This extension also provides ``TranslatableRepository`` class with two helper methods
+which make manipulating multiple translations at once easier:
 
 ```php
 $article = $em->find($articleId);
-$article->getTranslation('en')->setTitle('New article title');
+$repository = $em->getRepository('Article');
+$repository->getTranslation($article, 'en')->setTitle('New article title');
 $em->flush();
 ```
 
@@ -312,15 +317,36 @@ entity would be overwritten by value from base entity. Take a look at the exampl
 ```php
 $translatableListener->setLocale('en');
 $article = $em->find($articleId);
+$repository = $em->getRepository('Article');
 // as long as current locale is 'en' this will modify english title
 $article->setTitle('New article title 1');
 // this will also modify english title
-$article->getTranslation('en')->setTitle('New article title 2');
+$repository->getTranslation($article, 'en')->setTitle('New article title 2');
 $em->flush();
 // after flush and refresh of the entity both access methods will return
 // 'New article title 1'
-echo $article->getTranslation('en')->getTitle();
+echo $repository->getTranslation($article, 'en')->getTitle();
 echo $article->getTitle();
+```
+
+It is common task where using translations to select entities along with their
+translations in the currently set locale. It's easy using second helper method
+on ``TranslatableRepository``.
+
+```php
+$translatableListener->setLocale('en');
+$repository = $em->getRepository('Article');
+$qb = $repository->createTranslatableQueryBuilder('a', 't');
+echo $qb->getQuery()->getDql(); // returns something like 'SELECT a FROM Article a LEFT JOIN a.translations t WITH t.locale = :locale'
+```
+
+You can freely extend returned QueryBuilder i.e to query by values of translated fields:
+
+```php
+$translatableListener->setLocale('en');
+$repository = $em->getRepository('Article');
+$qb = $repository->createTranslatableQueryBuilder('a', 't');
+$qb->where('t.Title LIKE ?', '%article%');
 ```
 
 ## Annotations reference ##
