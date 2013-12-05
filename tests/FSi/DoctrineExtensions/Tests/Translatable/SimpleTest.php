@@ -600,6 +600,30 @@ class SimpleTest extends BaseORMTest
         );
     }
 
+    /**
+     * Test if query builder returned by translatable repository has join to translation entity
+     * and is constrained to current locale
+     */
+    public function testTranslatableRepositoryCreateQueryBuilder()
+    {
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $repository = $this->_em->getRepository(self::ARTICLE);
+
+        $qb = $repository->createTranslatableQueryBuilder('a', 't');
+
+        $this->assertEquals(
+            sprintf('SELECT a FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale', self::ARTICLE),
+            $qb->getQuery()->getDql(),
+            'Wrong DQL returned from QueryBuilder'
+        );
+
+        $this->assertEquals(
+            $this->_languagePl,
+            $qb->getParameter('locale')->getValue(),
+            'Parameter :locale has wrong value'
+        );
+    }
+
     protected function getUsedEntityFixtures()
     {
         return array(
