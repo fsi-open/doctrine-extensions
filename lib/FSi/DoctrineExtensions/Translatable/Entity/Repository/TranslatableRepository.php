@@ -76,7 +76,8 @@ class TranslatableRepository extends EntityRepository
     public function getTranslation($object, $locale, $translationAssociation = 'translations')
     {
         $className = $this->getClassName();
-        if ( ! ($object instanceof $className)) {
+        $translationClass = $this->getClassMetadata()->getAssociationTargetClass($translationAssociation);
+        if (!($object instanceof $className)) {
             throw new RuntimeException(sprintf('Expected entity of class %s, but got %s', $className, get_class($object)));
         }
 
@@ -91,55 +92,46 @@ class TranslatableRepository extends EntityRepository
 
         /* @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translationExtendedMeta */
         $translationExtendedMeta = $listener->getExtendedMetadata(
-            $this->getEntityManager(),
-            $this->getClassMetadata()->getAssociationTargetClass($translationAssociation)
+            $this->getEntityManager(), $translationClass
         );
 
-        $translationMeta = $this->getEntityManager()->getClassMetadata(
-            $this->getClassMetadata()->getAssociationTargetClass($translationAssociation)
-        );
+        $translationMeta = $this->getEntityManager()->getClassMetadata($translationClass);
 
         $translationAssociationMapping = $this->getClassMetadata()->getAssociationMapping($translationAssociation);
 
         $translations = $this->getClassMetadata()->getFieldValue($object, $translationAssociation);
-        if ( ! ($translations instanceof Collection)) {
+        if (!($translations instanceof Collection)) {
             throw new RuntimeException(sprintf('Entity %s must contains implementation of "Doctrine\Common\Collections\Collection" in "%s" assotiation', $className, $translationAssociation));
         }
 
-        if (isset($translationAssociationMapping['indexBy']) &&
-            ($translationAssociationMapping['indexBy'] == $translationExtendedMeta->localeProperty)) {
-            // preferred way of indexing translations collection by translation's locale
-            if (!$translations->containsKey($locale)) {
-                $translation = $this->createNewTranslation($translationMeta,
-                    $translationAssociationMapping['mappedBy'],
-                    $object,
-                    $translationExtendedMeta->localeProperty,
-                    $locale);
-                $translations->set($locale, $translation);
-            }
+        $translationsIndexed = (isset($translationAssociationMapping['indexBy']) &&
+            ($translationAssociationMapping['indexBy'] == $translationExtendedMeta->localeProperty));
 
-            return $translations->get($locale);
+        $translation = null;
+
+        if ($translationsIndexed) {
+            if ($translations->containsKey($locale)) {
+                $translation = $translations->get($locale);
+            }
         } else {
-            // fallback method when translations collection is not indexed by translation's locale
-            $translation = null;
-            foreach ($translations as $trans) {
-                if ($translationMeta->getFieldValue($translation, $translationExtendedMeta->localeProperty) == $locale) {
-                    $translation = $trans;
-                    break;
-                }
-            }
-
-            if (!isset($translation)) {
-                $translation = $this->createNewTranslation($translationMeta,
-                    $translationAssociationMapping['mappedBy'],
-                    $object,
-                    $translationExtendedMeta->localeProperty,
-                    $locale);
-                $translations->add($translation);
-            }
-
-            return $translation;
+            $translation = $this->findTranslation($translations, $locale, $translationMeta, $translationExtendedMeta);
         }
+
+        if (!isset($translation)) {
+            $translation = $this->createNewTranslation($translationMeta,
+                $translationAssociationMapping['mappedBy'],
+                $object,
+                $translationExtendedMeta->localeProperty,
+                $locale);
+        }
+
+        if ($translationsIndexed) {
+            $translations->set($locale, $translation);
+        } else {
+            $translations->add($translation);
+        }
+
+        return $translation;
     }
 
     protected function createNewTranslation(ClassMetadata $translationMeta, $objectProperty, $object, $localeProperty, $locale)
@@ -147,6 +139,25 @@ class TranslatableRepository extends EntityRepository
         $translation = $translationMeta->newInstance();
         $translationMeta->setFieldValue($translation, $objectProperty, $object);
         $translationMeta->setFieldValue($translation, $localeProperty, $locale);
+        return $translation;
+    }
+
+    /**
+     * @param string $locale
+     * @param \Doctrine\Common\Collections\Collection $translations
+     * @param \Doctrine\ORM\Mapping\ClassMetadata $translationMeta
+     * @param \Doctrine\ORM\Mapping\ClassMetadata $translationExtendedMeta
+     * @return object
+     */
+    protected function findTranslation($translations, $locale, $translationMeta, $translationExtendedMeta)
+    {
+        $translation = null;
+        foreach ($translations as $trans) {
+            if ($translationMeta->getFieldValue($trans, $translationExtendedMeta->localeProperty) == $locale) {
+                $translation = $trans;
+                break;
+            }
+        }
         return $translation;
     }
 
@@ -173,4 +184,4 @@ class TranslatableRepository extends EntityRepository
 
         throw new RuntimeException('Cannot find TranslatableListener in EntityManager\'s EventManager');
     }
-} 
+}
