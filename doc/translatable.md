@@ -301,7 +301,20 @@ echo $article->getTranslation('pl')->getContent();
 ## Using ``TranslatableRepository``
 
 This extension also provides ``TranslatableRepository`` class with two helper methods
-which make manipulating multiple translations at once easier:
+which make manipulating multiple translations at once easier. In order to use it
+you must set ``entityRepository`` on you translatable entity like in this example:
+
+```php
+/**
+ * @ORM\Entity(repositoryClass="\FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
+ */
+class Article
+{
+    ...
+}
+```
+
+Then you can use helper methods of ``TranslatableRepository`` like this:
 
 ```php
 $article = $em->find($articleId);
