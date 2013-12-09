@@ -13,6 +13,7 @@ use Doctrine\Common\EventArgs;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\ORM\Event\OnClearEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\UnitOfWork;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -20,7 +21,6 @@ use FSi\Component\Metadata\MetadataFactory;
 use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\Component\PropertyObserver\PropertyObserver;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
-use FSi\DoctrineExtensions\ChangeTracking\ChangeTrackingListener;
 use FSi\DoctrineExtensions\Translatable\Exception;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 
@@ -62,7 +62,8 @@ class TranslatableListener extends MappedEventSubscriber
         return array(
             'postLoad',
             'postHydrate',
-            'preFlush'
+            'preFlush',
+            'onClear'
         );
     }
 
@@ -336,6 +337,21 @@ class TranslatableListener extends MappedEventSubscriber
                 }
                 $this->updateTranslations($entityManager, $meta, $translatableMeta, $object);
             }
+        }
+    }
+
+    /**
+     * Clears embedded object observer for associated entity manager
+     *
+     * @param \Doctrine\ORM\Event\OnClearEventArgs $eventArgs
+     */
+    public function onClear(OnClearEventArgs $eventArgs)
+    {
+        if ($eventArgs->clearsAllEntities()) {
+            $eventAdapter = $this->getEventAdapter($eventArgs);
+            $objectManager = $eventAdapter->getObjectManager();
+            $oid = spl_object_hash($objectManager);
+            unset($this->_propertyObservers[$oid]);
         }
     }
 
