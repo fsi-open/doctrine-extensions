@@ -664,6 +664,30 @@ class SimpleTest extends BaseORMTest
         );
     }
 
+    public function testInternalPropertyObserver()
+    {
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $article = new Article();
+        $article->setDate(new \DateTime());
+        $this->_em->persist($article);
+        $this->_em->flush();
+        $emOid = spl_object_hash($this->_em);
+
+        $propertyObservers = \PHPUnit_Framework_Assert::readAttribute($this->_translatableListener, '_propertyObservers');
+        $this->assertArrayHasKey(
+            $emOid,
+            $propertyObservers
+        );
+
+        $this->_em->clear();
+
+        $propertyObservers = \PHPUnit_Framework_Assert::readAttribute($this->_translatableListener, '_propertyObservers');
+        $this->assertArrayNotHasKey(
+            $emOid,
+            $propertyObservers
+        );
+    }
+
     protected function getUsedEntityFixtures()
     {
         return array(
