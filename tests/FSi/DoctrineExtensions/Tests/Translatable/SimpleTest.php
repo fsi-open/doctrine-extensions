@@ -664,6 +664,46 @@ class SimpleTest extends BaseORMTest
         );
     }
 
+    public function testNotOverwritingTranslationForNewObject()
+    {
+        $this->_translatableListener->setLocale($this->_languageEn);
+        $repository = $this->_em->getRepository(self::ARTICLE);
+        $article = new Article();
+        $article->setDate(new \DateTime());
+
+        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $translationEn->setTitle(self::ENGLISH_TITLE_1);
+        $translationEn->setContents(self::ENGLISH_CONTENTS_1);
+        $translationPl = $repository->getTranslation($article, $this->_languagePl);
+        $translationPl->setTitle(self::POLISH_TITLE_1);
+        $translationPl->setContents(self::POLISH_CONTENTS_1);
+
+        $this->_em->persist($translationEn);
+        $this->_em->persist($translationPl);
+        $this->_em->persist($article);
+        $this->_em->flush();
+
+        $this->_em->refresh($article);
+
+        $this->assertEquals(
+            2,
+            count($article->getTranslations()),
+            'Number of translations is not valid'
+        );
+
+        $this->assertAttributeEquals(
+            self::ENGLISH_TITLE_1,
+            'title',
+            $article
+        );
+
+        $this->assertAttributeEquals(
+            self::ENGLISH_CONTENTS_1,
+            'contents',
+            $article
+        );
+    }
+
     public function testInternalPropertyObserver()
     {
         $this->_translatableListener->setLocale($this->_languagePl);
