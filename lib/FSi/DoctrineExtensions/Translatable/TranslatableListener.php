@@ -244,9 +244,10 @@ class TranslatableListener extends MappedEventSubscriber
         $localeProperty = $translatableMeta->localeProperty;
         $propertyObserver = $this->getPropertyObserver($objectManager);
         $objectLocale = PropertyAccess::createPropertyAccessor()->getValue($object, $localeProperty);
+        $objectLanguageChanged = (!$propertyObserver->hasSavedValue($object, $localeProperty) && isset($objectLocale)) ||
+            ($propertyObserver->hasSavedValue($object, $localeProperty) && $propertyObserver->hasValueChanged($object, $localeProperty));
         if (!isset($objectLocale))
             $objectLocale = $this->getLocale();
-        $objectLanguageChanged = !$propertyObserver->hasSavedValue($object, $localeProperty) || $propertyObserver->hasValueChanged($object, $localeProperty);
 
         $translatableProperties = $translatableMeta->getTranslatableProperties();
         foreach ($translatableProperties as $translation => $properties) {
@@ -268,8 +269,8 @@ class TranslatableListener extends MappedEventSubscriber
                 if (isset($propertyValue)) {
                     $propertiesFound = true;
                 }
-                if ($objectLanguageChanged || !$propertyObserver->hasSavedValue($object, $property) ||
-                    $propertyObserver->hasValueChanged($object, $property)) {
+                if ($objectLanguageChanged || (!$propertyObserver->hasSavedValue($object, $property) && isset($propertyValue)) ||
+                    ($propertyObserver->hasSavedValue($object, $property) && $propertyObserver->hasValueChanged($object, $property))) {
                     if (isset($propertyValue)) {
                         if (!isset($currentTranslation)) {
                             $currentTranslation = new $translationEntity();
@@ -293,7 +294,7 @@ class TranslatableListener extends MappedEventSubscriber
                 throw new Exception\RuntimeException('Neither object\'s locale nor the default locale was defined for translatable properties');
             }
 
-            if (!$propertiesFound && isset($currentTranslation)) {
+            if (!$propertiesFound && isset($currentTranslation) && $meta->getIdentifierValues($object)) {
                 $objectManager->remove($currentTranslation);
                 if ($translations->contains($currentTranslation)) {
                     $translations->removeElement($currentTranslation);
