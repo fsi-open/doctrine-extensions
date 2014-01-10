@@ -76,7 +76,10 @@ final class ExtendedMetadataFactory extends MetadataFactory
         $driver = null;
         $className = get_class($omDriver);
         $driverName = substr($className, strrpos($className, '\\') + 1);
-        if ($omDriver instanceof DriverChain || $driverName == 'DriverChain') {
+        if ($omDriver instanceof DriverChain ||
+            $driverName == 'DriverChain' ||
+            $driverName == 'MappingDriverChain'
+        ) {
             $driver = new DriverChain();
             foreach ($omDriver->getDrivers() as $namespace => $nestedOmDriver) {
                 $driver->addDriver($this->getDriver($nestedOmDriver), $namespace);
