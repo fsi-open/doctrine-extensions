@@ -243,11 +243,11 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $localeProperty = $translatableMeta->localeProperty;
         $propertyObserver = $this->getPropertyObserver($objectManager);
-        $objectLocale = PropertyAccess::createPropertyAccessor()->getValue($object, $localeProperty);
+        $locale = $objectLocale = PropertyAccess::createPropertyAccessor()->getValue($object, $localeProperty);
         $objectLanguageChanged = (!$propertyObserver->hasSavedValue($object, $localeProperty) && isset($objectLocale)) ||
             ($propertyObserver->hasSavedValue($object, $localeProperty) && $propertyObserver->hasValueChanged($object, $localeProperty));
-        if (!isset($objectLocale))
-            $objectLocale = $this->getLocale();
+        if (!isset($locale))
+            $locale = $this->getLocale();
 
         $translatableProperties = $translatableMeta->getTranslatableProperties();
         foreach ($translatableProperties as $translation => $properties) {
@@ -260,7 +260,7 @@ class TranslatableListener extends MappedEventSubscriber
             $translations = $meta->getFieldValue($object, $translation);
             $currentTranslation = null;
             if (isset($translations)) {
-                $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $objectLocale);
+                $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $locale);
             }
 
             $propertiesFound = false;
@@ -274,7 +274,7 @@ class TranslatableListener extends MappedEventSubscriber
                     if (isset($propertyValue)) {
                         if (!isset($currentTranslation)) {
                             $currentTranslation = new $translationEntity();
-                            $translationMeta->setFieldValue($currentTranslation, $translationLanguageField, $objectLocale);
+                            $translationMeta->setFieldValue($currentTranslation, $translationLanguageField, $locale);
                             $translationMeta->setFieldValue($currentTranslation, $translationAssociation['mappedBy'], $object);
                             if (isset($translationAssociation['indexBy'])) {
                                 $index = $translationMeta->getFieldValue($currentTranslation, $translationAssociation['indexBy']);
@@ -290,11 +290,11 @@ class TranslatableListener extends MappedEventSubscriber
                     }
                 }
             }
-            if ($propertiesFound && !isset($objectLocale)) {
+            if ($propertiesFound && !isset($locale)) {
                 throw new Exception\RuntimeException('Neither object\'s locale nor the default locale was defined for translatable properties');
             }
 
-            if (!$propertiesFound && isset($currentTranslation) && $meta->getIdentifierValues($object)) {
+            if (!$propertiesFound && isset($currentTranslation) && isset($objectLocale)) {
                 $objectManager->remove($currentTranslation);
                 if ($translations->contains($currentTranslation)) {
                     $translations->removeElement($currentTranslation);
