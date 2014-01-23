@@ -27,11 +27,6 @@ use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableCla
 class TranslatableListener extends MappedEventSubscriber
 {
     /**
-     * Setting this hint on a query overrides value of corresponding option on TranslatableListener
-     */
-    const HINT_SKIP_UNTRANSLATED = 'fsi.translatable.skip_untranslated';
-
-    /**
      * Current locale of the listener
      *
      * @var mixed

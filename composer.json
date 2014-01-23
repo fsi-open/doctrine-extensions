@@ -26,12 +26,17 @@
     },
     "require-dev": {
         "doctrine/dbal": "~2.3",
-        "doctrine/orm": "~2.3"
+        "doctrine/orm": "~2.3",
+        "phpunit/phpunit": "3.7.*"
     },
     "autoload": {
         "psr-0": {
-            "FSi\\DoctrineExtensions": "lib/"
+            "FSi\\DoctrineExtensions": "lib/",
+            "FSi\\DoctrineExtensions\\Tests": "tests/"
         }
+    },
+    "config": {
+        "bin-dir": "bin"
     },
     "extra": {
         "branch-alias": {
