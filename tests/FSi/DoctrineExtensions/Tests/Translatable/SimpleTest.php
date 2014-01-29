@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
+use FSi\DoctrineExtensions\ORM\Query;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticleTranslation;
@@ -725,6 +726,50 @@ class SimpleTest extends BaseORMTest
         $this->assertArrayNotHasKey(
             $emOid,
             $propertyObservers
+        );
+    }
+
+    public function testPostHydrate()
+    {
+        $this->_translatableListener->setLocale($this->_languageEn);
+        $repository = $this->_em->getRepository(self::ARTICLE);
+        $article = new Article();
+        $article->setDate(new \DateTime());
+
+        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $translationEn->setTitle(self::ENGLISH_TITLE_1);
+        $translationEn->setContents(self::ENGLISH_CONTENTS_1);
+        $translationPl = $repository->getTranslation($article, $this->_languagePl);
+        $translationPl->setTitle(self::POLISH_TITLE_1);
+        $translationPl->setContents(self::POLISH_CONTENTS_1);
+
+        $this->_em->persist($translationEn);
+        $this->_em->persist($translationPl);
+        $this->_em->persist($article);
+        $this->_em->flush();
+        $this->_em->clear();
+
+        $this->_logger->enabled = true;
+        $query = $repository->createTranslatableQueryBuilder('a', 't')->addSelect('t')->getQuery();
+        $articles = $query->getResult(Query::HYDRATE_OBJECT);
+        foreach ($articles as $article) {
+            $this->assertAttributeEquals(
+                self::ENGLISH_TITLE_1,
+                'title',
+                $article
+            );
+
+            $this->assertAttributeEquals(
+                self::ENGLISH_CONTENTS_1,
+                'contents',
+                $article
+            );
+        }
+
+        $this->assertEquals(
+            1,
+            count($this->_logger->queries),
+            'Reloading executed wrong number of queries'
         );
     }
 
