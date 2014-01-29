@@ -14,6 +14,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\Expr;
+use FSi\DoctrineExtensions\ORM\QueryBuilder;
 use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
 
@@ -39,7 +40,9 @@ class TranslatableRepository extends EntityRepository
         /* @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableMeta */
         $translatableMeta = $listener->getExtendedMetadata($this->getEntityManager(), $this->getClassName());
 
-        $qb = $this->createQueryBuilder($alias);
+        $qb = new QueryBuilder($this->_em);
+        $qb->select($alias)
+            ->from($this->_entityName, $alias);
 
         if ($listener->getLocale()) {
             foreach ($translatableMeta->getTranslatableProperties() as $translation => $properties) {

@@ -751,7 +751,7 @@ class SimpleTest extends BaseORMTest
 
         $this->_logger->enabled = true;
         $query = $repository->createTranslatableQueryBuilder('a', 't')->addSelect('t')->getQuery();
-        $articles = $query->getResult(Query::HYDRATE_OBJECT);
+        $articles = $query->execute();
         foreach ($articles as $article) {
             $this->assertAttributeEquals(
                 self::ENGLISH_TITLE_1,
