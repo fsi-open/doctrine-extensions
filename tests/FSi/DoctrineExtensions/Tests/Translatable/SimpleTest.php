@@ -751,6 +751,11 @@ class SimpleTest extends BaseORMTest
 
         $this->_logger->enabled = true;
         $query = $repository->createTranslatableQueryBuilder('a', 't')->addSelect('t')->getQuery();
+
+        $this->assertTrue(
+            $query->getHint(\Doctrine\ORM\Query::HINT_INCLUDE_META_COLUMNS)
+        );
+
         $articles = $query->execute();
         foreach ($articles as $article) {
             $this->assertAttributeEquals(

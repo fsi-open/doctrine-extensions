@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\ORM;
 
+use Doctrine\ORM\Query as BaseQuery;
 use Doctrine\ORM\QueryBuilder as BaseQueryBuilder;
 
 class QueryBuilder extends BaseQueryBuilder
@@ -17,6 +18,7 @@ class QueryBuilder extends BaseQueryBuilder
     {
         $query = parent::getQuery();
         $query->setHydrationMode(Query::HYDRATE_OBJECT);
+        $query->setHint(BaseQuery::HINT_INCLUDE_META_COLUMNS, true);
         return $query;
     }
 }
