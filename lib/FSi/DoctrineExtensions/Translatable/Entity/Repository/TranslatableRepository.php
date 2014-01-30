@@ -44,23 +44,12 @@ class TranslatableRepository extends EntityRepository
         $qb->select($alias)
             ->from($this->_entityName, $alias);
 
-        if ($listener->getLocale()) {
-            foreach ($translatableMeta->getTranslatableProperties() as $translation => $properties) {
-                /* @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translationMeta */
-                $translationMeta = $listener->getExtendedMetadata(
-                    $this->getEntityManager(),
-                    $this->getClassMetadata()->getAssociationTargetClass($translation)
-                );
-
-                $qb->leftJoin(
-                    sprintf('%s.%s', $alias, $translation),
-                    $translationAlias,
-                    Expr\Join::WITH,
-                    sprintf('%s.%s = :locale', $translationAlias, $translationMeta->localeProperty)
-                );
-            }
-
-            $qb->setParameter('locale', $listener->getLocale());
+        foreach ($translatableMeta->getTranslatableProperties() as $translation => $properties) {
+            $qb->leftJoin(
+                sprintf('%s.%s', $alias, $translation),
+                $translationAlias
+            );
+            break;
         }
 
         return $qb;

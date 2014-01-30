@@ -613,15 +613,9 @@ class SimpleTest extends BaseORMTest
         $qb = $repository->createTranslatableQueryBuilder('a', 't');
 
         $this->assertEquals(
-            sprintf('SELECT a FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale', self::ARTICLE),
+            sprintf('SELECT a FROM %s a LEFT JOIN a.translations t', self::ARTICLE),
             $qb->getQuery()->getDql(),
             'Wrong DQL returned from QueryBuilder'
-        );
-
-        $this->assertEquals(
-            $this->_languagePl,
-            $qb->getParameter('locale')->getValue(),
-            'Parameter :locale has wrong value'
         );
     }
 
