@@ -608,12 +608,13 @@ class SimpleTest extends BaseORMTest
     public function testTranslatableRepositoryCreateQueryBuilder()
     {
         $this->_translatableListener->setLocale($this->_languagePl);
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
         $repository = $this->_em->getRepository(self::ARTICLE);
 
         $qb = $repository->createTranslatableQueryBuilder('a', 't');
 
         $this->assertEquals(
-            sprintf('SELECT a FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale', self::ARTICLE),
+            sprintf('SELECT a, t, dt FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale LEFT JOIN a.translations dt WITH dt.locale = :deflocale', self::ARTICLE),
             $qb->getQuery()->getDql(),
             'Wrong DQL returned from QueryBuilder'
         );
@@ -750,7 +751,7 @@ class SimpleTest extends BaseORMTest
         $this->_em->clear();
 
         $this->_logger->enabled = true;
-        $query = $repository->createTranslatableQueryBuilder('a', 't')->addSelect('t')->getQuery();
+        $query = $repository->createTranslatableQueryBuilder('a', 't', 'dt')->getQuery();
 
         $this->assertTrue(
             $query->getHint(\Doctrine\ORM\Query::HINT_INCLUDE_META_COLUMNS)

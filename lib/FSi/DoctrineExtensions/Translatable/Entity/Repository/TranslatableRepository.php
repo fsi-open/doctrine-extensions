@@ -28,13 +28,15 @@ class TranslatableRepository extends EntityRepository
     /**
      * Creates query builder for this entity joined with associated translation
      * entity and constrained to current locale of TranslatableListener if it
-     * has been set
+     * has been set. It also adds second join to translation entity constrained
+     * to default locale of TranslatableListener if it has been set.
      *
      * @param string $alias
      * @param string $translationAlias
+     * @param string $defaultTranslationAlias
      * @return \Doctrine\ORM\QueryBuilder
      */
-    public function createTranslatableQueryBuilder($alias, $translationAlias = 't')
+    public function createTranslatableQueryBuilder($alias, $translationAlias = 't', $defaultTranslationAlias = 'dt')
     {
         $listener = $this->getTranslatableListener();
         /* @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableMeta */
@@ -44,23 +46,34 @@ class TranslatableRepository extends EntityRepository
         $qb->select($alias)
             ->from($this->_entityName, $alias);
 
-        if ($listener->getLocale()) {
-            foreach ($translatableMeta->getTranslatableProperties() as $translation => $properties) {
-                /* @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translationMeta */
-                $translationMeta = $listener->getExtendedMetadata(
-                    $this->getEntityManager(),
-                    $this->getClassMetadata()->getAssociationTargetClass($translation)
-                );
+        foreach ($translatableMeta->getTranslatableProperties() as $translation => $properties) {
+            /* @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translationMeta */
+            $translationMeta = $listener->getExtendedMetadata(
+                $this->getEntityManager(),
+                $this->getClassMetadata()->getAssociationTargetClass($translation)
+            );
 
+            if ($listener->getLocale()) {
                 $qb->leftJoin(
                     sprintf('%s.%s', $alias, $translation),
                     $translationAlias,
                     Expr\Join::WITH,
                     sprintf('%s.%s = :locale', $translationAlias, $translationMeta->localeProperty)
                 );
+                $qb->addSelect($translationAlias);
+                $qb->setParameter('locale', $listener->getLocale());
             }
 
-            $qb->setParameter('locale', $listener->getLocale());
+            if ($listener->getDefaultLocale()) {
+                $qb->leftJoin(
+                    sprintf('%s.%s', $alias, $translation),
+                    $defaultTranslationAlias,
+                    Expr\Join::WITH,
+                    sprintf('%s.%s = :deflocale', $defaultTranslationAlias, $translationMeta->localeProperty)
+                );
+                $qb->addSelect($defaultTranslationAlias);
+                $qb->setParameter('deflocale', $listener->getDefaultLocale());
+            }
         }
 
         return $qb;

@@ -347,10 +347,17 @@ translations in the currently set locale. It's easy using second helper method
 on ``TranslatableRepository``.
 
 ```php
-$translatableListener->setLocale('en');
+$translatableListener->setLocale('de');
+$translatableListener->setDefaultLocale('en');
 $repository = $em->getRepository('Article');
-$qb = $repository->createTranslatableQueryBuilder('a', 't');
-echo $qb->getQuery()->getDql(); // returns something like 'SELECT a FROM Article a LEFT JOIN a.translations t WITH t.locale = :locale'
+$qb = $repository->createTranslatableQueryBuilder('a', 't', 'dt');
+echo $qb->getQuery()->getDql();
+```
+
+Displayed DQL will be something like:
+
+```
+SELECT a, t, dt FROM Article a LEFT JOIN a.translations t WITH t.locale = :locale LEFT JOIN a.translations dt WITH dt.locale = :deflocale
 ```
 
 You can freely extend returned QueryBuilder i.e to query by values of translated fields:
@@ -358,7 +365,7 @@ You can freely extend returned QueryBuilder i.e to query by values of translated
 ```php
 $translatableListener->setLocale('en');
 $repository = $em->getRepository('Article');
-$qb = $repository->createTranslatableQueryBuilder('a', 't');
+$qb = $repository->createTranslatableQueryBuilder('a', 't', 'dt');
 $qb->where('t.Title LIKE ?', '%article%');
 ```
 
