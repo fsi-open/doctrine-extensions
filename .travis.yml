@@ -9,3 +9,6 @@ before_script:
   - composer --prefer-source --dev install
 
 script: bin/phpunit
+
+notifications:
+  irc: "irc.freenode.org#fsi-open"
