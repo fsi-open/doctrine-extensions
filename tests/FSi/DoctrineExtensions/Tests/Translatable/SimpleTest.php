@@ -666,6 +666,35 @@ class SimpleTest extends BaseORMTest
         );
     }
 
+    /**
+     * Test if call to hasTranslation returns true for existing translations
+     * and false otherwise
+     */
+    public function testCheckingIfTranslationExistsThroughRepository()
+    {
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $repository = $this->_em->getRepository(self::ARTICLE);
+        $article = new Article();
+        $article->setDate(new \DateTime());
+        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $translationEn->setTitle(self::ENGLISH_TITLE_1);
+        $translationEn->setContents(self::ENGLISH_CONTENTS_1);
+        $this->_em->persist($article);
+        $this->_em->persist($translationEn);
+        $this->_em->flush();
+        $this->_em->clear();
+
+        $article = $repository->find($article->getId());
+
+        $this->assertTrue(
+            $repository->hasTranslation($article, $this->_languageEn)
+        );
+
+        $this->assertFalse(
+            $repository->hasTranslation($article, $this->_languagePl)
+        );
+    }
+
     public function testNotOverwritingTranslationForNewObject()
     {
         $this->_translatableListener->setLocale($this->_languageEn);

@@ -80,6 +80,58 @@ class TranslatableRepository extends EntityRepository
     }
 
     /**
+     * Returns true if a translation entity for specified base entity and locale exists
+     *
+     * @param object $object
+     * @param mixed $locale
+     * @param string $translationAssociation
+     * @return bool
+     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
+     */
+    public function hasTranslation($object, $locale, $translationAssociation = 'translations')
+    {
+        $className = $this->getClassName();
+        $translationClass = $this->getClassMetadata()->getAssociationTargetClass($translationAssociation);
+        if (!($object instanceof $className)) {
+            throw new RuntimeException(sprintf('Expected entity of class %s, but got %s', $className, get_class($object)));
+        }
+
+        $listener = $this->getTranslatableListener();
+        /* @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableMeta */
+        $translatableMeta = $listener->getExtendedMetadata($this->getEntityManager(), $this->getClassName());
+
+        $translatableProperties = $translatableMeta->getTranslatableProperties();
+        if (!isset($translatableProperties[$translationAssociation])) {
+            throw new RuntimeException(sprintf('Entity %s has no translations association named %s', $className, $translationAssociation));
+        }
+
+        /* @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translationExtendedMeta */
+        $translationExtendedMeta = $listener->getExtendedMetadata(
+            $this->getEntityManager(), $translationClass
+        );
+
+        $translationMeta = $this->getEntityManager()->getClassMetadata($translationClass);
+
+        $translationAssociationMapping = $this->getClassMetadata()->getAssociationMapping($translationAssociation);
+
+        $translations = $this->getClassMetadata()->getFieldValue($object, $translationAssociation);
+        if (!($translations instanceof Collection)) {
+            throw new RuntimeException(sprintf('Entity %s must contains implementation of "Doctrine\Common\Collections\Collection" in "%s" assotiation', $className, $translationAssociation));
+        }
+
+        $translationsIndexed = (isset($translationAssociationMapping['indexBy']) &&
+            ($translationAssociationMapping['indexBy'] == $translationExtendedMeta->localeProperty));
+
+        $translation = null;
+
+        if ($translationsIndexed) {
+            return $translations->containsKey($locale);
+        } else {
+            return ($this->findTranslation($translations, $locale, $translationMeta, $translationExtendedMeta) !== null);
+        }
+    }
+
+    /**
      * Returns existing or newly created translation entity for specified base
      * entity and locale
      *
