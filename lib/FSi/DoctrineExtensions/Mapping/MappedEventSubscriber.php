@@ -89,7 +89,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
      * Get extended metadata mapping reader.
      *
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @return \FSi\DoctrineExtensions\Mapping\ExtensionMetadataFactory
+     * @return \FSi\Component\Metadata\MetadataFactory
      */
     protected function getExtendedMetadataFactory(ObjectManager $objectManager)
     {
