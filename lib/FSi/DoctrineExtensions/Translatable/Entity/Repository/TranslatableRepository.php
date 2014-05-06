@@ -307,7 +307,11 @@ class TranslatableRepository extends EntityRepository
     {
         $className = $this->getClassName();
         if (!($object instanceof $className)) {
-            throw new RuntimeException(sprintf('Expected entity of class %s, but got %s', $className, get_class($object)));
+            throw new RuntimeException(sprintf(
+                'Expected entity of class %s, but got %s',
+                $className,
+                is_object($object) ? get_class($object) : gettype($object)
+            ));
         }
     }
 
