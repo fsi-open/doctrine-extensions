@@ -341,12 +341,11 @@ class TranslatableRepository extends EntityRepository
     protected function areTranslationsIndexedByLocale($translationAssociation)
     {
         $translationAssociationMapping = $this->getClassMetadata()->getAssociationMapping($translationAssociation);
-        $translationExtendedMeta = $this->getTranslationExtendedMetadata($translationAssociation);
-
         if (!isset($translationAssociationMapping['indexBy'])) {
             return false;
         }
 
+        $translationExtendedMeta = $this->getTranslationExtendedMetadata($translationAssociation);
         return ($translationAssociationMapping['indexBy'] == $translationExtendedMeta->localeProperty);
     }
 
