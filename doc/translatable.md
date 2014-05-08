@@ -342,6 +342,21 @@ echo $repository->getTranslation($article, 'en')->getTitle();
 echo $article->getTitle();
 ```
 
+The ``getTranslation()`` method creates new translation for specified locale if
+the one does not exist already. Sometimes it's useful to check if translation
+exists before accessing it. This is especially important when translations have
+some fields which cannot be saved as ``null``:
+
+```php
+$article = $em->find($articleId);
+$repository = $em->getRepository('Article');
+$title = null;
+if ($repository->hasTranslation($article, 'en')) {
+    $title = $repository->getTranslation($article, 'en')
+        ->getTitle('New article title');
+}
+```
+
 It is common task where using translations to select entities along with their
 translations in the currently set locale. It's easy using second helper method
 on ``TranslatableRepository``.
