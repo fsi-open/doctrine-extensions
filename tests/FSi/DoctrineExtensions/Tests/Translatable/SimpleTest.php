@@ -14,20 +14,29 @@ use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticleTranslation;
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Section;
+use FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository;
 
 class SimpleTest extends BaseORMTest
 {
     const CATEGORY = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Category";
+    const SECTION = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Section";
+    const COMMENT = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Comment";
     const ARTICLE = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Article";
     const ARTICLE_TRANSLATION = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\ArticleTranslation";
 
+    const SECTION_1 = 'Section 1';
     const CATEGORY_1 = 'Category 1';
+    const CATEGORY_2 = 'Category 2';
     const POLISH_TITLE_1 = 'Tytuł polski 1';
     const POLISH_TITLE_2 = 'Tytuł polski 2';
+    const POLISH_TEASER = 'Wstep polski';
     const POLISH_CONTENTS_1 = 'Treść artukułu po polsku 1';
     const POLISH_CONTENTS_2 = 'Treść artukułu po polsku 2';
     const ENGLISH_TITLE_1 = 'English title 1';
     const ENGLISH_TITLE_2 = 'English title 2';
+    const ENGLISH_TEASER = 'English teaser';
     const ENGLISH_CONTENTS_1 = 'English contents of article 1';
     const ENGLISH_CONTENTS_2 = 'English contents of article 2';
 
@@ -812,9 +821,147 @@ class SimpleTest extends BaseORMTest
     {
         return array(
             self::CATEGORY,
+            self::SECTION,
+            self::COMMENT,
             self::ARTICLE,
             self::ARTICLE_TRANSLATION
         );
+    }
+
+    private function fillDataForFindTranslatedOneBy()
+    {
+        /** @var TranslatableRepository $repository */
+        $repository = $this->_em->getRepository(self::ARTICLE);
+
+        $article1 = new Article();
+        $this->_em->persist($article1);
+        $article1->setDate(new \DateTime('2014-01-01 00:00:00'));
+        $translationEn = $repository->getTranslation($article1, $this->_languageEn);
+        $translationEn->setTitle(self::ENGLISH_TITLE_1);
+        $translationEn->setIntroduction(self::ENGLISH_TEASER);
+        $translationEn->setContents(self::ENGLISH_CONTENTS_1);
+        $this->_em->persist($translationEn);
+
+        $article2 = new Article();
+        $this->_em->persist($article2);
+        $article2->setDate(new \DateTime('2014-02-02 00:00:00'));
+        $translationPl = $repository->getTranslation($article2, $this->_languagePl);
+        $translationPl->setTitle(self::POLISH_TITLE_1);
+        $translationPl->setIntroduction(self::POLISH_TEASER);
+        $translationPl->setContents(self::POLISH_CONTENTS_1);
+        $this->_em->persist($translationPl);
+
+        $category1 = new Category();
+        $category1->setTitle(self::CATEGORY_1);
+        $article1->addCategory($category1);
+        $article2->addCategory($category1);
+        $this->_em->persist($category1);
+
+        $section = new Section();
+        $section->setTitle(self::SECTION_1);
+        $article1->setSection($section);
+        $article2->setSection($section);
+        $this->_em->persist($section);
+
+        $comment = new Comment();
+        $comment->setContent('Lorem');
+        $comment->setDate(new \DateTime());
+        $comment->setArticle($article1);
+        $this->_em->persist($comment);
+
+        $comment = new Comment();
+        $comment->setContent('Ipsum');
+        $comment->setDate(new \DateTime());
+        $comment->setArticle($article2);
+        $this->_em->persist($comment);
+
+        $this->_em->flush();
+        $this->_em->refresh($article1);
+        $this->_em->refresh($article2);
+    }
+
+    /**
+     * tests that findTranslatedOneBy will return correct entity and if not found throw exception
+     */
+    public function testFindTranslatedOneByFields()
+    {
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+
+        $this->fillDataForFindTranslatedOneBy();
+
+        /** @var TranslatableRepository $repository */
+        $repository = $this->_em->getRepository(self::ARTICLE);
+        $section = $this->_em->getRepository(self::SECTION)->findOneBy(array('title' => self::SECTION_1));
+        $comment = $this->_em->getRepository(self::COMMENT)->findOneBy(array('content' => 'Ipsum'));
+
+        /** @var Article $article */
+        $article = $repository->findTranslatedOneBy(array(
+            'date' => '2014-02-02 00:00:00', //fiend in Article, not translated
+            'title' => self::POLISH_TITLE_1, //field in ArticleTranslation with same name
+            'teaser' => self::POLISH_TEASER, //field in ArticleTranslation with different name
+            'section' => $section, //field in Article - single value association
+            'comments' => $comment, //field in Article - one to many association
+        ));
+
+        $this->assertEquals($this->_languagePl, $article->getLocale());
+        $this->assertEquals(self::POLISH_TITLE_1, $article->getTitle());
+        $this->assertEquals(self::POLISH_TEASER, $article->getTeaser());
+        $this->assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
+
+        $this->setExpectedException('\Doctrine\ORM\NoResultException');
+
+        $repository->findTranslatedOneBy(array(
+            'date' => '2014-01-01 00:00:01', //value that not exists
+        ));
+    }
+
+    /**
+     * test that findTranslatedOneBy will return fields from default translation
+     * if translation in current locale was not found
+     */
+    public function testFindTranslatedOneByLocaleFallback()
+    {
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+
+        $this->fillDataForFindTranslatedOneBy();
+
+        /** @var TranslatableRepository $repository */
+        $repository = $this->_em->getRepository(self::ARTICLE);
+
+        /** @var Article $article */
+        $article = $repository->findTranslatedOneBy(array(
+            'date' => '2014-01-01 00:00:00',
+        ));
+
+        $this->assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
+        $this->assertEquals(self::ENGLISH_TEASER, $article->getTeaser());
+        $this->assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
+    }
+
+    /**
+     * if field is many to many association findTranslatedOneBy should throw exception
+     */
+    public function testFindTranslatedOneByManyToManyAssociationField()
+    {
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+
+        $this->fillDataForFindTranslatedOneBy();
+
+        /** @var TranslatableRepository $repository */
+        $repository = $this->_em->getRepository(self::ARTICLE);
+        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(array('title' => self::CATEGORY_2));
+
+        $this->setExpectedException(
+            '\FSi\DoctrineExtensions\Exception\ConditionException',
+            'field categories cannot be used since its ManyToMany association field'
+        );
+
+        $repository->findTranslatedOneBy(array(
+            'categories' => $category,
+        ));
     }
 
 }
