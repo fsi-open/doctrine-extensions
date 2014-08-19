@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Tool;
 
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
@@ -102,6 +103,12 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getClassMetadataFactoryName')
             ->will($this->returnValue('Doctrine\\ORM\\Mapping\\ClassMetadataFactory'))
+        ;
+
+        $config
+            ->expects($this->any())
+            ->method('getMetadataCacheImpl')
+            ->will($this->returnValue(new ArrayCache()))
         ;
 
         $config
