@@ -9,13 +9,14 @@
 
 namespace FSi\DoctrineExtensions\Translatable\Entity\Repository;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query\Expr;
 use FSi\DoctrineExtensions\ORM\QueryBuilder;
 use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
+use FSi\DoctrineExtensions\Exception\ConditionException;
 
 class TranslatableRepository extends EntityRepository
 {
@@ -38,6 +39,33 @@ class TranslatableRepository extends EntityRepository
      * @var \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata[]
      */
     protected $translationExtendedMetadata;
+
+    public function findTranslatedOneBy(array $criteria, array $orderBy = null)
+    {
+        $translationCriteria = array();
+
+        $translatableProperties = $this->getExtendedMetadata()->getTranslatableProperties();
+        foreach ($translatableProperties as $translationAssociation => $translatedProperties) {
+            foreach ($criteria as $criteriaField => $criteriaValue) {
+                if (isset($translatedProperties[$criteriaField])) {
+                    $translationCriteria[$translatedProperties[$criteriaField]] = $criteriaValue;
+                    unset($criteria[$criteriaField]);
+                }
+            }
+        }
+
+        //find in translation
+        $qb = $this->createTranslatableQueryBuilder('a', 't', 'dt');
+        $this->addTranslationCriteria($qb, 't', $criteria, $translationCriteria, $orderBy);
+        if ($result = $qb->getQuery()->getOneOrNullResult()) {
+            return $result;
+        }
+
+        //fallback to default translation
+        $qb = $this->createTranslatableQueryBuilder('a', 't', 'dt');
+        $this->addTranslationCriteria($qb, 'dt', $criteria, $translationCriteria, $orderBy);
+        return $qb->getQuery()->getSingleResult();
+    }
 
     /**
      * Creates query builder for this entity joined with associated translation
@@ -417,5 +445,56 @@ class TranslatableRepository extends EntityRepository
                 $translationAssociationMapping['mappedBy'],
                 $object
             );
+    }
+
+    protected function addTranslationCriteria(
+        QueryBuilder $qb,
+        $translationJoinAlias,
+        array $criteria = null,
+        array $translationCriteria = null,
+        array $orderBy = null
+    ) {
+        foreach ($criteria as $field => $value) {
+            $this->addWhereCondition($qb, 'a', $field, $value);
+        }
+
+        foreach ($translationCriteria as $field => $value) {
+            $this->addWhereCondition($qb, $translationJoinAlias, $field, $value);
+        }
+
+        if (!empty($orderBy)) {
+            foreach ($orderBy as $fieldName => $direction) {
+                $qb->addOrderBy($fieldName, $direction);
+            }
+        }
+    }
+
+    protected function addWhereCondition(QueryBuilder $qb, $alias, $field, $value)
+    {
+        if ($this->_class->isCollectionValuedAssociation($field)) {
+            $associationMapping = $this->_class->getAssociationMapping($field);
+            switch ($associationMapping['type']) {
+                case ClassMetadataInfo::MANY_TO_MANY:
+                    throw new ConditionException(sprintf(
+                        'field %s cannot be used since its ManyToMany association field',
+                        $field
+                    ));
+                case ClassMetadataInfo::ONE_TO_MANY:
+                    $qb->innerJoin(sprintf('%s.%s', $alias, $field), $field);
+                    $qb->andWhere($qb->expr()->eq($field, sprintf(':%s_value', $field)));
+                    $qb->setParameter(sprintf(':%s_value', $field), $value);
+                    return;
+            }
+        }
+
+        if (is_null($value)) {
+            $qb->andWhere(sprintf('%s.%s IS NULL', $alias, $field));
+        } elseif (is_array($value)) {
+            $qb->andWhere($qb->expr()->in(sprintf('%s.%s', $alias, $field), sprintf(':%s', $field)));
+            $qb->setParameter($field, $value);
+        } else {
+            $qb->andWhere($qb->expr()->eq(sprintf('%s.%s', $alias, $field), sprintf(':%s', $field)));
+            $qb->setParameter($field, $value);
+        }
     }
 }

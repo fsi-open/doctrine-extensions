@@ -39,6 +39,12 @@ class ArticleTranslation
     private $title;
 
     /**
+     * @ORM\Column(nullable=true)
+     * @var string
+     */
+    private $introduction;
+
+    /**
      * @ORM\Column
      * @var string
      */
@@ -47,7 +53,7 @@ class ArticleTranslation
     /**
      * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
      * @ORM\JoinColumn(name="article", referencedColumnName="id")
-     * @var Doctrine\Common\Collections\ArrayCollection
+     * @var \Doctrine\Common\Collections\ArrayCollection
      */
     private $article;
 
@@ -62,6 +68,22 @@ class ArticleTranslation
         return $this->title;
     }
 
+    /**
+     * @return string
+     */
+    public function getIntroduction()
+    {
+        return $this->introduction;
+    }
+
+    /**
+     * @param string $introduction
+     */
+    public function setIntroduction($introduction)
+    {
+        $this->introduction = $introduction;
+    }
+
     public function setContents($contents)
     {
         $this->contents = $contents;
@@ -73,15 +95,15 @@ class ArticleTranslation
         return $this->contents;
     }
 
-    public function setLocale($language)
+    public function setLocale($locale)
     {
-        $this->language = (string)$language;
+        $this->locale = (string) $locale;
         return $this;
     }
 
     public function getLocale()
     {
-        return $this->language;
+        return $this->locale;
     }
 
 }
