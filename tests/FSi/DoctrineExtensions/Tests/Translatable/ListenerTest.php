@@ -604,6 +604,95 @@ class ListenerTest extends BaseTranslatableTest
         );
     }
 
+    public function testPostHydrate()
+    {
+        $this->_translatableListener->setLocale($this->_languageEn);
+        $repository = $this->_em->getRepository(self::ARTICLE);
+        $article = new Article();
+        $article->setDate(new \DateTime());
+
+        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $translationEn->setTitle(self::ENGLISH_TITLE_1);
+        $translationEn->setContents(self::ENGLISH_CONTENTS_1);
+        $translationPl = $repository->getTranslation($article, $this->_languagePl);
+        $translationPl->setTitle(self::POLISH_TITLE_1);
+        $translationPl->setContents(self::POLISH_CONTENTS_1);
+
+        $this->_em->persist($translationEn);
+        $this->_em->persist($translationPl);
+        $this->_em->persist($article);
+        $this->_em->flush();
+        $this->_em->clear();
+
+        $this->_logger->enabled = true;
+        $query = $repository->createTranslatableQueryBuilder('a', 't', 'dt')->getQuery();
+
+        $this->assertTrue(
+            $query->getHint(\Doctrine\ORM\Query::HINT_INCLUDE_META_COLUMNS)
+        );
+
+        $articles = $query->execute();
+        foreach ($articles as $article) {
+            $this->assertAttributeEquals(
+                self::ENGLISH_TITLE_1,
+                'title',
+                $article
+            );
+
+            $this->assertAttributeEquals(
+                self::ENGLISH_CONTENTS_1,
+                'contents',
+                $article
+            );
+        }
+
+        $this->assertEquals(
+            1,
+            count($this->_logger->queries),
+            'Reloading executed wrong number of queries'
+        );
+    }
+
+    public function testTranslatableWithoutLocaleProperty()
+    {
+        $this->setExpectedException(
+            'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
+            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale\' has translatable properties so it must have property marked with @Translatable\Language annotation'
+        );
+
+        $this->_translatableListener->getExtendedMetadata($this->_em, 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale');
+    }
+
+    public function testTranslatableWithoutTranslations()
+    {
+        $this->setExpectedException(
+            'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
+            'Field \'translations\' in entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutTranslations\' has to be a OneToMany association'
+        );
+
+        $this->_translatableListener->getExtendedMetadata($this->_em, 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutTranslations');
+    }
+
+    public function testTranslatableWithPersistentLocale()
+    {
+        $this->setExpectedException(
+            'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
+            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale\' seems to be a translatable entity so its \'locale\' field must not be persistent'
+        );
+
+        $this->_translatableListener->getExtendedMetadata($this->_em, 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale');
+    }
+
+    public function testTranslationsWithoutPersistentLocale()
+    {
+        $this->setExpectedException(
+            'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
+            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation\' seems to be a translation entity so its \'locale\' field must be persistent'
+        );
+
+        $this->_translatableListener->getExtendedMetadata($this->_em, 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation');
+    }
+
     protected function getUsedEntityFixtures()
     {
         return array(

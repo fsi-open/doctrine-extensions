@@ -9,13 +9,14 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="\FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
  */
-class ArticleTranslation
+class TranslatableWithPersistentLocale
 {
     /**
      * @ORM\Column(name="id", type="bigint")
@@ -33,59 +34,29 @@ class ArticleTranslation
     private $locale;
 
     /**
-     * @ORM\Column
-     * @var string
-     */
-    private $title;
-
-    /**
-     * @ORM\Column(nullable=true)
-     * @var string
-     */
-    private $introduction;
-
-    /**
-     * @ORM\Column
+     * @Translatable\Translatable(mappedBy="translations")
      * @var string
      */
     private $contents;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
-     * @ORM\JoinColumn(name="article", referencedColumnName="id")
-<<<<<<< HEAD
+     * @ORM\OneToMany(targetEntity="TranslatableWithPersistentLocaleTranslation", mappedBy="translatable", indexBy="locale")
      * @var \Doctrine\Common\Collections\ArrayCollection
-=======
-     * @var \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article
->>>>>>> Increased code coverage by tests
      */
-    private $article;
+    private $translations;
 
-    public function setTitle($title)
+    public function __construct()
     {
-        $this->title = $title;
-        return $this;
-    }
-
-    public function getTitle()
-    {
-        return $this->title;
+        $this->translations = new ArrayCollection();
     }
 
     /**
-     * @return string
+     * Get id
+     * @return integer
      */
-    public function getIntroduction()
+    public function getId()
     {
-        return $this->introduction;
-    }
-
-    /**
-     * @param string $introduction
-     */
-    public function setIntroduction($introduction)
-    {
-        $this->introduction = $introduction;
+        return $this->id;
     }
 
     public function setContents($contents)
@@ -101,12 +72,17 @@ class ArticleTranslation
 
     public function setLocale($locale)
     {
-        $this->locale = (string) $locale;
+        $this->locale = $locale;
         return $this;
     }
 
     public function getLocale()
     {
         return $this->locale;
+    }
+
+    public function getTranslations()
+    {
+        return $this->translations;
     }
 }

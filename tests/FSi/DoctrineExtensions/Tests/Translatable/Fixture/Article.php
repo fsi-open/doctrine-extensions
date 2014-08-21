@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 
@@ -87,7 +88,7 @@ class Article
 
     public function __construct()
     {
-        $this->translations = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     /**
