@@ -25,6 +25,7 @@
         "knplabs/gaufrette": "0.1.*"
     },
     "require-dev": {
+        "ext-sqlite3": "*",
         "doctrine/dbal": "~2.3",
         "doctrine/orm": "~2.3",
         "phpunit/phpunit": "3.7.*"
