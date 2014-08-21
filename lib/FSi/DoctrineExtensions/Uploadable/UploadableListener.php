@@ -567,7 +567,7 @@ class UploadableListener extends MappedEventSubscriber
             } else {
                 $fileParts = explode('.', $fileName);
                 if (count($fileParts) > 1) {
-                    $fileParts[count($fileParts)  - 1] .= '_1';
+                    $fileParts[count($fileParts)  - 2] .= '_1';
                     $fileName = implode('.', $fileParts);
                 } else {
                     $fileName .= '_1';
