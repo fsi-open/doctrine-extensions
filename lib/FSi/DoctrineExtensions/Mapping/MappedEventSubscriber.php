@@ -86,6 +86,24 @@ abstract class MappedEventSubscriber implements EventSubscriber
     }
 
     /**
+     * @param \Doctrine\Common\EventArgs $args
+     * @return \Doctrine\Common\Persistence\ObjectManager
+     */
+    protected function getEventObjectManager(EventArgs $args)
+    {
+        return $this->getEventAdapter($args)->getObjectManager();
+    }
+
+    /**
+     * @param \Doctrine\Common\EventArgs $args
+     * @return \Doctrine\Common\Persistence\ObjectManager
+     */
+    protected function getEventObject(EventArgs $args)
+    {
+        return $this->getEventAdapter($args)->getObject();
+    }
+
+    /**
      * Get extended metadata mapping reader.
      *
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
