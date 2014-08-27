@@ -13,7 +13,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query\Expr;
-use FSi\DoctrineExtensions\ORM\QueryBuilder;
+use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder;
 use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
 use FSi\DoctrineExtensions\Exception\ConditionException;
@@ -40,30 +40,29 @@ class TranslatableRepository extends EntityRepository
      */
     protected $translationExtendedMetadata;
 
-    public function findTranslatedOneBy(array $criteria, array $orderBy = null)
+    /**
+     * @param array $criteria
+     * @param array $orderBy
+     * @param int $limit
+     * @param int $offset
+     * @return array
+     */
+    public function findTranslatableBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
     {
-        $translationCriteria = array();
+        $qb = $this->createFindTranslatableQueryBuilder('e', $criteria, $orderBy, $limit, $offset);
 
-        $translatableProperties = $this->getExtendedMetadata()->getTranslatableProperties();
-        foreach ($translatableProperties as $translationAssociation => $translatedProperties) {
-            foreach ($criteria as $criteriaField => $criteriaValue) {
-                if (isset($translatedProperties[$criteriaField])) {
-                    $translationCriteria[$translatedProperties[$criteriaField]] = $criteriaValue;
-                    unset($criteria[$criteriaField]);
-                }
-            }
-        }
+        return $qb->getQuery()->execute();
+    }
 
-        //find in translation
-        $qb = $this->createTranslatableQueryBuilder('a', 't', 'dt');
-        $this->addTranslationCriteria($qb, 't', $criteria, $translationCriteria, $orderBy);
-        if ($result = $qb->getQuery()->getOneOrNullResult()) {
-            return $result;
-        }
+    /**
+     * @param array $criteria
+     * @param array $orderBy
+     * @return array
+     */
+    public function findTranslatableOneBy(array $criteria, array $orderBy = null)
+    {
+        $qb = $this->createFindTranslatableQueryBuilder('e', $criteria, $orderBy, 1);
 
-        //fallback to default translation
-        $qb = $this->createTranslatableQueryBuilder('a', 't', 'dt');
-        $this->addTranslationCriteria($qb, 'dt', $criteria, $translationCriteria, $orderBy);
         return $qb->getQuery()->getSingleResult();
     }
 
@@ -86,33 +85,17 @@ class TranslatableRepository extends EntityRepository
 
         $translatableProperties = $this->getExtendedMetadata()->getTranslatableProperties();
         foreach ($translatableProperties as $translationAssociation => $properties) {
-            $localeProperty = $this
-                ->getTranslationExtendedMetadata($translationAssociation)
-                ->localeProperty;
-
-            $locale = $this->getTranslatableListener()->getLocale();
-            if (isset($locale)) {
-                $qb->leftJoin(
-                    sprintf('%s.%s', $alias, $translationAssociation),
-                    $translationAlias,
-                    Expr\Join::WITH,
-                    sprintf('%s.%s = :locale', $translationAlias, $localeProperty)
-                );
-                $qb->addSelect($translationAlias);
-                $qb->setParameter('locale', $locale);
-            }
-
-            $defaultLocale = $this->getTranslatableListener()->getDefaultLocale();
-            if (isset($defaultLocale)) {
-                $qb->leftJoin(
-                    sprintf('%s.%s', $alias, $translationAssociation),
-                    $defaultTranslationAlias,
-                    Expr\Join::WITH,
-                    sprintf('%s.%s = :deflocale', $defaultTranslationAlias, $localeProperty)
-                );
-                $qb->addSelect($defaultTranslationAlias);
-                $qb->setParameter('deflocale', $defaultLocale);
-            }
+            $join = sprintf('%s.%s', $alias, $translationAssociation);
+            $qb->joinAndSelectCurrentTranslations(
+                $join, Expr\Join::LEFT_JOIN,
+                $translationAlias,
+                'locale'
+            );
+            $qb->joinAndSelectDefaultTranslations(
+                $join, Expr\Join::LEFT_JOIN,
+                $defaultTranslationAlias,
+                'deflocale'
+            );
         }
 
         return $qb;
@@ -447,54 +430,40 @@ class TranslatableRepository extends EntityRepository
             );
     }
 
-    protected function addTranslationCriteria(
-        QueryBuilder $qb,
-        $translationJoinAlias,
-        array $criteria = null,
-        array $translationCriteria = null,
-        array $orderBy = null
-    ) {
-        foreach ($criteria as $field => $value) {
-            $this->addWhereCondition($qb, 'a', $field, $value);
-        }
-
-        foreach ($translationCriteria as $field => $value) {
-            $this->addWhereCondition($qb, $translationJoinAlias, $field, $value);
-        }
-
-        if (!empty($orderBy)) {
-            foreach ($orderBy as $fieldName => $direction) {
-                $qb->addOrderBy($fieldName, $direction);
-            }
-        }
-    }
-
-    protected function addWhereCondition(QueryBuilder $qb, $alias, $field, $value)
+    /**
+     * @param $alias
+     * @param array $criteria
+     * @param array $orderBy
+     * @param $limit
+     * @param $offset
+     * @return QueryBuilder
+     * @throws ConditionException
+     */
+    private function createFindTranslatableQueryBuilder($alias, array $criteria, array $orderBy = null, $limit = null, $offset = null)
     {
-        if ($this->_class->isCollectionValuedAssociation($field)) {
-            $associationMapping = $this->_class->getAssociationMapping($field);
-            switch ($associationMapping['type']) {
-                case ClassMetadataInfo::MANY_TO_MANY:
-                    throw new ConditionException(sprintf(
-                        'field %s cannot be used since its ManyToMany association field',
-                        $field
-                    ));
-                case ClassMetadataInfo::ONE_TO_MANY:
-                    $qb->innerJoin(sprintf('%s.%s', $alias, $field), $field);
-                    $qb->andWhere($qb->expr()->eq($field, sprintf(':%s_value', $field)));
-                    $qb->setParameter(sprintf(':%s_value', $field), $value);
-                    return;
+        $qb = new QueryBuilder($this->_em);
+        $qb->from($this->_entityName, $alias);
+        $qb->select($alias);
+
+        foreach ($criteria as $criteriaField => $criteriaValue) {
+            $qb->addTranslatableWhere($alias, $criteriaField, $criteriaValue);
+        }
+
+        if (isset($orderBy)) {
+            foreach ($orderBy as $orderField => $orderDirection) {
+                $qb->addTranslatableOrderBy($alias, $orderField, $orderDirection);
             }
         }
 
-        if (is_null($value)) {
-            $qb->andWhere(sprintf('%s.%s IS NULL', $alias, $field));
-        } elseif (is_array($value)) {
-            $qb->andWhere($qb->expr()->in(sprintf('%s.%s', $alias, $field), sprintf(':%s', $field)));
-            $qb->setParameter($field, $value);
-        } else {
-            $qb->andWhere($qb->expr()->eq(sprintf('%s.%s', $alias, $field), sprintf(':%s', $field)));
-            $qb->setParameter($field, $value);
+        if (isset($limit)) {
+            $qb->setMaxResults($limit);
         }
+        if (isset($offset)) {
+            $qb->setFirstResult($offset);
+
+            return $qb;
+        }
+
+        return $qb;
     }
 }

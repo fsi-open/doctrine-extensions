@@ -300,7 +300,7 @@ echo $article->getTranslation('pl')->getContent();
 
 ## Using ``TranslatableRepository``
 
-This extension also provides ``TranslatableRepository`` class with two helper methods
+This extension also provides ``TranslatableRepository`` class with some helper methods
 which make manipulating multiple translations at once easier. In order to use it
 you must set ``entityRepository`` on you translatable entity like in this example:
 
@@ -314,6 +314,8 @@ class Article
 }
 ```
 
+### Manipulating translations in different locales in one transaction
+
 Then you can use helper methods of ``TranslatableRepository`` like this:
 
 ```php
@@ -325,7 +327,7 @@ $em->flush();
 
 **Heads up!!** if you modified some fields in a translation entity and also modify
 corresponding fields in base (translatable) entity then values in translation
-entity would be overwritten by value from base entity. Take a look at the example:
+entity would be overwritten by values from base entity. Take a look at the example:
 
 ```php
 $translatableListener->setLocale('en');
@@ -357,8 +359,10 @@ if ($repository->hasTranslation($article, 'en')) {
 }
 ```
 
+### Selecting entities with current translations in one query
+
 It is common task where using translations to select entities along with their
-translations in the currently set locale. It's easy using second helper method
+translations in the currently set locale. It's easy using another helper method
 on ``TranslatableRepository``.
 
 ```php
@@ -393,6 +397,69 @@ However this hydration mode will not be used during ``$query->getResult()`` (wit
 no arguments). In order to gain this speedup you must get results through
 ``$query->execute()`` which respects the custom hydration mode set on ``$query``
 object.
+
+### Finding entities by translatable fields
+
+``TranslatableRepository`` has two additional methods which can be used to find translatable
+entities by values of their regular ORM fields or translatable fields. Using these methods
+you don't have to know whether field of entity is regular ORM mapped field or translatable
+field. Both methods takes currently set locale and default locale into consideration.
+
+```php
+$repository = $em->getRepository('Article');
+$articles = $repository->findTranslatableBy(array(
+    'title' => 'some title'
+));
+$article = $repository->findTranslatableOneBy(array(
+    'date' => '2014-01-01 00:00:00',
+));
+```
+
+## Translatable QueryBuilder
+
+When all of the above methods of retrieving translatable entities are not enough there is
+``FSi\DoctrineExtensions\Translatable\Query\QueryBuilder`` class which gives full control
+over the logic of retrieving entities and their translations. Below are some examples of
+using it. For more take a look at [QueryBuilder](../lib/FSi/DoctrineExtensions/Translatable/Query/QueryBuilder.php)
+
+### Build query to select only entities with translations in current locale.
+
+```php
+use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder as TranslatableQueryBuilder
+
+$qb = new TranslatableQueryBuilder($em);
+$qb
+    ->from('Article', 'a')
+    ->select('a')
+    ->joinAndSelectCurrentTranslations('a.translations', Expr\Join::INNER_JOIN);
+```
+
+### Build query to select translatable entities by value of some translatable field.
+
+```php
+use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder as TranslatableQueryBuilder
+
+$qb = new TranslatableQueryBuilder($em);
+$qb
+    ->from('Article', 'a')
+    ->select('a')
+    ->addTranslatableWhere('a', 'title', 'some title');
+```
+
+### Build query to select translatable entities with translatable field matching some condition.
+
+```php
+use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder as TranslatableQueryBuilder
+
+$qb = new TranslatableQueryBuilder($em);
+$qb
+    ->from('Article', 'a')
+    ->select('a')
+    ->addWhere(sprintf(
+        '%s LIKE "%%Obama%%"',
+        $qb->getTranslatableFieldExpr('a', 'title')
+    );
+```
 
 ## Annotations reference ##
 

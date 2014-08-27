@@ -1,0 +1,754 @@
+<?php
+
+/**
+ * (c) FSi sp. z o.o. <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace FSi\DoctrineExtensions\Translatable\Query;
+
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Query\Expr;
+use FSi\DoctrineExtensions\Exception\ConditionException;
+use FSi\DoctrineExtensions\ORM\QueryBuilder as BaseQueryBuilder;
+use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
+use FSi\DoctrineExtensions\Translatable\TranslatableListener;
+
+class QueryBuilder extends BaseQueryBuilder
+{
+    /**
+     * @var \FSi\DoctrineExtensions\Translatable\TranslatableListener
+     */
+    private $listener;
+
+    /**
+     * @var array
+     */
+    private $aliasToClassMap = array();
+
+    /**
+     * @var array
+     */
+    private $translationsAliases = array();
+
+    /**
+     * @var array
+     */
+    private $translatableFieldsInSelect = array();
+
+    /**
+     * @inheritdoc
+     */
+    public function add($dqlPartName, $dqlPart, $append = false)
+    {
+        if ($this->isValidFromPart($dqlPartName, $dqlPart)) {
+            $this->addFromExprToAliasMap($dqlPart);
+        } elseif ($this->isValidJoinPart($dqlPartName, $dqlPart)) {
+            $join = current($dqlPart);
+            $this->validateJoinParent($join);
+            $this->validateJoinAssociation($join);
+            $this->addJoinExprToAliasMap($join);
+        } elseif (in_array($dqlPartName, array('from', 'join'))) {
+            throw new RuntimeException(sprintf(
+                "Trying to add incompatible expression to DQL part '%s' in QueryBuilder",
+                $dqlPartName
+            ));
+        }
+
+        return parent::add($dqlPartName, $dqlPart, $append);
+    }
+
+    /**
+     * @param string $join
+     * @param string $joinType
+     * @param mixed $locale
+     * @param string $alias
+     * @param string $localeParameter
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function joinTranslations($join, $joinType = Expr\Join::LEFT_JOIN, $locale = null, $alias = null, $localeParameter = null)
+    {
+        $this->validateJoinTranslations($join);
+
+        $locale = $this->getJoinTranslationsLocale($locale);
+        $alias = $this->getJoinTranslationsAlias($alias, $join, $locale);
+        $condition = $this->getJoinTranslationsCondition($join, $alias, $localeParameter, $locale);
+        $conditionType = $this->getJoinTranslationsConditionType($locale);
+
+        $this->addJoinedTranslationsAlias($join, $locale, $alias);
+
+        switch ($joinType) {
+            case Expr\Join::INNER_JOIN:
+                return $this->innerJoin($join, $alias, $conditionType, $condition);
+            case Expr\Join::LEFT_JOIN:
+                return $this->leftJoin($join, $alias, $conditionType, $condition);
+        }
+    }
+
+    /**
+     * @param string $join
+     * @param string $joinType
+     * @param string $alias
+     * @param string $localeParameter
+     */
+    public function joinAndSelectCurrentTranslations($join, $joinType = Expr\Join::LEFT_JOIN, $alias = null, $localeParameter = null)
+    {
+        $locale = $this->getTranslatableListener()->getLocale();
+        if (isset($locale)) {
+            $this->joinTranslationsOnce($join, $joinType, $locale, $alias, $localeParameter);
+            $this->addSelect($alias);
+        }
+    }
+
+    /**
+     * @param string $join
+     * @param string $joinType
+     * @param string $alias
+     * @param string $localeParameter
+     */
+    public function joinAndSelectDefaultTranslations($join, $joinType = Expr\Join::LEFT_JOIN, $alias = null, $localeParameter = null)
+    {
+        $defaultLocale = $this->getTranslatableListener()->getDefaultLocale();
+        if (isset($defaultLocale)) {
+            $this->joinTranslationsOnce($join, $joinType, $defaultLocale, $alias, $localeParameter);
+            $this->addSelect($alias);
+        }
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @param mixed $value
+     * @throws ConditionException
+     */
+    public function addTranslatableWhere($alias, $field, $value)
+    {
+        if ($this->getClassMetadata($this->getClassByAlias($alias))->isCollectionValuedAssociation($field)) {
+            $this->addTranslatableWhereOnCollection($alias, $field, $value);
+        } else {
+            $this->addTranslatableWhereOnField($alias, $field, $value);
+        }
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @param string $order
+     */
+    public function addTranslatableOrderBy($alias, $field, $order = null)
+    {
+        $this->addOrderBy(
+            $this->getTranslatableFieldExpr($alias, $field),
+            $order
+        );
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     * @return string
+     */
+    public function getTranslatableFieldExpr($alias, $property)
+    {
+        if (!$this->isTranslatableProperty($alias, $property)) {
+            return sprintf('%s.%s', $alias, $property);
+        }
+
+        $this->validateCurrentLocale();
+        $this->joinCurrentTranslationsOnce($alias, $property);
+
+        if ($this->hasDefaultLocaleDifferentThanCurrentLocale()) {
+            $this->joinDefaultTranslationsOnce($alias, $property);
+            return $this->getTranslatableFieldConditionalExpr($alias, $property);
+        } else {
+            return $this->getTranslatableFieldSimpleExpr($alias, $property);
+        }
+    }
+
+    /**
+     * @return \FSi\DoctrineExtensions\Translatable\TranslatableListener
+     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
+     */
+    private function getTranslatableListener()
+    {
+        if (!isset($this->listener)) {
+            $evm = $this->getEntityManager()->getEventManager();
+            foreach ($evm->getListeners() as $listeners) {
+                foreach ($listeners as $listener) {
+                    if ($listener instanceof TranslatableListener) {
+                        $this->listener = $listener;
+                    }
+                }
+            }
+        }
+
+        if (isset($this->listener)) {
+            return $this->listener;
+        }
+
+        throw new RuntimeException('Cannot find TranslatableListener in EntityManager\'s EventManager');
+    }
+
+    /**
+     * @param $alias
+     * @param $property
+     * @return string
+     */
+    private function isTranslatableProperty($alias, $property)
+    {
+        $translatableProperties = $this->getTranslatableMetadata($this->getClassByAlias($alias))
+            ->getTranslatableProperties();
+
+        foreach ($translatableProperties as $translationAssociation => $properties) {
+            if (isset($properties[$property])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function validateCurrentLocale()
+    {
+        $locale = $this->getTranslatableListener()->getLocale();
+
+        if (!isset($locale)) {
+            throw new RuntimeException('At least current locale must be set on TranslatableListener');
+        }
+    }
+
+    /**
+     * @param string $dqlPartName
+     * @param mixed $dqlPart
+     * @return bool
+     */
+    private function isValidFromPart($dqlPartName, $dqlPart)
+    {
+        return ($dqlPartName == 'from') && ($dqlPart instanceof Expr\From);
+    }
+
+    /**
+     * @param \Doctrine\ORM\Query\Expr\From $from
+     */
+    private function addFromExprToAliasMap(Expr\From $from)
+    {
+        $this->aliasToClassMap[$from->getAlias()] = $from->getFrom();
+    }
+
+    /**
+     * @param string $dqlPartName
+     * @param mixed $dqlPart
+     * @return bool
+     */
+    private function isValidJoinPart($dqlPartName, $dqlPart)
+    {
+        return ($dqlPartName == 'join') && is_array($dqlPart) && (current($dqlPart) instanceof Expr\Join);
+    }
+
+    /**
+     * @param \Doctrine\ORM\Query\Expr\Join $join
+     */
+    private function addJoinExprToAliasMap(Expr\Join $join)
+    {
+        $alias = $this->getJoinParentAlias($join->getJoin());
+        $association = $this->getJoinAssociation($join->getJoin());
+
+        $this->aliasToClassMap[$join->getAlias()] = $this->getClassMetadata($this->getClassByAlias($alias))
+            ->getAssociationTargetClass($association);
+    }
+
+    /**
+     * @param string $alias
+     * @return string
+     */
+    private function getClassByAlias($alias)
+    {
+        if (!isset($this->aliasToClassMap[$alias])) {
+            throw new RuntimeException(sprintf(
+                'Alias "%s" is not present in QueryBuilder',
+                $alias
+            ));
+        }
+
+        return $this->aliasToClassMap[$alias];
+    }
+
+    /**
+     * @param string $class
+     * @return \Doctrine\ORM\Mapping\ClassMetadata
+     */
+    private function getClassMetadata($class)
+    {
+        return $this->getEntityManager()->getClassMetadata($class);
+    }
+
+    /**
+     * @param string $class
+     * @return \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata
+     */
+    private function getTranslatableMetadata($class)
+    {
+        return $this->getTranslatableListener()
+            ->getExtendedMetadata($this->getEntityManager(), $class);
+    }
+
+    /**
+     * @param Expr\Join $join
+     * @return string
+     */
+    private function validateJoinParent(Expr\Join $join)
+    {
+        $alias = $this->getJoinParentAlias($join->getJoin());
+        if (!isset($this->aliasToClassMap[$alias])) {
+            throw new RuntimeException(
+                sprintf(
+                    "Cannot find alias %s in QueryBuilder (%s)",
+                    $alias,
+                    $this->getDQL()
+                )
+            );
+        }
+    }
+
+    /**
+     * @param Expr\Join $join
+     * @return array
+     */
+    private function validateJoinAssociation(Expr\Join $join)
+    {
+        $alias = $this->getJoinParentAlias($join->getJoin());
+        $association = $this->getJoinAssociation($join->getJoin());
+        $parentClassMetadata = $this->getClassMetadata($this->getClassByAlias($alias));
+        if (!$parentClassMetadata->hasAssociation($association)) {
+            throw new RuntimeException(
+                sprintf(
+                    "Cannot find association named %s in class %s",
+                    $association,
+                    $parentClassMetadata->getName()
+                )
+            );
+        }
+    }
+
+    /**
+     * @param $translatableAlias
+     * @param $translationAssociation
+     */
+    private function validateJoinTranslations($join)
+    {
+        $translatableAlias = $this->getJoinParentAlias($join);
+        $translationAssociation = $this->getJoinAssociation($join);
+        $translatableMetadata = $this->getTranslatableMetadata($this->getClassByAlias($translatableAlias));
+        $translatableProperties = $translatableMetadata->getTranslatableProperties();
+
+        if (!isset($translatableProperties[$translationAssociation])) {
+            throw new RuntimeException(
+                sprintf(
+                    "'%s' is not an association with translation entity in class '%s'",
+                    $translationAssociation,
+                    $this->aliasToClassMap[$translatableAlias]
+                )
+            );
+        }
+    }
+
+    private function getJoinParentAlias($join)
+    {
+        return substr($join, 0, strpos($join, '.'));
+    }
+
+    private function getJoinAssociation($join)
+    {
+        return substr($join, strpos($join, '.') + 1);
+    }
+
+    /**
+     * @param string $alias
+     * @param string $join
+     * @param mixed $locale
+     * @return string
+     */
+    private function getJoinTranslationsAlias($alias, $join, $locale)
+    {
+        if (isset($alias)) {
+            return $alias;
+        }
+
+        return sprintf('%s%s', str_replace('.', '', $join), (string) $locale);
+    }
+
+    /**
+     * @param mixed $locale
+     * @return mixed
+     */
+    private function getJoinTranslationsLocale($locale = null)
+    {
+        if (isset($locale)) {
+            return $locale;
+        }
+
+        return $this->getTranslatableListener()->getLocale();
+    }
+
+    /**
+     * @param mixed $locale
+     * @return string
+     */
+    private function getJoinTranslationsConditionType($locale = null)
+    {
+        if (isset($locale)) {
+            return Expr\Join::WITH;
+        } else {
+            return Expr\Join::ON;
+        }
+    }
+
+    /**
+     * @param string $join
+     * @param string $alias
+     * @param string $localeParameter
+     * @param mixed $locale
+     * @return null|string
+     */
+    private function getJoinTranslationsCondition($join, $alias, $localeParameter, $locale)
+    {
+        if (!isset($locale)) {
+            return null;
+        }
+
+        $localeParameter = $this->getJoinTranslationsLocaleParameter($alias, $localeParameter);
+        $this->setParameter($localeParameter, $locale);
+        return $this->getJoinTranslationsLocaleCondition($alias, $join, $localeParameter);
+    }
+
+    /**
+     * @param $alias
+     * @param $localeParameter
+     * @return string
+     */
+    private function getJoinTranslationsLocaleParameter($alias, $localeParameter)
+    {
+        if (isset($localeParameter)) {
+            return $localeParameter;
+        }
+
+        return sprintf('%sloc', $alias);
+    }
+
+    /**
+     * @param string $alias
+     * @param string $join
+     * @param string $localeParameter
+     * @return string
+     */
+    private function getJoinTranslationsLocaleCondition($alias, $join, $localeParameter)
+    {
+        $translatableAlias = $this->getJoinParentAlias($join);
+        $translationAssociation = $this->getJoinAssociation($join);
+        $translationClass = $this->getClassMetadata($this->getClassByAlias($translatableAlias))
+            ->getAssociationTargetClass($translationAssociation);
+        $translationMetadata = $this->getTranslatableMetadata($translationClass);
+        return sprintf('%s.%s = :%s', $alias, $translationMetadata->localeProperty, $localeParameter);
+    }
+
+    /**
+     * @param string $join
+     * @param mixed $locale
+     * @param string $alias
+     */
+    private function addJoinedTranslationsAlias($join, $locale, $alias)
+    {
+        if (!isset($this->translationsAliases[$join])) {
+            $this->translationsAliases[$join] = array();
+        }
+        $this->translationsAliases[$join][$locale] = $alias;
+    }
+
+    /**
+     * @param string $join
+     * @param mixed $locale
+     * @return bool
+     */
+    private function hasJoinedTranslationsAlias($join, $locale)
+    {
+        return isset($this->translationsAliases[$join][$locale]);
+    }
+
+    /**
+     * @param string $join
+     * @param mixed $locale
+     * @return string
+     */
+    private function getJoinedTranslationsAlias($join, $locale)
+    {
+        if (isset($this->translationsAliases[$join][$locale])) {
+            return $this->translationsAliases[$join][$locale];
+        }
+    }
+
+    /**
+     * @param $alias
+     * @param $property
+     * @return string
+     */
+    private function getTranslationField($alias, $property)
+    {
+        $translatableProperties = $this->getTranslatableMetadata($this->getClassByAlias($alias))
+            ->getTranslatableProperties();
+
+        foreach ($translatableProperties as $translationAssociation => $properties) {
+            if (isset($properties[$property])) {
+                return $properties[$property];
+            }
+        }
+
+        $this->throwUnknownTranslatablePropertyException($alias, $property);
+    }
+
+    /**
+     * @param $alias
+     * @param $property
+     * @return string
+     */
+    private function getTranslationAssociation($alias, $property)
+    {
+        $translatableProperties = $this->getTranslatableMetadata($this->getClassByAlias($alias))
+            ->getTranslatableProperties();
+
+        foreach ($translatableProperties as $translationAssociation => $properties) {
+            if (isset($properties[$property])) {
+                return $translationAssociation;
+            }
+        }
+
+        $this->throwUnknownTranslatablePropertyException($alias, $property);
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     */
+    private function joinCurrentTranslationsOnce($alias, $property)
+    {
+        $translationAssociation = $this->getTranslationAssociation($alias, $property);
+        $join = $this->getTranslationsJoin($alias, $translationAssociation);
+        $this->joinTranslationsOnce($join, Expr\Join::LEFT_JOIN, $this->getTranslatableListener()->getLocale());
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     */
+    private function joinDefaultTranslationsOnce($alias, $property)
+    {
+        $translationAssociation = $this->getTranslationAssociation($alias, $property);
+        $join = $this->getTranslationsJoin($alias, $translationAssociation);
+        $this->joinTranslationsOnce($join, Expr\Join::LEFT_JOIN, $this->getTranslatableListener()->getDefaultLocale());
+    }
+
+    /**
+     * @param string $alias
+     * @param string $joinType
+     * @param string $property
+     * @param mixed $locale
+     */
+    private function joinTranslationsOnce($join, $joinType, $locale, $alias = null, $localeParameter = null)
+    {
+        if (!$this->hasJoinedTranslationsAlias($join, $locale)) {
+            $this->joinTranslations($join, $joinType, $locale, $alias, $localeParameter);
+        }
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     */
+    private function throwUnknownTranslatablePropertyException($alias, $property)
+    {
+        throw new RuntimeException(
+            sprintf(
+                'Unknown translatable property "%s" in class "%s"',
+                $property,
+                $this->getClassByAlias($alias)
+            )
+        );
+    }
+
+    /**
+     * @return bool
+     */
+    private function hasDefaultLocaleDifferentThanCurrentLocale()
+    {
+        return (null !== $this->getTranslatableListener()->getDefaultLocale()) &&
+            ($this->getTranslatableListener()->getDefaultLocale() !== $this->getTranslatableListener()->getLocale());
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     * @return string
+     * @throws \Doctrine\ORM\Mapping\MappingException
+     */
+    private function getTranslatableFieldConditionalExpr($alias, $property)
+    {
+        $hiddenSelect = sprintf('%s%s', $alias, $property);
+        if (!isset($this->translatableFieldsInSelect[$hiddenSelect])) {
+            $this->addHiddenSelectTranslatableFieldConditionalExpr($alias, $property);
+            $this->translatableFieldsInSelect[$hiddenSelect] = $hiddenSelect;
+        }
+
+        return $this->translatableFieldsInSelect[$hiddenSelect];
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     * @throws \Doctrine\ORM\Mapping\MappingException
+     */
+    private function addHiddenSelectTranslatableFieldConditionalExpr($alias, $property)
+    {
+        $currentTranslationsAlias = $this->getJoinedCurrentTranslationsAlias($alias, $property);
+        $defaultTranslationsAlias = $this->getJoinedDefaultTranslationsAlias($alias, $property);
+        $translationIdentity = $this->getClassMetadata($this->getClassByAlias($currentTranslationsAlias))
+            ->getSingleIdentifierFieldName();
+        $translationField = $this->getTranslationField($alias, $property);
+
+        $this->addSelect(sprintf(
+            'CASE WHEN %s.%s IS NOT NULL THEN %s.%s ELSE %s.%s END HIDDEN %s%s',
+            $currentTranslationsAlias,
+            $translationIdentity,
+            $currentTranslationsAlias,
+            $translationField,
+            $defaultTranslationsAlias,
+            $translationField,
+            $alias,
+            $property
+        ));
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     * @return array
+     */
+    private function getJoinedDefaultTranslationsAlias($alias, $property)
+    {
+        $translationAssociation = $this->getTranslationAssociation($alias, $property);
+        $join = $this->getTranslationsJoin($alias, $translationAssociation);
+        $defaultLocale = $this->getTranslatableListener()->getDefaultLocale();
+        $defaultTranslationsAlias = $this->getJoinedTranslationsAlias($join, $defaultLocale);
+
+        return $defaultTranslationsAlias;
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     * @return string
+     */
+    private function getJoinedCurrentTranslationsAlias($alias, $property)
+    {
+        $translationAssociation = $this->getTranslationAssociation($alias, $property);
+        $join = $this->getTranslationsJoin($alias, $translationAssociation);
+        $locale = $this->getTranslatableListener()->getLocale();
+        $translationsAlias = $this->getJoinedTranslationsAlias($join, $locale);
+
+        return $translationsAlias;
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     * @return string
+     */
+    private function getTranslatableFieldSimpleExpr($alias, $property)
+    {
+        $locale = $this->getTranslatableListener()->getLocale();
+        $translationsAssociation = $this->getTranslationAssociation($alias, $property);
+        $translationsJoin = $this->getTranslationsJoin($alias, $translationsAssociation);
+
+        return sprintf(
+            '%s.%s',
+            $this->getJoinedTranslationsAlias($translationsJoin, $locale),
+            $this->getTranslationField($alias, $property)
+        );
+    }
+
+    /**
+     * @param $alias
+     * @param $translationAssociation
+     * @return string
+     */
+    private function getTranslationsJoin($alias, $translationAssociation)
+    {
+        return sprintf('%s.%s', $alias, $translationAssociation);
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @param mixed $value
+     */
+    private function addTranslatableWhereOnCollection($alias, $field, $value)
+    {
+        $fieldExpr = $this->getTranslatableFieldExpr($alias, $field);
+        $parameter = $this->getTranslatableValueParameter($alias, $field);
+
+        if (null === $value) {
+            $joinAlias = $this->getCollectionJoinAlias($alias, $field);
+            $this->leftJoin($fieldExpr, $joinAlias);
+            $this->andWhere($this->expr()->isNull($joinAlias));
+        } elseif (is_array($value)) {
+            $joinAlias = $this->getCollectionJoinAlias($alias, $field);
+            $this->leftJoin($fieldExpr, $joinAlias);
+            $this->andWhere($this->expr()->in($joinAlias, $parameter));
+            $this->setParameter($parameter, $value);
+        } else {
+            $this->andWhere(sprintf('%s MEMBER OF %s', $parameter, $fieldExpr));
+            $this->setParameter($parameter, $value);
+        }
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @param mixed $value
+     */
+    private function addTranslatableWhereOnField($alias, $field, $value)
+    {
+        $fieldExpr = $this->getTranslatableFieldExpr($alias, $field);
+        $parameter = $this->getTranslatableValueParameter($alias, $field);
+
+        if (null === $value) {
+            $this->andWhere($this->expr()->isNull($fieldExpr));
+        } elseif (is_array($value)) {
+            $this->andWhere($this->expr()->in($fieldExpr, $parameter));
+            $this->setParameter($parameter, $value);
+        } else {
+            $this->andWhere($this->expr()->eq($fieldExpr, $parameter));
+            $this->setParameter($parameter, $value);
+        }
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @return string
+     */
+    private function getTranslatableValueParameter($alias, $field)
+    {
+        return sprintf(':%s%sval', $alias, $field);
+    }
+
+    /**
+     * @param $alias
+     * @param $field
+     * @return string
+     */
+    private function getCollectionJoinAlias($alias, $field)
+    {
+        return sprintf('%s%sjoin', $alias, $field);
+    }
+}

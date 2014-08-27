@@ -42,6 +42,14 @@ class Category
     }
 
     /**
+     * @param integer $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    /**
      * Get id
      * @return integer
      */
