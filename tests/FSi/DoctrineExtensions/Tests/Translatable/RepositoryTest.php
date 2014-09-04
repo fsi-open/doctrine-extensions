@@ -257,6 +257,33 @@ class RepositoryTest extends BaseTranslatableTest
     }
 
     /**
+     * test that findTranslatableBy will return fields from translation in specified locale
+     */
+    public function testFindTranslatableByCustomLocale()
+    {
+        $this->_translatableListener->setLocale($this->_languageDe);
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+
+        $this->fillDataForFindTranslatable();
+
+        /** @var TranslatableRepository $repository */
+        $repository = $this->_em->getRepository(self::ARTICLE);
+
+        /** @var Article $article */
+        $articles = $repository->findTranslatableBy(
+            array('date' => '2014-01-01 00:00:00'),
+            null,
+            null,
+            null,
+            $this->_languagePl
+        );
+
+        $this->assertEquals(self::ENGLISH_TITLE_1, $articles[0]->getTitle());
+        $this->assertEquals(self::ENGLISH_TEASER, $articles[0]->getTeaser());
+        $this->assertEquals(self::ENGLISH_CONTENTS_1, $articles[0]->getContents());
+    }
+
+    /**
      * tests that findTranslatableOneBy will return correct entity and if not found throw exception
      */
     public function testFindTranslatableOneByFields()
@@ -310,6 +337,31 @@ class RepositoryTest extends BaseTranslatableTest
         $article = $repository->findTranslatableOneBy(array(
             'date' => '2014-01-01 00:00:00',
         ));
+
+        $this->assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
+        $this->assertEquals(self::ENGLISH_TEASER, $article->getTeaser());
+        $this->assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
+    }
+
+    /**
+     * test that findTranslatableOneBy will return fields from translation in specified locale
+     */
+    public function testFindTranslatableOneByWithCustomLocale()
+    {
+        $this->_translatableListener->setLocale($this->_languageDe);
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+
+        $this->fillDataForFindTranslatable();
+
+        /** @var TranslatableRepository $repository */
+        $repository = $this->_em->getRepository(self::ARTICLE);
+
+        /** @var Article $article */
+        $article = $repository->findTranslatableOneBy(
+            array('date' => '2014-01-01 00:00:00'),
+            null,
+            $this->_languagePl
+        );
 
         $this->assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
         $this->assertEquals(self::ENGLISH_TEASER, $article->getTeaser());

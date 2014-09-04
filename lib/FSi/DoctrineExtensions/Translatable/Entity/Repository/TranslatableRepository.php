@@ -45,11 +45,12 @@ class TranslatableRepository extends EntityRepository
      * @param array $orderBy
      * @param int $limit
      * @param int $offset
+     * @param mixed $locale
      * @return array
      */
-    public function findTranslatableBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    public function findTranslatableBy(array $criteria, array $orderBy = null, $limit = null, $offset = null, $locale = null)
     {
-        $qb = $this->createFindTranslatableQueryBuilder('e', $criteria, $orderBy, $limit, $offset);
+        $qb = $this->createFindTranslatableQueryBuilder('e', $criteria, $orderBy, $limit, $offset, $locale);
 
         return $qb->getQuery()->execute();
     }
@@ -57,11 +58,12 @@ class TranslatableRepository extends EntityRepository
     /**
      * @param array $criteria
      * @param array $orderBy
+     * @param mixed $locale
      * @return array
      */
-    public function findTranslatableOneBy(array $criteria, array $orderBy = null)
+    public function findTranslatableOneBy(array $criteria, array $orderBy = null, $locale = null)
     {
-        $qb = $this->createFindTranslatableQueryBuilder('e', $criteria, $orderBy, 1);
+        $qb = $this->createFindTranslatableQueryBuilder('e', $criteria, $orderBy, 1, null, $locale);
 
         return $qb->getQuery()->getSingleResult();
     }
@@ -436,22 +438,29 @@ class TranslatableRepository extends EntityRepository
      * @param array $orderBy
      * @param $limit
      * @param $offset
+     * @param mixed $locale
      * @return QueryBuilder
      * @throws ConditionException
      */
-    private function createFindTranslatableQueryBuilder($alias, array $criteria, array $orderBy = null, $limit = null, $offset = null)
-    {
+    private function createFindTranslatableQueryBuilder(
+        $alias,
+        array $criteria,
+        array $orderBy = null,
+        $limit = null,
+        $offset = null,
+        $locale = null
+    ) {
         $qb = new QueryBuilder($this->_em);
         $qb->from($this->_entityName, $alias);
         $qb->select($alias);
 
         foreach ($criteria as $criteriaField => $criteriaValue) {
-            $qb->addTranslatableWhere($alias, $criteriaField, $criteriaValue);
+            $qb->addTranslatableWhere($alias, $criteriaField, $criteriaValue, $locale);
         }
 
         if (isset($orderBy)) {
             foreach ($orderBy as $orderField => $orderDirection) {
-                $qb->addTranslatableOrderBy($alias, $orderField, $orderDirection);
+                $qb->addTranslatableOrderBy($alias, $orderField, $orderDirection, $locale);
             }
         }
 

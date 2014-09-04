@@ -35,6 +35,7 @@ abstract class BaseTranslatableTest extends BaseORMTest
 
     protected $_languagePl = 'pl';
     protected $_languageEn = 'en';
+    protected $_languageDe = 'de';
 
     protected function setUp()
     {
