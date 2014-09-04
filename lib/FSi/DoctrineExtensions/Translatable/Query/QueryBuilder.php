@@ -140,7 +140,7 @@ class QueryBuilder extends BaseQueryBuilder
     public function addTranslatableOrderBy($alias, $field, $order = null)
     {
         $this->addOrderBy(
-            $this->getTranslatableFieldExpr($alias, $field),
+            $this->getTranslatableFieldExprWithOptionalHiddenSelect($alias, $field, true),
             $order
         );
     }
@@ -152,18 +152,32 @@ class QueryBuilder extends BaseQueryBuilder
      */
     public function getTranslatableFieldExpr($alias, $property)
     {
-        if (!$this->isTranslatableProperty($alias, $property)) {
-            return sprintf('%s.%s', $alias, $property);
+        return $this->getTranslatableFieldExprWithOptionalHiddenSelect($alias, $property, false);
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @param bool $addHiddenSelect
+     * @return string
+     */
+    private function getTranslatableFieldExprWithOptionalHiddenSelect($alias, $field, $addHiddenSelect)
+    {
+        if (!$this->isTranslatableProperty($alias, $field)) {
+            return sprintf('%s.%s', $alias, $field);
         }
 
         $this->validateCurrentLocale();
-        $this->joinCurrentTranslationsOnce($alias, $property);
+        $this->joinCurrentTranslationsOnce($alias, $field);
+        if (!$this->hasDefaultLocaleDifferentThanCurrentLocale()) {
+            return $this->getTranslatableFieldSimpleExpr($alias, $field);
+        }
 
-        if ($this->hasDefaultLocaleDifferentThanCurrentLocale()) {
-            $this->joinDefaultTranslationsOnce($alias, $property);
-            return $this->getTranslatableFieldConditionalExpr($alias, $property);
+        $this->joinDefaultTranslationsOnce($alias, $field);
+        if ($addHiddenSelect) {
+            return $this->getHiddenSelectTranslatableFieldConditionalExpr($alias, $field);;
         } else {
-            return $this->getTranslatableFieldSimpleExpr($alias, $property);
+            return $this->getTranslatableFieldConditionalExpr($alias, $field);
         }
     }
 
@@ -593,30 +607,14 @@ class QueryBuilder extends BaseQueryBuilder
      */
     private function getTranslatableFieldConditionalExpr($alias, $property)
     {
-        $hiddenSelect = sprintf('%s%s', $alias, $property);
-        if (!isset($this->translatableFieldsInSelect[$hiddenSelect])) {
-            $this->addHiddenSelectTranslatableFieldConditionalExpr($alias, $property);
-            $this->translatableFieldsInSelect[$hiddenSelect] = $hiddenSelect;
-        }
-
-        return $this->translatableFieldsInSelect[$hiddenSelect];
-    }
-
-    /**
-     * @param string $alias
-     * @param string $property
-     * @throws \Doctrine\ORM\Mapping\MappingException
-     */
-    private function addHiddenSelectTranslatableFieldConditionalExpr($alias, $property)
-    {
         $currentTranslationsAlias = $this->getJoinedCurrentTranslationsAlias($alias, $property);
         $defaultTranslationsAlias = $this->getJoinedDefaultTranslationsAlias($alias, $property);
         $translationIdentity = $this->getClassMetadata($this->getClassByAlias($currentTranslationsAlias))
             ->getSingleIdentifierFieldName();
         $translationField = $this->getTranslationField($alias, $property);
 
-        $this->addSelect(sprintf(
-            'CASE WHEN %s.%s IS NOT NULL THEN %s.%s ELSE %s.%s END HIDDEN %s%s',
+        return sprintf(
+            'CASE WHEN %s.%s IS NOT NULL THEN %s.%s ELSE %s.%s END',
             $currentTranslationsAlias,
             $translationIdentity,
             $currentTranslationsAlias,
@@ -625,7 +623,27 @@ class QueryBuilder extends BaseQueryBuilder
             $translationField,
             $alias,
             $property
-        ));
+        );
+    }
+
+    /**
+     * @param string $alias
+     * @param string $property
+     * @throws \Doctrine\ORM\Mapping\MappingException
+     */
+    private function getHiddenSelectTranslatableFieldConditionalExpr($alias, $property)
+    {
+        $hiddenSelect = sprintf('%s%s', $alias, $property);
+        if (!isset($this->translatableFieldsInSelect[$hiddenSelect])) {
+            $this->addSelect(sprintf(
+                '%s HIDDEN %s',
+                $this->getTranslatableFieldConditionalExpr($alias, $property),
+                $hiddenSelect
+            ));
+            $this->translatableFieldsInSelect[$hiddenSelect] = $hiddenSelect;
+        }
+
+        return $this->translatableFieldsInSelect[$hiddenSelect];
     }
 
     /**

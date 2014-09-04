@@ -126,7 +126,7 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'title', 'some title');
 
         $this->assertEquals(
-            sprintf('SELECT CASE WHEN atranslationspl.id IS NOT NULL THEN atranslationspl.title ELSE atranslationsen.title END HIDDEN atitle FROM %s a LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc WHERE atitle = :atitleval', self::ARTICLE),
+            sprintf('SELECT FROM %s a LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc WHERE CASE WHEN atranslationspl.id IS NOT NULL THEN atranslationspl.title ELSE atranslationsen.title END = :atitleval', self::ARTICLE),
             $qb->getDQL()
         );
 
@@ -151,6 +151,67 @@ class QueryBuilderTest extends BaseTranslatableTest
 
         $this->assertEquals(
             sprintf('SELECT FROM %s a LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc WHERE atranslationsen.title = :atitleval', self::ARTICLE),
+            $qb->getDQL()
+        );
+
+        $this->assertEquals(
+            $this->_languageEn,
+            $qb->getParameter('atranslationsenloc')->getValue()
+        );
+    }
+
+    public function testTranslatableOrderByWithCurrentLocale()
+    {
+        $this->_translatableListener->setLocale($this->_languageEn);
+        $qb = new QueryBuilder($this->_em);
+        $qb->from(self::ARTICLE, 'a');
+        $qb->addTranslatableOrderBY('a', 'title', 'ASC');
+
+        $this->assertEquals(
+            sprintf('SELECT FROM %s a LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc ORDER BY atranslationsen.title ASC', self::ARTICLE),
+            $qb->getDQL()
+        );
+
+        $this->assertEquals(
+            $this->_languageEn,
+            $qb->getParameter('atranslationsenloc')->getValue()
+        );
+    }
+
+    public function testTranslatableOrderByWithDefaultLocale()
+    {
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $qb = new QueryBuilder($this->_em);
+        $qb->from(self::ARTICLE, 'a');
+        $qb->addTranslatableOrderBy('a', 'title', 'DESC');
+
+        $this->assertEquals(
+            sprintf('SELECT CASE WHEN atranslationspl.id IS NOT NULL THEN atranslationspl.title ELSE atranslationsen.title END HIDDEN atitle FROM %s a LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc ORDER BY atitle DESC', self::ARTICLE),
+            $qb->getDQL()
+        );
+
+        $this->assertEquals(
+            $this->_languagePl,
+            $qb->getParameter('atranslationsplloc')->getValue()
+        );
+
+        $this->assertEquals(
+            $this->_languageEn,
+            $qb->getParameter('atranslationsenloc')->getValue()
+        );
+    }
+
+    public function testTranslatableOrderByWithSameCurrentAndDefaultLocale()
+    {
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->_translatableListener->setLocale($this->_languageEn);
+        $qb = new QueryBuilder($this->_em);
+        $qb->from(self::ARTICLE, 'a');
+        $qb->addTranslatableOrderBy('a', 'title', 'DESC');
+
+        $this->assertEquals(
+            sprintf('SELECT FROM %s a LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc ORDER BY atranslationsen.title DESC', self::ARTICLE),
             $qb->getDQL()
         );
 
