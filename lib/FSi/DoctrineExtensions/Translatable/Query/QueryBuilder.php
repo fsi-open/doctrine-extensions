@@ -12,6 +12,7 @@ namespace FSi\DoctrineExtensions\Translatable\Query;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query\Expr;
 use FSi\DoctrineExtensions\Exception\ConditionException;
+use FSi\DoctrineExtensions\Exception\InvalidArgumentException;
 use FSi\DoctrineExtensions\ORM\QueryBuilder as BaseQueryBuilder;
 use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
@@ -84,6 +85,8 @@ class QueryBuilder extends BaseQueryBuilder
                 return $this->innerJoin($join, $alias, $conditionType, $condition);
             case Expr\Join::LEFT_JOIN:
                 return $this->leftJoin($join, $alias, $conditionType, $condition);
+            default:
+                throw new InvalidArgumentException(sprintf('Unknown join type "%s"', $joinType));
         }
     }
 

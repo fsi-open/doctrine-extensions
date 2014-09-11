@@ -10,6 +10,7 @@
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
 use Doctrine\ORM\Query\Expr;
+use FSi\DoctrineExtensions\Exception\InvalidArgumentException;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
 use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder;
@@ -25,6 +26,19 @@ class QueryBuilderTest extends BaseTranslatableTest
             self::ARTICLE,
             self::ARTICLE_TRANSLATION
         );
+    }
+
+    public function testJoinTranslationWithWrongJoinType()
+    {
+        $qb = new QueryBuilder($this->_em);
+        $qb->from(self::ARTICLE, 'a');
+
+        $this->setExpectedException(
+            'FSi\DoctrineExtensions\Exception\InvalidArgumentException',
+            'Unknown join type "RIGHT"'
+        );
+
+        $qb->joinTranslations('a.translations', 'RIGHT');
     }
 
     public function testJoinTranslationWithAllDefaultArguments()
