@@ -10,43 +10,40 @@
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
+use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @ORM\Entity
  */
-class Category
+class Section
 {
     /**
+     * @var integer $id
+     *
      * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @var integer $id
      */
     private $id;
 
     /**
-     * @ORM\Column(nullable=true)
      * @var string
+     *
+     * @ORM\Column
      */
     private $title;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Article", mappedBy="categories")
      * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="Article", mappedBy="section")
      */
-    private $articles = null;
+    private $articles;
 
     public function __construct()
     {
-        $this->articles = new \Doctrine\Common\Collections\ArrayCollection();
-    }
-
-    /**
-     * @param integer $id
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
+        $this->articles = new ArrayCollection();
     }
 
     /**
@@ -60,7 +57,7 @@ class Category
 
     public function setTitle($title)
     {
-        $this->title = (string)$title;
+        $this->title = $title;
         return $this;
     }
 
@@ -69,13 +66,19 @@ class Category
         return $this->title;
     }
 
-    public function addArticle(Article $article)
-    {
-        $this->articles[] = $article;
-    }
-
+    /**
+     * @return mixed
+     */
     public function getArticles()
     {
         return $this->articles;
+    }
+
+    /**
+     * @param mixed $articles
+     */
+    public function setArticles($articles)
+    {
+        $this->articles = $articles;
     }
 }

@@ -14,33 +14,12 @@ use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticleTranslation;
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Section;
+use FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository;
 
-class SimpleTest extends BaseORMTest
+class ListenerTest extends BaseTranslatableTest
 {
-    const CATEGORY = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Category";
-    const ARTICLE = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Article";
-    const ARTICLE_TRANSLATION = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\ArticleTranslation";
-
-    const CATEGORY_1 = 'Category 1';
-    const POLISH_TITLE_1 = 'Tytuł polski 1';
-    const POLISH_TITLE_2 = 'Tytuł polski 2';
-    const POLISH_CONTENTS_1 = 'Treść artukułu po polsku 1';
-    const POLISH_CONTENTS_2 = 'Treść artukułu po polsku 2';
-    const ENGLISH_TITLE_1 = 'English title 1';
-    const ENGLISH_TITLE_2 = 'English title 2';
-    const ENGLISH_CONTENTS_1 = 'English contents of article 1';
-    const ENGLISH_CONTENTS_2 = 'English contents of article 2';
-
-    protected $_languagePl = 'pl';
-
-    protected $_languageEn = 'en';
-
-    protected function setUp()
-    {
-        parent::setUp();
-        $this->_em = $this->getEntityManager();
-    }
-
     /**
      * Test simple entity creation with translation its state after $em->flush()
      */
@@ -601,140 +580,6 @@ class SimpleTest extends BaseORMTest
         );
     }
 
-    /**
-     * Test if query builder returned by translatable repository has join to translation entity
-     * and is constrained to current locale
-     */
-    public function testTranslatableRepositoryCreateQueryBuilder()
-    {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(self::ARTICLE);
-
-        $qb = $repository->createTranslatableQueryBuilder('a', 't');
-
-        $this->assertEquals(
-            sprintf('SELECT a, t, dt FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale LEFT JOIN a.translations dt WITH dt.locale = :deflocale', self::ARTICLE),
-            $qb->getQuery()->getDql(),
-            'Wrong DQL returned from QueryBuilder'
-        );
-
-        $this->assertEquals(
-            $this->_languagePl,
-            $qb->getParameter('locale')->getValue(),
-            'Parameter :locale has wrong value'
-        );
-    }
-
-    /**
-     * Test if call to getTranslation creates non existent translations
-     */
-    public function testCreatingNonExistentTranslationThroughRepository()
-    {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $repository = $this->_em->getRepository(self::ARTICLE);
-        $article = new Article();
-        $article->setDate(new \DateTime());
-        $this->_em->persist($article);
-        $this->_em->flush();
-
-        $translationEn = $repository->getTranslation($article, $this->_languageEn);
-
-        $translationPl = $repository->getTranslation($article, $this->_languagePl);
-
-        $this->assertTrue(
-            $article->getTranslations()->contains($translationEn)
-        );
-
-        $this->assertTrue(
-            $article->getTranslations()->contains($translationPl)
-        );
-
-        $this->assertSame(
-            $translationEn,
-            $article->getTranslations()->get($this->_languageEn)
-        );
-
-        $this->assertSame(
-            $translationPl,
-            $article->getTranslations()->get($this->_languagePl)
-        );
-
-        $this->assertSame(
-            $translationPl,
-            $repository->getTranslation($article, $this->_languagePl)
-        );
-    }
-
-    /**
-     * Test if call to hasTranslation returns true for existing translations
-     * and false otherwise
-     */
-    public function testCheckingIfTranslationExistsThroughRepository()
-    {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $repository = $this->_em->getRepository(self::ARTICLE);
-        $article = new Article();
-        $article->setDate(new \DateTime());
-        $translationEn = $repository->getTranslation($article, $this->_languageEn);
-        $translationEn->setTitle(self::ENGLISH_TITLE_1);
-        $translationEn->setContents(self::ENGLISH_CONTENTS_1);
-        $this->_em->persist($article);
-        $this->_em->persist($translationEn);
-        $this->_em->flush();
-        $this->_em->clear();
-
-        $article = $repository->find($article->getId());
-
-        $this->assertTrue(
-            $repository->hasTranslation($article, $this->_languageEn)
-        );
-
-        $this->assertFalse(
-            $repository->hasTranslation($article, $this->_languagePl)
-        );
-    }
-
-    public function testNotOverwritingTranslationForNewObject()
-    {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(self::ARTICLE);
-        $article = new Article();
-        $article->setDate(new \DateTime());
-
-        $translationEn = $repository->getTranslation($article, $this->_languageEn);
-        $translationEn->setTitle(self::ENGLISH_TITLE_1);
-        $translationEn->setContents(self::ENGLISH_CONTENTS_1);
-        $translationPl = $repository->getTranslation($article, $this->_languagePl);
-        $translationPl->setTitle(self::POLISH_TITLE_1);
-        $translationPl->setContents(self::POLISH_CONTENTS_1);
-
-        $this->_em->persist($translationEn);
-        $this->_em->persist($translationPl);
-        $this->_em->persist($article);
-        $this->_em->flush();
-
-        $this->_em->refresh($article);
-
-        $this->assertEquals(
-            2,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(
-            self::ENGLISH_TITLE_1,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::ENGLISH_CONTENTS_1,
-            'contents',
-            $article
-        );
-    }
-
     public function testInternalPropertyObserver()
     {
         $this->_translatableListener->setLocale($this->_languagePl);
@@ -759,59 +604,12 @@ class SimpleTest extends BaseORMTest
         );
     }
 
-    public function testPostHydrate()
-    {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(self::ARTICLE);
-        $article = new Article();
-        $article->setDate(new \DateTime());
-
-        $translationEn = $repository->getTranslation($article, $this->_languageEn);
-        $translationEn->setTitle(self::ENGLISH_TITLE_1);
-        $translationEn->setContents(self::ENGLISH_CONTENTS_1);
-        $translationPl = $repository->getTranslation($article, $this->_languagePl);
-        $translationPl->setTitle(self::POLISH_TITLE_1);
-        $translationPl->setContents(self::POLISH_CONTENTS_1);
-
-        $this->_em->persist($translationEn);
-        $this->_em->persist($translationPl);
-        $this->_em->persist($article);
-        $this->_em->flush();
-        $this->_em->clear();
-
-        $this->_logger->enabled = true;
-        $query = $repository->createTranslatableQueryBuilder('a', 't', 'dt')->getQuery();
-
-        $this->assertTrue(
-            $query->getHint(\Doctrine\ORM\Query::HINT_INCLUDE_META_COLUMNS)
-        );
-
-        $articles = $query->execute();
-        foreach ($articles as $article) {
-            $this->assertAttributeEquals(
-                self::ENGLISH_TITLE_1,
-                'title',
-                $article
-            );
-
-            $this->assertAttributeEquals(
-                self::ENGLISH_CONTENTS_1,
-                'contents',
-                $article
-            );
-        }
-
-        $this->assertEquals(
-            1,
-            count($this->_logger->queries),
-            'Reloading executed wrong number of queries'
-        );
-    }
-
     protected function getUsedEntityFixtures()
     {
         return array(
             self::CATEGORY,
+            self::SECTION,
+            self::COMMENT,
             self::ARTICLE,
             self::ARTICLE_TRANSLATION
         );

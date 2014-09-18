@@ -44,14 +44,34 @@ class Article
     private $title;
 
     /**
+     * @Translatable\Translatable(mappedBy="translations", targetField="introduction")
+     * @var string
+     */
+    private $teaser;
+
+    /**
      * @Translatable\Translatable(mappedBy="translations")
      * @var string
      */
     private $contents;
 
     /**
+     * @var Section
+     *
+     * @ORM\ManyToOne(targetEntity="Section", inversedBy="articles")
+     */
+    private $section;
+
+    /**
+     * @var ArrayCollection|Comment[]
+     *
+     * @ORM\OneToMany(targetEntity="Comment", mappedBy="article")
+     */
+    private $comments;
+
+    /**
      * @ORM\OneToMany(targetEntity="ArticleTranslation", mappedBy="article", indexBy="locale")
-     * @var Doctrine\Common\Collections\ArrayCollection
+     * @var \Doctrine\Common\Collections\ArrayCollection
      */
     private $translations;
 
@@ -77,6 +97,22 @@ class Article
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTeaser()
+    {
+        return $this->teaser;
+    }
+
+    /**
+     * @param string $teaser
+     */
+    public function setTeaser($teaser)
+    {
+        $this->teaser = $teaser;
     }
 
     public function setDate(\DateTime $date)
@@ -137,5 +173,21 @@ class Article
     public function getTranslations()
     {
         return $this->translations;
+    }
+
+    /**
+     * @return Section
+     */
+    public function getSection()
+    {
+        return $this->section;
+    }
+
+    /**
+     * @param Section $section
+     */
+    public function setSection($section)
+    {
+        $this->section = $section;
     }
 }
