@@ -36,6 +36,12 @@ class TranslatableWithPersistentLocaleTranslation
      * @ORM\Column
      * @var string
      */
+    private $title;
+
+    /**
+     * @ORM\Column
+     * @var string
+     */
     private $contents;
 
     /**
@@ -66,15 +72,15 @@ class TranslatableWithPersistentLocaleTranslation
         return $this->contents;
     }
 
-    public function setLocale($language)
+    public function setLocale($locale)
     {
-        $this->language = (string)$language;
+        $this->locale = (string)$locale;
         return $this;
     }
 
     public function getLocale()
     {
-        return $this->language;
+        return $this->locale;
     }
 
 }

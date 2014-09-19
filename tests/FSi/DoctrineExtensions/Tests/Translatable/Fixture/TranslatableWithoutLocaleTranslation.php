@@ -56,9 +56,9 @@ class TranslatableWithoutLocaleTranslation
         return $this->contents;
     }
 
-    public function setLocale($language)
+    public function setLocale($locale)
     {
-        $this->locale = (string)$language;
+        $this->locale = (string)$locale;
         return $this;
     }
 
