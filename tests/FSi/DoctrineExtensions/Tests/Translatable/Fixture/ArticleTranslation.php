@@ -53,11 +53,7 @@ class ArticleTranslation
     /**
      * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
      * @ORM\JoinColumn(name="article", referencedColumnName="id")
-<<<<<<< HEAD
-     * @var \Doctrine\Common\Collections\ArrayCollection
-=======
      * @var \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article
->>>>>>> Increased code coverage by tests
      */
     private $article;
 
