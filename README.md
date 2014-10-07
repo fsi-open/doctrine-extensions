@@ -13,6 +13,6 @@ Documentation for each extension can be found in ``/doc`` folder:
 Add to composer.json
 ```
     "require": {
-        "fsi/doctrine-extensions": "1.0.*"
+        "fsi/doctrine-extensions": "~1.1"
     }
 ```
