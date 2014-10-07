@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Translatable\Entity\Repository;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -114,13 +115,10 @@ class TranslatableRepository extends EntityRepository
      */
     public function hasTranslation($object, $locale, $translationAssociation = 'translations')
     {
-        $this->validateObject($object);
-        $this->validateTranslationAssociation($translationAssociation);
-
         $translation = $this->findTranslation(
             $object,
-            $translationAssociation,
-            $locale
+            $locale,
+            $translationAssociation
         );
 
         return ($translation !== null);
@@ -143,8 +141,8 @@ class TranslatableRepository extends EntityRepository
 
         $translation = $this->findTranslation(
             $object,
-            $translationAssociation,
-            $locale
+            $locale,
+            $translationAssociation
         );
 
         if (isset($translation)) {
@@ -162,13 +160,16 @@ class TranslatableRepository extends EntityRepository
 
     /**
      * @param object $object
-     * @param string $translationAssociation
      * @param mixed $locale
+     * @param string $translationAssociation
      * @return object|null
      * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
      */
-    protected function findTranslation($object, $translationAssociation, $locale)
+    public function findTranslation($object, $locale, $translationAssociation = 'translations')
     {
+        $this->validateObject($object);
+        $this->validateTranslationAssociation($translationAssociation);
+
         if ($this->areTranslationsIndexedByLocale($translationAssociation)) {
             return $this
                 ->getTranslations($object, $translationAssociation)
@@ -371,6 +372,10 @@ class TranslatableRepository extends EntityRepository
     protected function getTranslations($object, $translationAssociation)
     {
         $translations = $this->getClassMetadata()->getFieldValue($object, $translationAssociation);
+
+        if ($translations === null) {
+            return new ArrayCollection();
+        }
 
         if (!($translations instanceof Collection)) {
             throw new RuntimeException(sprintf(

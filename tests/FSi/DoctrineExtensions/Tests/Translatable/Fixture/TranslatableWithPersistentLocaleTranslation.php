@@ -15,7 +15,7 @@ use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 /**
  * @ORM\Entity
  */
-class ArticleTranslation
+class TranslatableWithPersistentLocaleTranslation
 {
     /**
      * @ORM\Column(name="id", type="bigint")
@@ -39,23 +39,16 @@ class ArticleTranslation
     private $title;
 
     /**
-     * @ORM\Column(nullable=true)
-     * @var string
-     */
-    private $introduction;
-
-    /**
      * @ORM\Column
      * @var string
      */
     private $contents;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
-     * @ORM\JoinColumn(name="article", referencedColumnName="id")
-     * @var \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article
+     * @ORM\ManyToOne(targetEntity="\FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale", inversedBy="translations")
+     * @ORM\JoinColumn(name="translatable", referencedColumnName="id")
      */
-    private $article;
+    private $translatable;
 
     public function setTitle($title)
     {
@@ -66,22 +59,6 @@ class ArticleTranslation
     public function getTitle()
     {
         return $this->title;
-    }
-
-    /**
-     * @return string
-     */
-    public function getIntroduction()
-    {
-        return $this->introduction;
-    }
-
-    /**
-     * @param string $introduction
-     */
-    public function setIntroduction($introduction)
-    {
-        $this->introduction = $introduction;
     }
 
     public function setContents($contents)
@@ -97,7 +74,7 @@ class ArticleTranslation
 
     public function setLocale($locale)
     {
-        $this->locale = (string) $locale;
+        $this->locale = (string)$locale;
         return $this;
     }
 
@@ -105,4 +82,5 @@ class ArticleTranslation
     {
         return $this->locale;
     }
+
 }

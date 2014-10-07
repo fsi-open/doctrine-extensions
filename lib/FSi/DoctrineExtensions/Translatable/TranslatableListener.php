@@ -9,23 +9,28 @@
 
 namespace FSi\DoctrineExtensions\Translatable;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\EventArgs;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\Event\OnClearEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use Doctrine\ORM\UnitOfWork;
+use Doctrine\ORM\Proxy\Proxy;
+use FSi\Component\PropertyObserver\MultiplePropertyObserver;
+use FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use FSi\Component\Metadata\MetadataFactory;
 use FSi\Component\Metadata\ClassMetadataInterface;
-use FSi\Component\PropertyObserver\PropertyObserver;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Translatable\Exception;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 
 class TranslatableListener extends MappedEventSubscriber
 {
+    /**
+     * @var \Symfony\Component\PropertyAccess\PropertyAccessor
+     */
+    private $_propertyAccessor;
+
     /**
      * Current locale of the listener
      *
@@ -43,313 +48,9 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * Array of PropertyObserver instances for each ObjectManager's context
      *
-     * @var \FSi\Component\PropertyObserver\PropertyObserver[]
+     * @var \FSi\Component\PropertyObserver\MultiplePropertyObserver[]
      */
     private $_propertyObservers = array();
-
-    /**
-     * Specifies the list of events to listen
-     *
-     * @return array
-     */
-    public function getSubscribedEvents()
-    {
-        return array(
-            'postLoad',
-            'postHydrate',
-            'preFlush',
-            'onClear'
-        );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
-    {
-        if ($extendedClassMetadata->hasTranslatableProperties()) {
-            if (!isset($extendedClassMetadata->localeProperty)) {
-                throw new Exception\MappingException('Entity \'' . $baseClassMetadata->name . '\' has translatable properties so it must have property marked with @Translatable\Language annotation');
-            }
-            $translatableProperties = $extendedClassMetadata->getTranslatableProperties();
-            foreach ($translatableProperties as $translation => $properties) {
-                if (!$baseClassMetadata->hasAssociation($translation) || !$baseClassMetadata->isCollectionValuedAssociation($translation)) {
-                    throw new Exception\MappingException('Field \'' . $translation . '\' in entity \'' . $baseClassMetadata->name . '\' has to be a OneToMany association');
-                }
-            }
-        }
-        if (isset($extendedClassMetadata->localeProperty)) {
-            if ($extendedClassMetadata->hasTranslatableProperties() && (
-                    $baseClassMetadata->hasField($extendedClassMetadata->localeProperty) ||
-                    $baseClassMetadata->hasAssociation($extendedClassMetadata->localeProperty))) {
-                throw new Exception\MappingException('Entity \''.$baseClassMetadata->name.'\' seems to be a translatable entity so its \'' . $extendedClassMetadata->localeProperty . '\' field must not be persistent');
-            }
-            else if (!$extendedClassMetadata->hasTranslatableProperties() &&
-                    !$baseClassMetadata->hasField($extendedClassMetadata->localeProperty) &&
-                    !$baseClassMetadata->hasAssociation($extendedClassMetadata->localeProperty)) {
-                throw new Exception\MappingException('Entity \''.$baseClassMetadata->name.'\' seems to be a translation entity so its \'' . $extendedClassMetadata->localeProperty . '\' field must be persistent');
-            }
-        }
-    }
-
-    /**
-     * Get the namespace of extension event subscriber
-     * used for cache id of extensions also to know where
-     * to find Mapping drivers and event adapters
-     *
-     * @return string
-     */
-    public function getNamespace()
-    {
-        return __NAMESPACE__;
-    }
-
-    /**
-     * Returns PropertyObserver for specified ObjectManager
-     *
-     * @param \Doctrine\Common\Persistence\ObjectManager $om
-     * @return \FSi\Component\PropertyObserver\PropertyObserver:
-     */
-    protected function getPropertyObserver(ObjectManager $objectManager)
-    {
-        $oid = spl_object_hash($objectManager);
-        if (!isset($this->_propertyObservers[$oid])) {
-            $this->_propertyObservers[$oid] = new PropertyObserver();
-        }
-        return $this->_propertyObservers[$oid];
-    }
-
-    /**
-     * Load translations fields into object properties
-     *
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @param object $object
-     * @param mixed $locale
-     */
-    public function loadTranslation(ObjectManager $objectManager, $object, $locale)
-    {
-        $class = get_class($object);
-        $meta = $objectManager->getClassMetadata($class);
-        $translationMeta = $this->getExtendedMetadata($objectManager, $class);
-        return $this->loadTranslations($meta, $translationMeta, $objectManager, $object, $locale);
-    }
-
-    /**
-     * Load translations fields into object properties
-     *
-     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $meta
-     * @param \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableMeta
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @param object $object
-     * @param mixed $currentLocale
-     */
-    protected function loadTranslations(ClassMetadata $meta, TranslatableClassMetadata $translatableMeta, ObjectManager $objectManager, $object, $currentLocale)
-    {
-        $propertyObserver = $this->getPropertyObserver($objectManager);
-        $translationFound = false;
-        $translatableProperties = $translatableMeta->getTranslatableProperties();
-        $localeProperty = $translatableMeta->localeProperty;
-        foreach ($translatableProperties as $translation => $properties) {
-            $translations = $meta->getFieldValue($object, $translation);
-            // Do not try to find translation if translations association is not yet initialized i.e. during postLoad
-            if (!isset($translations)) {
-                continue;
-            }
-
-            $translationEntity = $meta->getAssociationTargetClass($translation);
-            $translationMeta = $objectManager->getClassMetadata($translationEntity);
-            $translationLanguageField = $this->getTranslationLanguageField($objectManager, $translationMeta->name);
-
-            $currentTranslation = null;
-            if (isset($currentLocale) && isset($translations)) {
-                $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $currentLocale);
-            }
-
-            if (!isset($currentTranslation) && isset($this->_defaultLocale)) {
-                $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $this->_defaultLocale);
-                if (isset($currentTranslation)) {
-                    $currentLocale = $this->_defaultLocale;
-                }
-            }
-
-            if (!isset($currentTranslation)) {
-                foreach ($properties as $property => $translationField) {
-                    $propertyObserver->setValue($object, $property, null);
-                }
-                continue;
-            }
-
-            $translationFound = true;
-            foreach ($properties as $property => $translationField) {
-                $propertyObserver->setValue(
-                    $object,
-                    $property,
-                    $translationMeta->getFieldValue($currentTranslation, $translationField)
-                );
-            }
-        }
-
-        if ($translationFound) {
-            $propertyObserver->setValue($object, $localeProperty, $currentLocale);
-        } else {
-            $propertyObserver->setValue($object, $localeProperty, null);
-        }
-        return $translationFound;
-    }
-
-    /**
-     * After loading the entity copy the current translation fields into non-persistent translatable properties
-     *
-     * @param \Doctrine\Common\EventArgs $eventArgs
-     */
-    public function postLoad(EventArgs $eventArgs)
-    {
-        $eventAdapter     = $this->getEventAdapter($eventArgs);
-        $objectManager    = $eventAdapter->getObjectManager();
-        $object           = $eventAdapter->getObject();
-        $meta             = $objectManager->getClassMetadata(get_class($object));
-        $translatableMeta = $this->getExtendedMetadata($objectManager, $meta->name);
-
-        if ($translatableMeta->hasTranslatableProperties()) {
-            $currentLocale = $this->getLocale();
-            $this->loadTranslations($meta, $translatableMeta, $objectManager, $object, $currentLocale);
-        }
-    }
-
-    /**
-     * After loading the entity copy the current translation fields into non-persistent translatable properties
-     *
-     * @param \Doctrine\Common\EventArgs $eventArgs
-     */
-    public function postHydrate(EventArgs $eventArgs)
-    {
-        $this->postLoad($eventArgs);
-    }
-
-    /**
-     * Helper method to insert, remove or update translations entities associated with specified object
-     *
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $meta
-     * @param \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableMeta
-     * @param object $object
-     */
-    protected function updateTranslations(ObjectManager $objectManager, ClassMetadata $meta, TranslatableClassMetadata $translatableMeta, $object)
-    {
-        $localeProperty = $translatableMeta->localeProperty;
-        $propertyObserver = $this->getPropertyObserver($objectManager);
-        $locale = $objectLocale = PropertyAccess::createPropertyAccessor()->getValue($object, $localeProperty);
-        $objectLanguageChanged = (!$propertyObserver->hasSavedValue($object, $localeProperty) && isset($objectLocale)) ||
-            ($propertyObserver->hasSavedValue($object, $localeProperty) && $propertyObserver->hasValueChanged($object, $localeProperty));
-        if (!isset($locale))
-            $locale = $this->getLocale();
-
-        $translatableProperties = $translatableMeta->getTranslatableProperties();
-        foreach ($translatableProperties as $translation => $properties) {
-
-            $translationEntity = $meta->getAssociationTargetClass($translation);
-            $translationMeta = $objectManager->getClassMetadata($translationEntity);
-            $translationLanguageField = $this->getTranslationLanguageField($objectManager, $translationMeta->name);
-            $translationAssociation = $meta->getAssociationMapping($translation);
-
-            $translations = $meta->getFieldValue($object, $translation);
-            $currentTranslation = null;
-            if (isset($translations)) {
-                $currentTranslation = $this->findTranslation($translations, $translationMeta, $translationLanguageField, $locale);
-            }
-
-            $propertiesFound = false;
-            foreach ($properties as $property => $translationField) {
-                $propertyValue = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
-                if (isset($propertyValue)) {
-                    $propertiesFound = true;
-                }
-                if ($objectLanguageChanged || (!$propertyObserver->hasSavedValue($object, $property) && isset($propertyValue)) ||
-                    ($propertyObserver->hasSavedValue($object, $property) && $propertyObserver->hasValueChanged($object, $property))) {
-                    if (isset($propertyValue)) {
-                        if (!isset($currentTranslation)) {
-                            $currentTranslation = new $translationEntity();
-                            $translationMeta->setFieldValue($currentTranslation, $translationLanguageField, $locale);
-                            $translationMeta->setFieldValue($currentTranslation, $translationAssociation['mappedBy'], $object);
-                            if (isset($translationAssociation['indexBy'])) {
-                                $index = $translationMeta->getFieldValue($currentTranslation, $translationAssociation['indexBy']);
-                                $translations[$index] = $currentTranslation;
-                            } else {
-                                $translations[] = $currentTranslation;
-                            }
-                            $objectManager->persist($currentTranslation);
-                        }
-                        $translationMeta->setFieldValue($currentTranslation, $translationField, $propertyValue);
-                    } else if ($currentTranslation) {
-                        $translationMeta->setFieldValue($currentTranslation, $translationField, null);
-                    }
-                }
-            }
-            if ($propertiesFound && !isset($locale)) {
-                throw new Exception\RuntimeException('Neither object\'s locale nor the default locale was defined for translatable properties');
-            }
-
-            if (!$propertiesFound && isset($currentTranslation) && isset($objectLocale)) {
-                $objectManager->remove($currentTranslation);
-                if ($translations->contains($currentTranslation)) {
-                    $translations->removeElement($currentTranslation);
-                }
-            }
-
-        }
-    }
-
-    /**
-     * This event handler will update, insert or remove translation entities if main object's translatable properties change.
-     *
-     * @param \Doctrine\ORM\Event\PreFlushEventArgs $eventArgs
-     * @return void
-     */
-    public function preFlush(PreFlushEventArgs $eventArgs)
-    {
-        $entityManager = $eventArgs->getEntityManager();
-        /* @var $unitOfWork UnitOfWork */
-        $unitOfWork    = $entityManager->getUnitOfWork();
-
-        foreach ($unitOfWork->getScheduledEntityInsertions() as $object) {
-            $class = get_class($object);
-            $translatableMeta = $this->getExtendedMetadata($entityManager, $class);
-            if (!$translatableMeta->hasTranslatableProperties()) {
-                continue;
-            }
-            $meta = $entityManager->getClassMetadata($class);
-            $this->updateTranslations($entityManager, $meta, $translatableMeta, $object);
-        }
-
-        foreach ($unitOfWork->getIdentityMap() as $class => $entities) {
-            $translatableMeta = $this->getExtendedMetadata($entityManager, $class);
-            if (!$translatableMeta->hasTranslatableProperties()) {
-                continue;
-            }
-            $meta = $entityManager->getClassMetadata($class);
-            foreach ($entities as $object) {
-                if ($object instanceof \Doctrine\ORM\Proxy\Proxy) {
-                    continue;
-                }
-                $this->updateTranslations($entityManager, $meta, $translatableMeta, $object);
-            }
-        }
-    }
-
-    /**
-     * Clears embedded object observer for associated entity manager
-     *
-     * @param \Doctrine\ORM\Event\OnClearEventArgs $eventArgs
-     */
-    public function onClear(OnClearEventArgs $eventArgs)
-    {
-        if ($eventArgs->clearsAllEntities()) {
-            $eventAdapter = $this->getEventAdapter($eventArgs);
-            $objectManager = $eventAdapter->getObjectManager();
-            $oid = spl_object_hash($objectManager);
-            unset($this->_propertyObservers[$oid]);
-        }
-    }
 
     /**
      * Set the current locale
@@ -396,51 +97,578 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * Get current language from target entity
+     * Specifies the list of events to listen
      *
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-	 * @param string $targetEntity
-	 *
-     * @return string
+     * @return array
      */
-    private function getTranslationLanguageField(ObjectManager $objectManager, $translationEntity)
+    public function getSubscribedEvents()
     {
-        $translatableMeta = $this->getExtendedMetadata($objectManager, $translationEntity);
-
-        if (!isset($translatableMeta->localeProperty)) {
-            throw new Exception\MappingException('Entity \''.$translationEntity.'\' seems to be a translation entity so it must have field mapped as translatable locale');
-        }
-
-        return $translatableMeta->localeProperty;
+        return array(
+            'postLoad',
+            'postHydrate',
+            'preFlush',
+            'onClear'
+        );
     }
 
     /**
-     * Find translation entity by specified language using filter method from ArrayCollection class
+     * Get the namespace of extension event subscriber
+     * used for cache id of extensions also to know where
+     * to find Mapping drivers and event adapters
      *
-     * @param \Doctrine\Common\Collections\ArrayCollection $translates
-     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $translationMeta
-     * @param string $translationLocaleField
-     * @param mixed $locale
-     *
-     * @return ArrayCollection
+     * @return string
      */
-    private function findTranslation(Collection $translations, ClassMetadata $translationMeta, $translationLocaleField, $locale)
+    public function getNamespace()
     {
-        $translations = $translations->filter(function($translation) use ($locale, $translationMeta, $translationLocaleField) {
-            $translationLocale = $translationMeta->getFieldValue($translation, $translationLocaleField);
-            if ($translationLocale === $locale) {
-                return true;
-            } else {
-                return false;
-            }
-        });
+        return __NAMESPACE__;
+    }
 
-        if (!$translations->count()) {
-            return null;
-        } else if ($translations->count() > 1) {
-            throw new Exception\RuntimeException('Multiple translations found for one locale');
-        } else {
-            return $translations->first();
+    /**
+     * After loading the entity copy the current translation fields into non-persistent translatable properties
+     *
+     * @param \Doctrine\Common\EventArgs $eventArgs
+     */
+    public function postLoad(EventArgs $eventArgs)
+    {
+        $this->loadTranslation(
+            $this->getEventObjectManager($eventArgs),
+            $this->getEventObject($eventArgs),
+            $this->getLocale()
+        );
+    }
+
+    /**
+     * After loading the entity copy the current translation fields into non-persistent translatable properties
+     *
+     * @param \Doctrine\Common\EventArgs $eventArgs
+     */
+    public function postHydrate(EventArgs $eventArgs)
+    {
+        $this->postLoad($eventArgs);
+    }
+
+    /**
+     * This event handler will update, insert or remove translation entities if main object's translatable properties change.
+     *
+     * @param \Doctrine\ORM\Event\PreFlushEventArgs $eventArgs
+     * @return void
+     */
+    public function preFlush(PreFlushEventArgs $eventArgs)
+    {
+        $entityManager = $eventArgs->getEntityManager();
+        $unitOfWork    = $entityManager->getUnitOfWork();
+
+        foreach ($unitOfWork->getScheduledEntityInsertions() as $object) {
+            $this->updateObjectTranslations($entityManager, $object);
         }
+
+        foreach ($unitOfWork->getIdentityMap() as $class => $entities) {
+            foreach ($entities as $object) {
+                if ($object instanceof Proxy) {
+                    continue;
+                }
+                $this->updateObjectTranslations($entityManager, $object);
+            }
+        }
+    }
+
+    /**
+     * Clears embedded object observer for associated entity manager
+     *
+     * @param \Doctrine\ORM\Event\OnClearEventArgs $eventArgs
+     */
+    public function onClear(OnClearEventArgs $eventArgs)
+    {
+        if ($eventArgs->clearsAllEntities()) {
+            $this->clearPropertyObserver(
+                $this->getEventObjectManager($eventArgs)
+            );
+        }
+    }
+
+    /**
+     * Load translations fields into object properties
+     *
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param mixed $locale
+     */
+    public function loadTranslation(ObjectManager $objectManager, $object, $locale)
+    {
+        $translatableMeta = $this->getTranslatableMetadata($objectManager, $object);
+        if (!$translatableMeta->hasTranslatableProperties()) {
+            return;
+        }
+
+        $translatableProperties = $translatableMeta->getTranslatableProperties();
+        foreach ($translatableProperties as $translationAssociation => $properties) {
+            $this->loadObjectTranslation($objectManager, $object, $translationAssociation, $locale);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
+    {
+        if ($extendedClassMetadata->hasTranslatableProperties()) {
+            $this->validateTranslatableLocaleProperty($baseClassMetadata, $extendedClassMetadata);
+            $this->validateTranslatableProperties($baseClassMetadata, $extendedClassMetadata);
+        } elseif (isset($extendedClassMetadata->localeProperty)) {
+            $this->validateTranslationLocaleProperty($baseClassMetadata, $extendedClassMetadata);
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @return \FSi\Component\PropertyObserver\MultiplePropertyObserver:
+     */
+    private function getPropertyObserver(ObjectManager $objectManager)
+    {
+        $oid = spl_object_hash($objectManager);
+        if (!isset($this->_propertyObservers[$oid])) {
+            $this->_propertyObservers[$oid] = new MultiplePropertyObserver();
+        }
+        return $this->_propertyObservers[$oid];
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     */
+    private function clearPropertyObserver(ObjectManager $objectManager)
+    {
+        $oid = spl_object_hash($objectManager);
+        unset($this->_propertyObservers[$oid]);
+    }
+
+    /**
+     * @return \Symfony\Component\PropertyAccess\PropertyAccessor
+     */
+    private function getPropertyAccessor()
+    {
+        if (!isset($this->_propertyAccessor)) {
+            $this->_propertyAccessor = PropertyAccess::createPropertyAccessor();
+        }
+
+        return $this->_propertyAccessor;
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
+     * @param \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableClassMetadata
+     * @throws \FSi\DoctrineExtensions\Translatable\Exception\MappingException
+     */
+    private function validateTranslatableLocaleProperty(ClassMetadata $baseClassMetadata, TranslatableClassMetadata $translatableClassMetadata)
+    {
+        if (!isset($translatableClassMetadata->localeProperty)) {
+            throw new Exception\MappingException(sprintf(
+                "Entity '%s' has translatable properties so it must have property marked with @Translatable\\Language annotation",
+                $baseClassMetadata->getName()
+            ));
+        }
+        if ($baseClassMetadata->hasField($translatableClassMetadata->localeProperty) ||
+            $baseClassMetadata->hasAssociation($translatableClassMetadata->localeProperty)) {
+            throw new Exception\MappingException(sprintf(
+                "Entity '%s' seems to be a translatable entity so its '%s' field must not be persistent",
+                $baseClassMetadata->getName(),
+                $translatableClassMetadata->localeProperty
+            ));
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
+     * @param \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableClassMetadata
+     * @throws \FSi\DoctrineExtensions\Translatable\Exception\MappingException
+     */
+    private function validateTranslatableProperties(
+        ClassMetadata $baseClassMetadata,
+        TranslatableClassMetadata $translatableClassMetadata
+    ) {
+        $translatableProperties = $translatableClassMetadata->getTranslatableProperties();
+        foreach ($translatableProperties as $translation => $properties) {
+            if (!$baseClassMetadata->hasAssociation($translation) ||
+                !$baseClassMetadata->isCollectionValuedAssociation($translation)) {
+                throw new Exception\MappingException(sprintf(
+                    "Field '%s' in entity '%s' has to be a OneToMany association",
+                    $translation,
+                    $baseClassMetadata->getName()
+                ));
+            }
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
+     * @param \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata $translatableClassMetadata
+     * @throws \FSi\DoctrineExtensions\Translatable\Exception\MappingException
+     */
+    private function validateTranslationLocaleProperty(ClassMetadata $baseClassMetadata, TranslatableClassMetadata $translatableClassMetadata)
+    {
+        if (!$baseClassMetadata->hasField($translatableClassMetadata->localeProperty) &&
+            !$baseClassMetadata->hasAssociation($translatableClassMetadata->localeProperty)) {
+            throw new Exception\MappingException(sprintf(
+                "Entity '%s' seems to be a translation entity so its '%s' field must be persistent",
+                $baseClassMetadata->getName(),
+                $translatableClassMetadata->localeProperty
+            ));
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @param mixed $locale
+     */
+    private function loadObjectTranslation(ObjectManager $objectManager, $object, $translationAssociation, $locale)
+    {
+        if ($this->findAndLoadObjectTranslationByLocale($objectManager, $object, $translationAssociation, $locale)) {
+            return;
+        }
+
+        if (isset($this->_defaultLocale) &&
+            $this->findAndLoadObjectTranslationByLocale($objectManager, $object, $translationAssociation, $this->_defaultLocale)) {
+            return;
+        }
+
+        $this->clearObjectProperties($objectManager, $object, $translationAssociation);
+        $this->setObjectLocale($objectManager, $object, null);
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @param mixed $locale
+     * @return bool
+     */
+    private function findAndLoadObjectTranslationByLocale(ObjectManager $objectManager, $object, $translationAssociation, $locale)
+    {
+        $translation = $this->getRepository($objectManager, $object)
+            ->findTranslation($object, $locale, $translationAssociation);
+
+        if (!isset($translation)) {
+            return false;
+        }
+
+        $this->copyTranslationFieldsToObjectProperties($objectManager, $object, $translationAssociation, $translation);
+        $this->setObjectLocale($objectManager, $object, $locale);
+
+        return true;
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @param object $translation
+     */
+    private function copyTranslationFieldsToObjectProperties(ObjectManager $objectManager, $object, $translationAssociation, $translation)
+    {
+        $translationMeta = $this->getTranslationClassMetadata($objectManager, $object, $translationAssociation);
+        $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
+
+        foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
+            $this->getPropertyObserver($objectManager)->setValue(
+                $object,
+                $property,
+                $translationMeta->getFieldValue($translation, $translationField)
+            );
+        }
+    }
+
+    /**
+     * Helper method to insert, remove or update translations entities associated with specified object
+     *
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     */
+    private function updateObjectTranslations(ObjectManager $objectManager, $object)
+    {
+        $translatableMeta = $this->getTranslatableMetadata($objectManager, $object);
+        if (!$translatableMeta->hasTranslatableProperties()) {
+            return;
+        }
+
+        $translatableProperties = $translatableMeta->getTranslatableProperties();
+        foreach ($translatableProperties as $translationAssociation => $properties) {
+            $this->updateObjectTranslation(
+                $objectManager,
+                $object,
+                $translationAssociation
+            );
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     */
+    private function updateObjectTranslation(ObjectManager $objectManager, $object, $translationAssociation)
+    {
+        $locale = $this->getObjectOrCurrentLocale($objectManager, $object, $translationAssociation);
+
+        $translationToRemove = $this->getObjectTranslationToRemove($objectManager, $object, $translationAssociation, $locale);
+        if ($translationToRemove) {
+            $this->removeObjectTranslation($objectManager, $object, $translationAssociation, $translationToRemove);
+            return;
+        }
+
+        $this->copyObjectPropertiesToTranslationFields($objectManager, $object, $translationAssociation, $locale);
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @return mixed
+     */
+    private function getObjectOrCurrentLocale(ObjectManager $objectManager, $object, $translationAssociation)
+    {
+        $locale = $this->getObjectLocale($objectManager, $object);
+        if (!isset($locale)) {
+            $locale = $this->getLocale();
+        }
+
+        $hasNotNullProperties = $this->hasObjectNotNullProperties($objectManager, $object, $translationAssociation);
+        if (!isset($locale) && $hasNotNullProperties) {
+            throw new Exception\RuntimeException(
+                "Neither object's locale nor the current locale was set for translatable properties"
+            );
+        }
+
+        return $locale;
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @param mixed $locale
+     * @return object
+     */
+    private function getObjectTranslationToRemove(ObjectManager $objectManager, $object, $translationAssociation, $locale)
+    {
+        $translation = $this->getRepository($objectManager, $object)
+            ->findTranslation($object, $locale, $translationAssociation);
+        $objectLocale = $this->getObjectLocale($objectManager, $object);
+        $hasNotNullProperties = $this->hasObjectNotNullProperties($objectManager, $object, $translationAssociation);
+        if (!$hasNotNullProperties && isset($translation) && isset($objectLocale)) {
+            return $translation;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @param object $currentTranslation
+     */
+    private function removeObjectTranslation(ObjectManager $objectManager, $object, $translationAssociation, $currentTranslation)
+    {
+        $objectManager->remove($currentTranslation);
+
+        $translations = $this->getObjectTranslations($objectManager, $object, $translationAssociation);
+        if ($translations->contains($currentTranslation)) {
+            $translations->removeElement($currentTranslation);
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @param mixed $locale
+     */
+    private function copyObjectPropertiesToTranslationFields(ObjectManager $objectManager, $object, $translationAssociation, $locale)
+    {
+        $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
+        foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
+            $propertyValue = $this->getPropertyAccessor()->getValue($object, $property);
+
+            if ($this->hasObjectChangedPropertyOrLocale($objectManager, $object, $property)) {
+                $translation = $this->findOrCreateObjectTranslation(
+                    $objectManager,
+                    $object,
+                    $translationAssociation,
+                    $locale
+                );
+
+                $translationMeta = $this->getTranslationClassMetadata($objectManager, $object, $translationAssociation);
+                $translationMeta->setFieldValue($translation, $translationField, $propertyValue);
+            }
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @param mixed $locale
+     * @return object
+     */
+    private function findOrCreateObjectTranslation(ObjectManager $objectManager, $object, $translationAssociation, $locale)
+    {
+        $translation = $this->getRepository($objectManager, $object)
+            ->getTranslation($object, $locale, $translationAssociation);
+
+        if (!$objectManager->contains($translation)) {
+            $objectManager->persist($translation);
+        }
+
+        return $translation;
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @return \FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository
+     */
+    private function getRepository(ObjectManager $objectManager, $object)
+    {
+        $meta = $this->getObjectClassMetadata($objectManager, $object);
+        $repository = $objectManager->getRepository($meta->getName());
+
+        if (!($repository instanceof TranslatableRepository)) {
+            throw new Exception\AnnotationException(sprintf(
+                'Entity "%s" has "%s" instead of \FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository as its "repositoryClass"',
+                $meta->getName(),
+                get_class($repository)
+            ));
+        }
+
+        return $repository;
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @return array
+     */
+    private function clearObjectProperties(ObjectManager $objectManager, $object, $translationAssociation)
+    {
+        $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
+        foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
+            $this->getPropertyObserver($objectManager)->setValue($object, $property, null);
+        }
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $property
+     * @return bool
+     */
+    private function hasObjectChangedPropertyOrLocale(ObjectManager $objectManager, $object, $property)
+    {
+        $translatableMeta = $this->getTranslatableMetadata($objectManager, $object);
+
+        return $this->getPropertyObserver($objectManager)
+            ->hasChangedValues($object, array($property, $translatableMeta->localeProperty), true);
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @return bool
+     */
+    private function hasObjectNotNullProperties(ObjectManager $objectManager, $object, $translationAssociation)
+    {
+        $translatableProperties = $this
+            ->getTranslatableMetadata($objectManager, $object)
+            ->getTranslatableProperties();
+
+        $hasNotNullProperties = false;
+        foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
+            if (null !== $this->getPropertyAccessor()->getValue($object, $property)) {
+                $hasNotNullProperties = true;
+            }
+        }
+
+        return $hasNotNullProperties;
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @return \Doctrine\Common\Collections\ArrayCollection
+     */
+    private function getObjectTranslations(ObjectManager $objectManager, $object, $translationAssociation)
+    {
+        $meta = $this->getObjectClassMetadata($objectManager, $object);
+
+        $translations = $meta->getFieldValue($object, $translationAssociation);
+        if (!isset($translations)) {
+            $translations = new ArrayCollection();
+        }
+
+        return $translations;
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @return mixed
+     */
+    private function getObjectLocale(ObjectManager $objectManager, $object)
+    {
+        $localeProperty = $this->getTranslatableMetadata($objectManager, $object)->localeProperty;
+
+        return $this->getPropertyAccessor()->getValue($object, $localeProperty);
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $locale
+     */
+    private function setObjectLocale(ObjectManager $objectManager, $object, $locale)
+    {
+        $localeProperty = $this->getTranslatableMetadata($objectManager, $object)->localeProperty;
+
+        $this->getPropertyObserver($objectManager)->setValue($object, $localeProperty, $locale);
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @return \Doctrine\Common\Persistence\Mapping\ClassMetadata
+     */
+    private function getObjectClassMetadata(ObjectManager $objectManager, $object)
+    {
+        return $objectManager->getClassMetadata(get_class($object));
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @return \FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata
+     */
+    private function getTranslatableMetadata(ObjectManager $objectManager, $object)
+    {
+        $meta = $this->getObjectClassMetadata($objectManager, $object);
+
+        return $this->getExtendedMetadata($objectManager, $meta->getName());
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @return \Doctrine\Common\Persistence\Mapping\ClassMetadata
+     */
+    private function getTranslationClassMetadata(ObjectManager $objectManager, $object, $translationAssociation)
+    {
+        $meta = $this->getObjectClassMetadata($objectManager, $object);
+        $translationClass = $meta->getAssociationTargetClass($translationAssociation);
+
+        return $objectManager->getClassMetadata($translationClass);
     }
 }
