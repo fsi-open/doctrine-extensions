@@ -18,6 +18,7 @@ use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Proxy\Proxy;
 use FSi\Component\PropertyObserver\MultiplePropertyObserver;
 use FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository;
+use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
@@ -526,16 +527,17 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param object $object
-     * @return \FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository
+     * @throws Exception\AnnotationException
+     * @return TranslatableRepository
      */
     private function getRepository(ObjectManager $objectManager, $object)
     {
         $meta = $this->getObjectClassMetadata($objectManager, $object);
         $repository = $objectManager->getRepository($meta->getName());
 
-        if (!($repository instanceof TranslatableRepository)) {
+        if (!($repository instanceof TranslatableRepositoryInterface)) {
             throw new Exception\AnnotationException(sprintf(
-                'Entity "%s" has "%s" instead of \FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository as its "repositoryClass"',
+                'Entity "%s" has "%s" as its "repositoryClass" which does not implement \FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface',
                 $meta->getName(),
                 get_class($repository)
             ));
