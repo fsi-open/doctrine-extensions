@@ -12,14 +12,14 @@ namespace FSi\DoctrineExtensions\Translatable\Entity\Repository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query\Expr;
+use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder;
 use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
 use FSi\DoctrineExtensions\Exception\ConditionException;
 
-class TranslatableRepository extends EntityRepository
+class TranslatableRepository extends EntityRepository implements TranslatableRepositoryInterface
 {
     /**
      * @var \FSi\DoctrineExtensions\Translatable\TranslatableListener
@@ -42,12 +42,7 @@ class TranslatableRepository extends EntityRepository
     protected $translationExtendedMetadata;
 
     /**
-     * @param array $criteria
-     * @param array $orderBy
-     * @param int $limit
-     * @param int $offset
-     * @param mixed $locale
-     * @return array
+     * {@inheritdoc}
      */
     public function findTranslatableBy(array $criteria, array $orderBy = null, $limit = null, $offset = null, $locale = null)
     {
@@ -57,10 +52,7 @@ class TranslatableRepository extends EntityRepository
     }
 
     /**
-     * @param array $criteria
-     * @param array $orderBy
-     * @param mixed $locale
-     * @return array
+     * {@inheritdoc}
      */
     public function findTranslatableOneBy(array $criteria, array $orderBy = null, $locale = null)
     {
@@ -70,15 +62,7 @@ class TranslatableRepository extends EntityRepository
     }
 
     /**
-     * Creates query builder for this entity joined with associated translation
-     * entity and constrained to current locale of TranslatableListener if it
-     * has been set. It also adds second join to translation entity constrained
-     * to default locale of TranslatableListener if it has been set.
-     *
-     * @param string $alias
-     * @param string $translationAlias
-     * @param string $defaultTranslationAlias
-     * @return \Doctrine\ORM\QueryBuilder
+     * {@inheritdoc}
      */
     public function createTranslatableQueryBuilder($alias, $translationAlias = 't', $defaultTranslationAlias = 'dt')
     {
@@ -105,13 +89,7 @@ class TranslatableRepository extends EntityRepository
     }
 
     /**
-     * Returns true if a translation entity for specified base entity and locale exists
-     *
-     * @param object $object
-     * @param mixed $locale
-     * @param string $translationAssociation
-     * @return bool
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
+     * {@inheritdoc}
      */
     public function hasTranslation($object, $locale, $translationAssociation = 'translations')
     {
@@ -125,14 +103,7 @@ class TranslatableRepository extends EntityRepository
     }
 
     /**
-     * Returns existing or newly created translation entity for specified base
-     * entity and locale
-     *
-     * @param object $object
-     * @param mixed $locale
-     * @param string $translationAssociation
-     * @return object existing or new translation entity for specified locale
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
+     * {@inheritdoc}
      */
     public function getTranslation($object, $locale, $translationAssociation = 'translations')
     {
@@ -159,11 +130,7 @@ class TranslatableRepository extends EntityRepository
     }
 
     /**
-     * @param object $object
-     * @param mixed $locale
-     * @param string $translationAssociation
-     * @return object|null
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
+     * {@inheritdoc}
      */
     public function findTranslation($object, $locale, $translationAssociation = 'translations')
     {
@@ -184,10 +151,7 @@ class TranslatableRepository extends EntityRepository
     }
 
     /**
-     * @param object $object
-     * @param string $translationAssociation
-     * @param string $locale
-     * @return object|null
+     * {@inheritdoc}
      */
     protected function findNonIndexedTranslation($object, $translationAssociation, $locale)
     {
@@ -203,11 +167,7 @@ class TranslatableRepository extends EntityRepository
     }
 
     /**
-     * @param object $object
-     * @param string $translationAssociation
-     * @param mixed $locale
-     * @return object
-     * @throws \Doctrine\ORM\Mapping\MappingException
+     * {@inheritdoc}
      */
     protected function createTranslation($object, $translationAssociation, $locale)
     {
