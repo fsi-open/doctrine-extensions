@@ -9,14 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
-use FSi\DoctrineExtensions\ORM\Query;
-use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
-use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticleTranslation;
-use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
-use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
-use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Section;
-use FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository;
 
 class ListenerTest extends BaseTranslatableTest
 {
