@@ -149,6 +149,37 @@ class RepositoryTest extends BaseTranslatableTest
             $qb->getParameter('locale')->getValue(),
             'Parameter :locale has wrong value'
         );
+
+        $this->assertEquals(
+            $this->_languageEn,
+            $qb->getParameter('deflocale')->getValue(),
+            'Parameter :deflocale has wrong value'
+        );
+    }
+
+    /**
+     * Test if query builder returned by translatable repository has join to translation entity
+     * and is constrained to current locale
+     */
+    public function testTranslatableRepositoryCreateQueryBuilderWithLocaleSameAsDefaultLocale()
+    {
+        $this->_translatableListener->setLocale($this->_languageEn);
+        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $repository = $this->_em->getRepository(self::ARTICLE);
+
+        $qb = $repository->createTranslatableQueryBuilder('a', 't');
+
+        $this->assertEquals(
+            sprintf('SELECT a, t FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale', self::ARTICLE),
+            $qb->getQuery()->getDql(),
+            'Wrong DQL returned from QueryBuilder'
+        );
+
+        $this->assertEquals(
+            $this->_languageEn,
+            $qb->getParameter('locale')->getValue(),
+            'Parameter :locale has wrong value'
+        );
     }
 
     public function testPostHydrateWithTranslatableQueryBuilder()

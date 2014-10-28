@@ -100,8 +100,7 @@ class QueryBuilder extends BaseQueryBuilder
     {
         $locale = $this->getTranslatableListener()->getLocale();
         if (isset($locale)) {
-            $this->joinTranslationsOnce($join, $joinType, $locale, $alias, $localeParameter);
-            $this->addSelect($alias);
+            $this->joinAndSelectTranslationsOnce($join, $joinType, $locale, $alias, $localeParameter);
         }
     }
 
@@ -115,8 +114,7 @@ class QueryBuilder extends BaseQueryBuilder
     {
         $defaultLocale = $this->getTranslatableListener()->getDefaultLocale();
         if (isset($defaultLocale)) {
-            $this->joinTranslationsOnce($join, $joinType, $defaultLocale, $alias, $localeParameter);
-            $this->addSelect($alias);
+            $this->joinAndSelectTranslationsOnce($join, $joinType, $defaultLocale, $alias, $localeParameter);
         }
     }
 
@@ -571,15 +569,33 @@ class QueryBuilder extends BaseQueryBuilder
     }
 
     /**
-     * @param string $alias
+     * @param string $join
      * @param string $joinType
-     * @param string $property
      * @param mixed $locale
+     * @param string $alias
+     * @param string $localeParameter
+     * @internal param string $property
      */
     private function joinTranslationsOnce($join, $joinType, $locale, $alias = null, $localeParameter = null)
     {
         if (!$this->hasJoinedTranslationsAlias($join, $locale)) {
             $this->joinTranslations($join, $joinType, $locale, $alias, $localeParameter);
+        }
+    }
+
+    /**
+     * @param string $join
+     * @param string $joinType
+     * @param mixed $locale
+     * @param string $alias
+     * @param string $localeParameter
+     * @internal param string $property
+     */
+    private function joinAndSelectTranslationsOnce($join, $joinType, $locale, $alias = null, $localeParameter = null)
+    {
+        if (!$this->hasJoinedTranslationsAlias($join, $locale)) {
+            $this->joinTranslations($join, $joinType, $locale, $alias, $localeParameter);
+            $this->addSelect($alias);
         }
     }
 
