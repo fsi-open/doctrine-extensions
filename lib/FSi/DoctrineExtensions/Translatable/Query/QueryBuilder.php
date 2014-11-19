@@ -68,6 +68,7 @@ class QueryBuilder extends BaseQueryBuilder
      * @param string $alias
      * @param string $localeParameter
      * @return \Doctrine\ORM\QueryBuilder
+     * @throws \InvalidArgumentException
      */
     public function joinTranslations($join, $joinType = Expr\Join::LEFT_JOIN, $locale = null, $alias = null, $localeParameter = null)
     {
@@ -95,6 +96,7 @@ class QueryBuilder extends BaseQueryBuilder
      * @param string $joinType
      * @param string $alias
      * @param string $localeParameter
+     * @return QueryBuilder
      */
     public function joinAndSelectCurrentTranslations($join, $joinType = Expr\Join::LEFT_JOIN, $alias = null, $localeParameter = null)
     {
@@ -102,6 +104,8 @@ class QueryBuilder extends BaseQueryBuilder
         if (isset($locale)) {
             $this->joinAndSelectTranslationsOnce($join, $joinType, $locale, $alias, $localeParameter);
         }
+
+        return $this;
     }
 
     /**
@@ -109,6 +113,7 @@ class QueryBuilder extends BaseQueryBuilder
      * @param string $joinType
      * @param string $alias
      * @param string $localeParameter
+     * @return QueryBuilder
      */
     public function joinAndSelectDefaultTranslations($join, $joinType = Expr\Join::LEFT_JOIN, $alias = null, $localeParameter = null)
     {
@@ -116,6 +121,8 @@ class QueryBuilder extends BaseQueryBuilder
         if (isset($defaultLocale)) {
             $this->joinAndSelectTranslationsOnce($join, $joinType, $defaultLocale, $alias, $localeParameter);
         }
+
+        return $this;
     }
 
     /**
@@ -123,6 +130,7 @@ class QueryBuilder extends BaseQueryBuilder
      * @param string $field
      * @param mixed $value
      * @param mixed $locale
+     * @return QueryBuilder
      * @throws ConditionException
      */
     public function addTranslatableWhere($alias, $field, $value, $locale = null)
@@ -132,13 +140,16 @@ class QueryBuilder extends BaseQueryBuilder
         } else {
             $this->addTranslatableWhereOnField($alias, $field, $value, $locale);
         }
+
+        return $this;
     }
 
     /**
      * @param string $alias
      * @param string $field
      * @param string $order
-     * @param mixed locale
+     * @param mixed $locale
+     * @return QueryBuilder
      */
     public function addTranslatableOrderBy($alias, $field, $order = null, $locale = null)
     {
@@ -146,6 +157,8 @@ class QueryBuilder extends BaseQueryBuilder
             $this->getTranslatableFieldExprWithOptionalHiddenSelect($alias, $field, true, $locale),
             $order
         );
+
+        return $this;
     }
 
     /**
@@ -231,6 +244,7 @@ class QueryBuilder extends BaseQueryBuilder
 
     /**
      * @param mixed $locale
+     * @throws \RuntimeException
      */
     private function validateCurrentLocale($locale = null)
     {
@@ -284,6 +298,7 @@ class QueryBuilder extends BaseQueryBuilder
     /**
      * @param string $alias
      * @return string
+     * @throws \RuntimeException
      */
     private function getClassByAlias($alias)
     {
@@ -319,6 +334,7 @@ class QueryBuilder extends BaseQueryBuilder
     /**
      * @param Expr\Join $join
      * @return string
+     * @throws \RuntimeException
      */
     private function validateJoinParent(Expr\Join $join)
     {
@@ -337,6 +353,7 @@ class QueryBuilder extends BaseQueryBuilder
     /**
      * @param Expr\Join $join
      * @return array
+     * @throws \RuntimeException
      */
     private function validateJoinAssociation(Expr\Join $join)
     {
@@ -355,8 +372,8 @@ class QueryBuilder extends BaseQueryBuilder
     }
 
     /**
-     * @param $translatableAlias
-     * @param $translationAssociation
+     * @param $join
+     * @throws \RuntimeException
      */
     private function validateJoinTranslations($join)
     {
@@ -602,6 +619,7 @@ class QueryBuilder extends BaseQueryBuilder
     /**
      * @param string $alias
      * @param string $property
+     * @throws \RuntimeException
      */
     private function throwUnknownTranslatablePropertyException($alias, $property)
     {
@@ -615,6 +633,7 @@ class QueryBuilder extends BaseQueryBuilder
     }
 
     /**
+     * @param $locale
      * @return bool
      */
     private function hasDefaultLocaleDifferentThanCurrentLocale($locale = null)
