@@ -87,6 +87,28 @@ class ListenerTest extends BaseTranslatableTest
         );
     }
 
+    public function testNotInsertTranslation()
+    {
+        $article = new Article();
+        $article->setDate(new \DateTime());
+        $article->setLocale($this->_languagePl);
+        $this->_em->persist($article);
+        $this->_logger->enabled = true;
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->_em->flush();
+
+        $this->assertEquals(
+            3,
+            count($this->_logger->queries),
+            'Flushing executed wrong number of queries'
+        );
+
+        $this->assertEquals(
+            0,
+            $article->getTranslations()->count()
+        );
+    }
+
     /**
      * Test simple entity creation with one translation and adding one later
      */
@@ -578,6 +600,8 @@ class ListenerTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languagePl);
         $article = new Article();
         $article->setDate(new \DateTime());
+        $article->setTitle(self::ENGLISH_TITLE_1);
+        $article->setContents(self::ENGLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
         $emOid = spl_object_hash($this->_em);
