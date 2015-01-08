@@ -417,6 +417,9 @@ class TranslatableListener extends MappedEventSubscriber
             return;
         }
 
+        if (!$this->hasObjectNotNullProperties($objectManager, $object, $translationAssociation)) {
+            return;
+        }
         $this->copyObjectPropertiesToTranslationFields($objectManager, $object, $translationAssociation, $locale);
     }
 
