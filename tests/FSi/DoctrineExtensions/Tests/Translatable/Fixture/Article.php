@@ -57,6 +57,12 @@ class Article
     private $contents;
 
     /**
+     * @Translatable\Translatable(mappedBy="translations")
+     * @var \SplFileInfo|\FSi\DoctrineExtensions\Uploadable\File
+     */
+    private $introImage;
+
+    /**
      * @var Section
      *
      * @ORM\ManyToOne(targetEntity="Section", inversedBy="articles")
@@ -147,6 +153,16 @@ class Article
     public function getContents()
     {
         return $this->contents;
+    }
+
+    public function getIntroImage()
+    {
+        return $this->introImage;
+    }
+
+    public function setIntroImage($introImage)
+    {
+        $this->introImage = $introImage;
     }
 
     public function setLocale($locale)

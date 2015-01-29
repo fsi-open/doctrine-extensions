@@ -13,6 +13,9 @@ use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
 
 class ListenerTest extends BaseTranslatableTest
 {
+    const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
+    const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
+
     /**
      * Test simple entity creation with translation its state after $em->flush()
      */
@@ -593,6 +596,43 @@ class ListenerTest extends BaseTranslatableTest
             'contents',
             $article
         );
+    }
+
+    /**
+     * Test translatable and uploadable properties
+     */
+    public function testTranslatableUplodableProperties()
+    {
+        $article = new Article();
+        $article->setDate(new \DateTime());
+        $article->setLocale($this->_languagePl);
+        $article->setTitle(self::POLISH_TITLE_1);
+        $article->setContents(self::POLISH_CONTENTS_1);
+        $article->setIntroImage(new \SplFileInfo(TESTS_PATH . self::TEST_FILE1));
+        $this->_em->persist($article);
+        $this->_em->flush();
+
+        $article->setLocale($this->_languageEn);
+        $article->setTitle(self::ENGLISH_TITLE_1);
+        $article->setContents(self::ENGLISH_CONTENTS_1);
+        $article->setIntroImage(new \SplFileInfo(TESTS_PATH . self::TEST_FILE2));
+        $this->_em->flush();
+
+        $this->_em->clear();
+        $this->_translatableListener->setLocale($this->_languagePl);
+        $article = $this->_em->find(self::ARTICLE, $article->getId());
+
+        $file1 = $article->getIntroImage()->getKey();
+        $this->assertFileExists(FILESYSTEM1 . $file1);
+
+        $this->_em->clear();
+        $this->_translatableListener->setLocale($this->_languageEn);
+        $article = $this->_em->find(self::ARTICLE, $article->getId());
+
+        $file2 = $article->getIntroImage()->getKey();
+        $this->assertFileExists(FILESYSTEM1 . $file2);
+
+        $this->assertNotSame($file1, $file2);
     }
 
     public function testInternalPropertyObserver()

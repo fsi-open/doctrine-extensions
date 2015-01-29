@@ -367,14 +367,13 @@ class TranslatableListener extends MappedEventSubscriber
      */
     private function copyTranslationFieldsToObjectProperties(ObjectManager $objectManager, $object, $translationAssociation, $translation)
     {
-        $translationMeta = $this->getTranslationClassMetadata($objectManager, $object, $translationAssociation);
         $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
 
         foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
             $this->getPropertyObserver($objectManager)->setValue(
                 $object,
                 $property,
-                $translationMeta->getFieldValue($translation, $translationField)
+                $this->getPropertyAccessor()->getValue($translation, $translationField)
             );
         }
     }
@@ -476,7 +475,7 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $objectManager->remove($currentTranslation);
 
-        $translations = $this->getObjectTranslations($objectManager, $object, $translationAssociation);
+        $translations = $this->getObjectTranslations($object, $translationAssociation);
         if ($translations->contains($currentTranslation)) {
             $translations->removeElement($currentTranslation);
         }
@@ -502,8 +501,7 @@ class TranslatableListener extends MappedEventSubscriber
                     $locale
                 );
 
-                $translationMeta = $this->getTranslationClassMetadata($objectManager, $object, $translationAssociation);
-                $translationMeta->setFieldValue($translation, $translationField, $propertyValue);
+                $this->getPropertyAccessor()->setValue($translation, $translationField, $propertyValue);
             }
         }
     }
@@ -600,16 +598,13 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param object $object
      * @param string $translationAssociation
      * @return \Doctrine\Common\Collections\ArrayCollection
      */
-    private function getObjectTranslations(ObjectManager $objectManager, $object, $translationAssociation)
+    private function getObjectTranslations($object, $translationAssociation)
     {
-        $meta = $this->getObjectClassMetadata($objectManager, $object);
-
-        $translations = $meta->getFieldValue($object, $translationAssociation);
+        $translations = $this->getPropertyAccessor()->getValue($object, $translationAssociation);
         if (!isset($translations)) {
             $translations = new ArrayCollection();
         }
@@ -661,19 +656,5 @@ class TranslatableListener extends MappedEventSubscriber
         $meta = $this->getObjectClassMetadata($objectManager, $object);
 
         return $this->getExtendedMetadata($objectManager, $meta->getName());
-    }
-
-    /**
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @param object $object
-     * @param string $translationAssociation
-     * @return \Doctrine\Common\Persistence\Mapping\ClassMetadata
-     */
-    private function getTranslationClassMetadata(ObjectManager $objectManager, $object, $translationAssociation)
-    {
-        $meta = $this->getObjectClassMetadata($objectManager, $object);
-        $translationClass = $meta->getAssociationTargetClass($translationAssociation);
-
-        return $objectManager->getClassMetadata($translationClass);
     }
 }
