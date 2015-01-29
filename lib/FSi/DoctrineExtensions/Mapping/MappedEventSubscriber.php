@@ -172,6 +172,17 @@ abstract class MappedEventSubscriber implements EventSubscriber
     abstract protected function getNamespace();
 
     /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param $object
+     * @return \FSi\Component\Metadata\ClassMetadataInterface
+     */
+    protected function getObjectExtendedMetadata(ObjectManager $objectManager, $object)
+    {
+        $meta = $objectManager->getMetadataFactory()->getMetadataFor(get_class($object));
+        return $this->getExtendedMetadata($objectManager, $meta->getName());
+    }
+
+    /**
      * Create default annotation reader for extensions.
      *
      * @return \Doctrine\Common\Annotations\AnnotationReader
