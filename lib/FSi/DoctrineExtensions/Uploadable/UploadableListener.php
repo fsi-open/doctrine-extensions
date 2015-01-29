@@ -203,8 +203,7 @@ class UploadableListener extends MappedEventSubscriber
         $eventAdapter = $this->getEventAdapter($eventArgs);
         $objectManager = $eventAdapter->getObjectManager();
         $object = $eventAdapter->getObject();
-        $meta = $objectManager->getClassMetadata(get_class($object));
-        $uploadableMeta = $this->getExtendedMetadata($objectManager, $meta->name);
+        $uploadableMeta = $this->getObjectExtendedMetadata($objectManager, $object);
 
         if ($uploadableMeta->hasUploadableProperties()) {
             $this->loadFiles($object, $uploadableMeta, $objectManager);
@@ -241,11 +240,11 @@ class UploadableListener extends MappedEventSubscriber
         $eventAdapter = $this->getEventAdapter($eventArgs);
 
         foreach ($unitOfWork->getIdentityMap() as $class => $entities) {
-            $uploadableMeta = $this->getExtendedMetadata($entityManager, $class);
-            if (!$uploadableMeta->hasUploadableProperties()) {
-                continue;
-            }
             foreach ($entities as $object) {
+                $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
+                if (!$uploadableMeta->hasUploadableProperties()) {
+                    continue;
+                }
                 if ($object instanceof Proxy) {
                     continue;
                 }
@@ -274,8 +273,7 @@ class UploadableListener extends MappedEventSubscriber
         $eventAdapter = $this->getEventAdapter($eventArgs);
         $objectManager = $eventAdapter->getObjectManager();
         $object = $eventAdapter->getObject();
-        $meta = $objectManager->getClassMetadata(get_class($object));
-        $uploadableMeta = $this->getExtendedMetadata($objectManager, $meta->name);
+        $uploadableMeta = $this->getObjectExtendedMetadata($objectManager, $object);
 
         if ($uploadableMeta->hasUploadableProperties()) {
             $this->deleteFiles($uploadableMeta, $object);

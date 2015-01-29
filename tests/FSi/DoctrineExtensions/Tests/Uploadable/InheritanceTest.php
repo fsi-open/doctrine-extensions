@@ -11,6 +11,7 @@ namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance\Event;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance\Promotion;
 use FSi\DoctrineExtensions\Uploadable\File;
 
 class InheritanceTest extends BaseORMTest
@@ -23,7 +24,7 @@ class InheritanceTest extends BaseORMTest
     const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
 
-    public function testInheritanceMetadata()
+    public function testUploadablePropertyInMiddleClassInInheritanceTree()
     {
         $event = new Event();
         $event->setCoverImage(new \SplFileInfo(TESTS_PATH . self::TEST_FILE1));
@@ -40,6 +41,27 @@ class InheritanceTest extends BaseORMTest
         $event->setCoverImage(new \SplFileInfo(TESTS_PATH . self::TEST_FILE2));
         $this->_em->flush();
         $this->_em->clear();
+    }
+
+    public function testUploadablePropertyInLeafClassInInheritanceTree()
+    {
+        $promotion = new Promotion();
+        $promotion->setColumn1('column 1');
+        $promotion->setColumn2('column 2');
+        $promotion->setTitle('title');
+        $promotion->setExcerpt('excerpt');
+
+        $this->_em->persist($promotion);
+        $this->_em->flush();
+        $this->_em->clear();
+
+        $promotion = $this->_em->find(self::PROMOTION_PAGE, $promotion->getId());
+        $promotion->setIntroImage(new \SplFileInfo(TESTS_PATH . self::TEST_FILE1));
+        $this->_em->flush();
+        $this->_em->clear();
+        $promotion = $this->_em->find(self::PROMOTION_PAGE, $promotion->getId());
+
+        $this->assertNotNull($promotion->getIntroImage());
     }
 
     protected function tearDown()
