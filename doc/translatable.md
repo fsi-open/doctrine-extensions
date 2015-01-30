@@ -468,7 +468,8 @@ $qb
 **property** annotation
 
 Property marked with this annotation is automatically copied from/into associated field translation entity. Such a property can
-not be persistent, while associated field in translation entity have to be persistent.
+not be persistent, while associated field in translation can be persistent or not i.e. when it's also an uploadable field
+(for more information see [uploadable.md](uploadable.md)).
 
 **options:**
 
@@ -479,6 +480,7 @@ not be persistent, while associated field in translation entity have to be persi
 example:
 
 ```php
+# Some entity
     /**
      * @Translatable\Translatable(mappedBy="translations", targetField="title")
      * @var string
@@ -490,6 +492,39 @@ example:
      * @var string
      */
     private $contents;
+
+    /**
+     * @Translatable\Translatable(mappedBy="translations")
+     * @var \SplFileInfo|\FSi\DoctrineExtensions\Uploadable\File
+     */
+    private $image;
+```
+
+
+```php
+# And it's translation
+    /**
+     * @var string
+     * @ORM\Column(type="string")
+     */
+    private $title;
+
+    /**
+     * @var string
+     * @ORM\Column(type="text")
+     */
+    protected $contents;
+
+    /**
+     * @var \SplFileInfo|\FSi\DoctrineExtensions\Uploadable\File
+     */
+    protected $image;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @Uploadable\Uploadable(targetField="image")
+     */
+    protected $imageKey;
 ```
 
 ### @FSi\DoctrineExtensions\Translatable\Mapping\Annotation\Locale ###
