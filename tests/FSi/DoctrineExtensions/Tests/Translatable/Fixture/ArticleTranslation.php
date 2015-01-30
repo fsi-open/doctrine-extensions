@@ -11,6 +11,7 @@ namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Annotation as Uploadable;
 
 /**
  * @ORM\Entity
@@ -49,6 +50,19 @@ class ArticleTranslation
      * @var string
      */
     private $contents;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="intro_image_path", type="string", length=255, nullable=true)
+     * @Uploadable\Uploadable(targetField="introImage")
+     */
+    protected $introImagePath;
+
+    /**
+     * @var \SplFileInfo|\FSi\DoctrineExtensions\Uploadable\File
+     */
+    protected $introImage;
 
     /**
      * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
@@ -104,5 +118,31 @@ class ArticleTranslation
     public function getLocale()
     {
         return $this->locale;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIntroImagePath()
+    {
+        return $this->introImagePath;
+    }
+
+    /**
+     * @param string $introImagePath
+     */
+    public function setIntroImagePath($introImagePath)
+    {
+        $this->introImagePath = $introImagePath;
+    }
+
+    public function getIntroImage()
+    {
+        return $this->introImage;
+    }
+
+    public function setIntroImage($introImage)
+    {
+        $this->introImage = $introImage;
     }
 }
