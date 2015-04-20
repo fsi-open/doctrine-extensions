@@ -16,18 +16,18 @@
     ],
     "require": {
         "php": ">=5.3.0",
-        "doctrine/common": "~2.3",
-        "symfony/property-access": "~2.2",
+        "doctrine/common": "~2.4",
+        "symfony/property-access": "~2.3",
         "symfony/yaml": "~2.2",
         "fsi/reflection": "0.9.*",
         "fsi/metadata": "0.9.*",
-        "fsi/property-observer": "0.9.*",
-        "knplabs/gaufrette": "0.1.*"
+        "fsi/property-observer": "~0.9.2",
+        "knplabs/gaufrette": "~0.1.4"
     },
     "require-dev": {
         "ext-sqlite3": "*",
-        "doctrine/dbal": "~2.3",
-        "doctrine/orm": "~2.3",
+        "doctrine/dbal": "~2.4",
+        "doctrine/orm": "~2.4",
         "phpunit/phpunit": "3.7.*"
     },
     "autoload": {
