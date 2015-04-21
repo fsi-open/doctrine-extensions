@@ -553,8 +553,7 @@ class UploadableListener extends MappedEventSubscriber
      * @param string $fileName
      * @param integer $keyLength
      * @param string $keyPattern
-     * @param \FSi\DoctrineExtensions\Uploadable\Filesystem $filesystem
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @param \Gaufrette\Filesystem $filesystem
      * @return string
      */
     private function generateNewKey(KeymakerInterface $keymaker, $object, $property, $id, $fileName, $keyLength, $keyPattern, Filesystem $filesystem)

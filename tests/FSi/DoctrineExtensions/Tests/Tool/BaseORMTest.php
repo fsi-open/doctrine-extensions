@@ -129,6 +129,11 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
 
         $config
             ->expects($this->any())
+            ->method('getDefaultQueryHints')
+            ->will($this->returnValue(array()));
+
+        $config
+            ->expects($this->any())
             ->method('getRepositoryFactory')
             ->will($this->returnValue(new DefaultRepositoryFactory()))
         ;
