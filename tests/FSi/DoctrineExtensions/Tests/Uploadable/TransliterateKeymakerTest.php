@@ -19,7 +19,7 @@ class TransliterateKeymakerTest extends PHPUnit_Framework_TestCase
     const PROPERTY = 'property';
     const ID = 1;
 
-    const ORIGINAL_NAME_SPECIAL = '"[[<###$$or~ i+ginal,?;: \\\     /Na%*&^m!e#$!|>]}.txt"';
+    const ORIGINAL_NAME_SPECIAL = '"[[<###$$or~ i+ginal,?;: \\\   /Na%*&^m!e#$!|>]}.txt"';
     const PARSED_NAME_SPECIAL = 'or-iginal-name.txt';
 
     const ORIGINAL_NAME_PL = '"ołrigiźćnaąślNaóęńme.txt"';
@@ -27,24 +27,6 @@ class TransliterateKeymakerTest extends PHPUnit_Framework_TestCase
 
     const ORIGINAL_NAME_GER = 'örigiünälNÄÜméÖß.txt';
     const PARSED_NAME_GER = 'origiunalnaumeoss.txt';
-
-    const TEST_SETS = [
-        [
-            '{fqcn}/{id}/constant',
-            'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::ID
-            . '/constant'
-        ],
-        [
-            null,
-            '/FSiDoctrineExtensionsTestsUploadableFixtureUser/'
-            . self::PROPERTY . '/' . self::ID . '/%s'
-        ],
-        [
-            '{fqcn}/{property}/{wrong_tag}/{id}/{original_name}',
-            'FSiDoctrineExtensionsTestsUploadableFixtureUser/'
-            . self::PROPERTY . '/{wrong_tag}/' . self::ID . '/%s'
-        ]
-    ];
 
     public function testCreation()
     {
@@ -123,8 +105,25 @@ class TransliterateKeymakerTest extends PHPUnit_Framework_TestCase
      */
     public static function getInputs($name)
     {
+        $testSets = [
+            [
+                '{fqcn}/{id}/constant',
+                'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::ID
+                . '/constant'
+            ],
+            [
+                null,
+                '/FSiDoctrineExtensionsTestsUploadableFixtureUser/'
+                . self::PROPERTY . '/' . self::ID . '/%s'
+            ],
+            [
+                '{fqcn}/{property}/{wrong_tag}/{id}/{original_name}',
+                'FSiDoctrineExtensionsTestsUploadableFixtureUser/'
+                . self::PROPERTY . '/{wrong_tag}/' . self::ID . '/%s'
+            ]
+        ];
         $inputs = [];
-        foreach (self::TEST_SETS as $set) {
+        foreach ($testSets as $set) {
             $set[1] = sprintf($set[1], $name);
             $inputs[] = $set;
         }

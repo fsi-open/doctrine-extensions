@@ -54,3 +54,6 @@ Others variables as well as consts (numbers, slashes etc) will be ignored.
 Default `keyPattern` for `FSi\DoctrineExtensions\Uploadable\Keymaker\Entity` is `/{fqcn}/{property}/{id}/{original_name}`.
 
 **Heads up!** With keyPattern it's easy to make situation when uploadable extension can't generate unique key, so please be carefull with this option.
+
+## Transliterate Keymaker
+A new keymaker has been added, `FSi\DoctrineExtensions\Uploadable\Keymaker\TransliterateEntity`, providing support for striping all problematic special characters, replacing spaces with '-', as well as translating non-lating characters to lowercase latin. It requires the [PHP Intl extension](http://php.net/manual/en/intl.installation.php) in order to function.
