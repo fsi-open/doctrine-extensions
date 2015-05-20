@@ -370,7 +370,7 @@ class TranslatableListener extends MappedEventSubscriber
         $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
 
         foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
-            $this->getPropertyObserver($objectManager)->setValue(
+            $this->getPropertyAccessor()->setValue(
                 $object,
                 $property,
                 $this->getPropertyAccessor()->getValue($translation, $translationField)
@@ -493,14 +493,15 @@ class TranslatableListener extends MappedEventSubscriber
         foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
             $propertyValue = $this->getPropertyAccessor()->getValue($object, $property);
 
-            if ($this->hasObjectChangedPropertyOrLocale($objectManager, $object, $property)) {
-                $translation = $this->findOrCreateObjectTranslation(
-                    $objectManager,
-                    $object,
-                    $translationAssociation,
-                    $locale
-                );
+            $translation = $this->findOrCreateObjectTranslation(
+                $objectManager,
+                $object,
+                $translationAssociation,
+                $locale
+            );
 
+            if ($this->hasObjectChangedLocale($objectManager, $object) ||
+                ($this->getPropertyAccessor()->getValue($translation, $translationField) !== $propertyValue)) {
                 $this->getPropertyAccessor()->setValue($translation, $translationField, $propertyValue);
             }
         }
@@ -564,15 +565,14 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param object $object
-     * @param string $property
      * @return bool
      */
-    private function hasObjectChangedPropertyOrLocale(ObjectManager $objectManager, $object, $property)
+    private function hasObjectChangedLocale(ObjectManager $objectManager, $object)
     {
         $translatableMeta = $this->getTranslatableMetadata($objectManager, $object);
 
         return $this->getPropertyObserver($objectManager)
-            ->hasChangedValues($object, array($property, $translatableMeta->localeProperty), true);
+            ->hasChangedValue($object, $translatableMeta->localeProperty, true);
     }
 
     /**
