@@ -13,10 +13,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\EventArgs;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use Doctrine\ORM\Event\OnClearEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Proxy\Proxy;
-use FSi\Component\PropertyObserver\MultiplePropertyObserver;
 use FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository;
 use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -45,13 +43,6 @@ class TranslatableListener extends MappedEventSubscriber
      * @var mixed
      */
     private $_defaultLocale;
-
-    /**
-     * Array of PropertyObserver instances for each ObjectManager's context
-     *
-     * @var \FSi\Component\PropertyObserver\MultiplePropertyObserver[]
-     */
-    private $_propertyObservers = array();
 
     /**
      * Set the current locale
@@ -107,8 +98,7 @@ class TranslatableListener extends MappedEventSubscriber
         return array(
             'postLoad',
             'postHydrate',
-            'preFlush',
-            'onClear'
+            'preFlush'
         );
     }
 
@@ -174,20 +164,6 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * Clears embedded object observer for associated entity manager
-     *
-     * @param \Doctrine\ORM\Event\OnClearEventArgs $eventArgs
-     */
-    public function onClear(OnClearEventArgs $eventArgs)
-    {
-        if ($eventArgs->clearsAllEntities()) {
-            $this->clearPropertyObserver(
-                $this->getEventObjectManager($eventArgs)
-            );
-        }
-    }
-
-    /**
      * Load translations fields into object properties
      *
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
@@ -218,28 +194,6 @@ class TranslatableListener extends MappedEventSubscriber
         } elseif (isset($extendedClassMetadata->localeProperty)) {
             $this->validateTranslationLocaleProperty($baseClassMetadata, $extendedClassMetadata);
         }
-    }
-
-    /**
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @return \FSi\Component\PropertyObserver\MultiplePropertyObserver:
-     */
-    private function getPropertyObserver(ObjectManager $objectManager)
-    {
-        $oid = spl_object_hash($objectManager);
-        if (!isset($this->_propertyObservers[$oid])) {
-            $this->_propertyObservers[$oid] = new MultiplePropertyObserver();
-        }
-        return $this->_propertyObservers[$oid];
-    }
-
-    /**
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     */
-    private function clearPropertyObserver(ObjectManager $objectManager)
-    {
-        $oid = spl_object_hash($objectManager);
-        unset($this->_propertyObservers[$oid]);
     }
 
     /**
@@ -370,7 +324,7 @@ class TranslatableListener extends MappedEventSubscriber
         $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
 
         foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
-            $this->getPropertyObserver($objectManager)->setValue(
+            $this->getPropertyAccessor()->setValue(
                 $object,
                 $property,
                 $this->getPropertyAccessor()->getValue($translation, $translationField)
@@ -493,14 +447,14 @@ class TranslatableListener extends MappedEventSubscriber
         foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
             $propertyValue = $this->getPropertyAccessor()->getValue($object, $property);
 
-            if ($this->hasObjectChangedPropertyOrLocale($objectManager, $object, $property)) {
-                $translation = $this->findOrCreateObjectTranslation(
-                    $objectManager,
-                    $object,
-                    $translationAssociation,
-                    $locale
-                );
+            $translation = $this->findOrCreateObjectTranslation(
+                $objectManager,
+                $object,
+                $translationAssociation,
+                $locale
+            );
 
+            if ($this->getPropertyAccessor()->getValue($translation, $translationField) !== $propertyValue) {
                 $this->getPropertyAccessor()->setValue($translation, $translationField, $propertyValue);
             }
         }
@@ -557,22 +511,8 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
         foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
-            $this->getPropertyObserver($objectManager)->setValue($object, $property, null);
+            $this->getPropertyAccessor()->setValue($object, $property, null);
         }
-    }
-
-    /**
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @param object $object
-     * @param string $property
-     * @return bool
-     */
-    private function hasObjectChangedPropertyOrLocale(ObjectManager $objectManager, $object, $property)
-    {
-        $translatableMeta = $this->getTranslatableMetadata($objectManager, $object);
-
-        return $this->getPropertyObserver($objectManager)
-            ->hasChangedValues($object, array($property, $translatableMeta->localeProperty), true);
     }
 
     /**
@@ -633,7 +573,7 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $localeProperty = $this->getTranslatableMetadata($objectManager, $object)->localeProperty;
 
-        $this->getPropertyObserver($objectManager)->setValue($object, $localeProperty, $locale);
+        $this->getPropertyAccessor()->setValue($object, $localeProperty, $locale);
     }
 
     /**
