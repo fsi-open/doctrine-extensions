@@ -635,32 +635,6 @@ class ListenerTest extends BaseTranslatableTest
         $this->assertNotSame($file1, $file2);
     }
 
-    public function testInternalPropertyObserver()
-    {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $article = new Article();
-        $article->setDate(new \DateTime());
-        $article->setTitle(self::ENGLISH_TITLE_1);
-        $article->setContents(self::ENGLISH_CONTENTS_1);
-        $this->_em->persist($article);
-        $this->_em->flush();
-        $emOid = spl_object_hash($this->_em);
-
-        $propertyObservers = \PHPUnit_Framework_Assert::readAttribute($this->_translatableListener, '_propertyObservers');
-        $this->assertArrayHasKey(
-            $emOid,
-            $propertyObservers
-        );
-
-        $this->_em->clear();
-
-        $propertyObservers = \PHPUnit_Framework_Assert::readAttribute($this->_translatableListener, '_propertyObservers');
-        $this->assertArrayNotHasKey(
-            $emOid,
-            $propertyObservers
-        );
-    }
-
     public function testPostHydrate()
     {
         $this->_translatableListener->setLocale($this->_languageEn);
