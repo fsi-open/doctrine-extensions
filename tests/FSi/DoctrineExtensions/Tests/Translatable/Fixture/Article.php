@@ -10,10 +10,12 @@
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 
 /**
+ * @ORM\HasLifecycleCallbacks()
  * @ORM\Entity(repositoryClass="\FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
  */
 class Article
@@ -71,8 +73,7 @@ class Article
 
     /**
      * @var ArrayCollection|Comment[]
-     *
-     * @ORM\OneToMany(targetEntity="Comment", mappedBy="article")
+     * @Translatable\Translatable(mappedBy="translations")
      */
     private $comments;
 
@@ -94,7 +95,17 @@ class Article
 
     public function __construct()
     {
+        $this->comments = new ArrayCollection();
         $this->translations = new ArrayCollection();
+    }
+
+    /**
+     * @ORM\PostLoad()
+     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
+     */
+    public function postLoad(LifecycleEventArgs $eventArgs)
+    {
+        $this->comments = new ArrayCollection();
     }
 
     /**
@@ -206,5 +217,29 @@ class Article
     public function setSection($section)
     {
         $this->section = $section;
+    }
+
+    /**
+     * @return ArrayCollection|Comment[]
+     */
+    public function getComments()
+    {
+        return $this->comments;
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function addComment(Comment $comment)
+    {
+        $this->comments->add($comment);
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function removeComment(Comment $comment)
+    {
+        $this->comments->removeElement($comment);
     }
 }

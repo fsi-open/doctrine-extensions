@@ -180,7 +180,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertEquals(
-            2,
+            3,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -287,7 +287,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertEquals(
-            2,
+            3,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -389,7 +389,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertEquals(
-            2,
+            3,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -500,7 +500,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertEquals(
-            2,
+            3,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -574,7 +574,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_translatableListener->loadTranslation($this->_em, $article, $this->_languageEn);
 
         $this->assertEquals(
-            0,
+            1,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -674,7 +674,7 @@ class ListenerTest extends BaseTranslatableTest
         }
 
         $this->assertEquals(
-            1,
+            2,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
