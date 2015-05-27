@@ -221,7 +221,7 @@ class RepositoryTest extends BaseTranslatableTest
         }
 
         $this->assertEquals(
-            1,
+            2,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -239,6 +239,7 @@ class RepositoryTest extends BaseTranslatableTest
 
         /** @var TranslatableRepository $repository */
         $repository = $this->_em->getRepository(self::ARTICLE);
+        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(array('title' => self::CATEGORY_1));
         $section = $this->_em->getRepository(self::SECTION)->findOneBy(array('title' => self::SECTION_1));
         $comment = $this->_em->getRepository(self::COMMENT)->findOneBy(array('content' => 'Ipsum'));
 
@@ -249,7 +250,8 @@ class RepositoryTest extends BaseTranslatableTest
             'title' => self::POLISH_TITLE_1, //field in ArticleTranslation with same name
             'teaser' => self::POLISH_TEASER, //field in ArticleTranslation with different name
             'section' => $section, //field in Article - single value association
-            'comments' => $comment, //field in Article - one to many association
+            'categories' => $category, //field in Article - collection value association
+            'comments' => $comment, //translatable property in Article - one to many association
         ), array('date' => 'ASC', 'title' => 'DESC'));
 
         $this->assertCount(1, $articles);
@@ -322,8 +324,10 @@ class RepositoryTest extends BaseTranslatableTest
 
         /** @var TranslatableRepository $repository */
         $repository = $this->_em->getRepository(self::ARTICLE);
+        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(array('title' => self::CATEGORY_1));
         $section = $this->_em->getRepository(self::SECTION)->findOneBy(array('title' => self::SECTION_1));
-        $comment = $this->_em->getRepository(self::COMMENT)->findOneBy(array('content' => 'Ipsum'));
+        $comment1 = $this->_em->getRepository(self::COMMENT)->findOneBy(array('content' => 'Ipsum'));
+        $comment2 = $this->_em->getRepository(self::COMMENT)->findOneBy(array('content' => 'Lorem'));
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy(array(
@@ -331,7 +335,8 @@ class RepositoryTest extends BaseTranslatableTest
             'title' => self::POLISH_TITLE_1, //field in ArticleTranslation with same name
             'teaser' => self::POLISH_TEASER, //field in ArticleTranslation with different name
             'section' => $section, //field in Article - single value association
-            'comments' => $comment, //field in Article - one to many association
+            'categories' => $category, //field in Article - collection value association
+            'comments' => array($comment1, $comment2), //translatable property in Article - one to many association
         ));
 
         $this->assertEquals($this->_languagePl, $article->getLocale());
@@ -444,13 +449,13 @@ class RepositoryTest extends BaseTranslatableTest
         $comment = new Comment();
         $comment->setContent('Lorem');
         $comment->setDate(new \DateTime());
-        $comment->setArticle($article1);
+        $comment->setArticleTranslation($translationPl);
         $this->_em->persist($comment);
 
         $comment = new Comment();
         $comment->setContent('Ipsum');
         $comment->setDate(new \DateTime());
-        $comment->setArticle($article2);
+        $comment->setArticleTranslation($translationPl);
         $this->_em->persist($comment);
 
         $this->_em->flush();

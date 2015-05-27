@@ -172,6 +172,7 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     protected function createTranslation($object, $translationAssociation, $locale)
     {
         $translation = $this->getTranslationMetadata($translationAssociation)
+            ->getReflectionClass()
             ->newInstance();
 
         $this->setTranslationObject(

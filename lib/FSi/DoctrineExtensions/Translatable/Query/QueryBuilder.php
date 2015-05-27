@@ -135,8 +135,14 @@ class QueryBuilder extends BaseQueryBuilder
      */
     public function addTranslatableWhere($alias, $field, $value, $locale = null)
     {
-        if ($this->getClassMetadata($this->getClassByAlias($alias))->isCollectionValuedAssociation($field)) {
-            $this->addTranslatableWhereOnCollection($alias, $field, $value);
+        $meta = $this->getClassMetadata($this->getClassByAlias($alias));
+        $checkField = $field;
+        if ($this->isTranslatableProperty($alias, $field)) {
+            $meta = $this->getTranslationMetadata($alias, $field);
+            $checkField = $this->getTranslationField($alias, $field);
+        }
+        if ($meta->isCollectionValuedAssociation($checkField)) {
+            $this->addTranslatableWhereOnCollection($alias, $field, $value, $locale);
         } else {
             $this->addTranslatableWhereOnField($alias, $field, $value, $locale);
         }
@@ -196,6 +202,66 @@ class QueryBuilder extends BaseQueryBuilder
             return $this->getHiddenSelectTranslatableFieldConditionalExpr($alias, $field, $locale);
         } else {
             return $this->getTranslatableFieldConditionalExpr($alias, $field, $locale);
+        }
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @param string $exprTemplate
+     * @param bool $doJoin
+     * @param mixed $locale
+     * @return string
+     */
+    private function getTranslatableCollectionExpr($alias, $field, $exprTemplate, $doJoin, $locale = null)
+    {
+        if (!$this->isTranslatableProperty($alias, $field)) {
+            return sprintf($exprTemplate, sprintf('%s.%s', $alias, $field));
+        }
+
+        $this->validateCurrentLocale($locale);
+        $this->joinCurrentTranslationsOnce($alias, $field, $locale);
+        $currentLocale = $this->getCurrentLocale($locale);
+        if (!$this->hasDefaultLocaleDifferentThanCurrentLocale($locale)) {
+            return $this->getTranslatableCollectionTranslationExpr($alias, $field, $exprTemplate, $doJoin, $currentLocale);
+        }
+
+        $this->joinDefaultTranslationsOnce($alias, $field);
+        $defaultLocale = $this->getTranslatableListener()->getDefaultLocale();
+
+        $currentTranslationsAlias = $this->getJoinedCurrentTranslationsAlias($alias, $field, $currentLocale);
+        $translationIdentity = $this->getClassMetadata($this->getClassByAlias($currentTranslationsAlias))
+            ->getSingleIdentifierFieldName();
+
+        return sprintf(
+            'CASE WHEN %s.%s IS NOT NULL AND %s THEN TRUE WHEN %s THEN TRUE ELSE FALSE END = TRUE',
+            $currentTranslationsAlias,
+            $translationIdentity,
+            $this->getTranslatableCollectionTranslationExpr($alias, $field, $exprTemplate, $doJoin, $currentLocale),
+            $this->getTranslatableCollectionTranslationExpr($alias, $field, $exprTemplate, $doJoin, $defaultLocale)
+        );
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @param string $exprTemplate
+     * @param bool $doJoin
+     * @param mixed $locale
+     * @return string
+     */
+    private function getTranslatableCollectionTranslationExpr($alias, $field, $exprTemplate, $doJoin, $locale)
+    {
+        $translationsAssociation = $this->getTranslationAssociation($alias, $field);
+        $translationsJoin = $this->getTranslationsJoin($alias, $translationsAssociation);
+        $translationsAlias = $this->getJoinedTranslationsAlias($translationsJoin, $locale);
+        if ($doJoin) {
+            $joinAlias = $this->getCollectionJoinAlias($translationsAlias, $field);
+            $this->leftJoin(sprintf('%s.%s', $translationsAlias, $field), $joinAlias);
+
+            return sprintf($exprTemplate, $joinAlias);
+        } else {
+            return sprintf($exprTemplate, sprintf('%s.%s', $translationsAlias, $field));
         }
     }
 
@@ -666,9 +732,7 @@ class QueryBuilder extends BaseQueryBuilder
             $currentTranslationsAlias,
             $translationField,
             $defaultTranslationsAlias,
-            $translationField,
-            $alias,
-            $property
+            $translationField
         );
     }
 
@@ -769,23 +833,32 @@ class QueryBuilder extends BaseQueryBuilder
      * @param string $alias
      * @param string $field
      * @param mixed $value
+     * @param mixed $locale
      */
-    private function addTranslatableWhereOnCollection($alias, $field, $value)
+    private function addTranslatableWhereOnCollection($alias, $field, $value, $locale = null)
     {
-        $fieldExpr = $this->getTranslatableFieldExpr($alias, $field);
         $parameter = $this->getTranslatableValueParameter($alias, $field);
 
         if (null === $value) {
-            $joinAlias = $this->getCollectionJoinAlias($alias, $field);
-            $this->leftJoin($fieldExpr, $joinAlias);
-            $this->andWhere($this->expr()->isNull($joinAlias));
+            $fieldExpr = 'SIZE(%s) = 0';
+            $collectionExpr = $this->getTranslatableCollectionExpr($alias, $field, $fieldExpr, false, $locale);
+            $this->andWhere($collectionExpr);
         } elseif (is_array($value)) {
-            $joinAlias = $this->getCollectionJoinAlias($alias, $field);
-            $this->leftJoin($fieldExpr, $joinAlias);
-            $this->andWhere($this->expr()->in($joinAlias, $parameter));
+            if ($this->isTranslatableProperty($alias, $field)) {
+                $fieldExpr = $this->expr()->in('%s', $parameter);
+                $collectionExpr = $this->getTranslatableCollectionExpr($alias, $field, $fieldExpr, true, $locale);
+                $this->andWhere($collectionExpr);
+            } else {
+                $fieldExpr = $this->getTranslatableFieldExpr($alias, $field, $locale);
+                $joinAlias = $this->getCollectionJoinAlias($alias, $field);
+                $this->leftJoin($fieldExpr, $joinAlias);
+                $this->andWhere($this->expr()->in($joinAlias, $parameter));
+            }
             $this->setParameter($parameter, $value);
         } else {
-            $this->andWhere(sprintf('%s MEMBER OF %s', $parameter, $fieldExpr));
+            $fieldExpr = sprintf('%s MEMBER OF %s', $parameter, '%s');
+            $collectionExpr = $this->getTranslatableCollectionExpr($alias, $field, $fieldExpr, false, $locale);
+            $this->andWhere($collectionExpr);
             $this->setParameter($parameter, $value);
         }
     }
@@ -830,5 +903,20 @@ class QueryBuilder extends BaseQueryBuilder
     private function getCollectionJoinAlias($alias, $field)
     {
         return sprintf('%s%sjoin', $alias, $field);
+    }
+
+    /**
+     * @param string $alias
+     * @param string $field
+     * @return \Doctrine\ORM\Mapping\ClassMetadata
+     */
+    private function getTranslationMetadata($alias, $field)
+    {
+        return $this->getClassMetadata(
+            $this->getClassMetadata($this->getClassByAlias($alias))
+                ->getAssociationTargetClass(
+                    $this->getTranslationAssociation($alias, $field)
+                )
+        );
     }
 }

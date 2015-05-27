@@ -42,24 +42,24 @@ class Comment
     /**
      * @var Article
      *
-     * @ORM\ManyToOne(targetEntity="Article", inversedBy="comments")
+     * @ORM\ManyToOne(targetEntity="ArticleTranslation", inversedBy="comments")
      */
-    private $article;
+    private $articleTranslation;
 
     /**
-     * @param \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article $article
+     * @param \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article $articleTranslation
      */
-    public function setArticle($article)
+    public function setArticleTranslation($articleTranslation)
     {
-        $this->article = $article;
+        $this->articleTranslation = $articleTranslation;
     }
 
     /**
      * @return \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article
      */
-    public function getArticle()
+    public function getArticleTranslation()
     {
-        return $this->article;
+        return $this->articleTranslation;
     }
 
     /**

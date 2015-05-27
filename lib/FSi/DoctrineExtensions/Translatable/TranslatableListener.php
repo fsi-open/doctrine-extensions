@@ -510,8 +510,13 @@ class TranslatableListener extends MappedEventSubscriber
     private function clearObjectProperties(ObjectManager $objectManager, $object, $translationAssociation)
     {
         $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
+        $translationMeta = $this->getTranslationClassMetadata($objectManager, $object, $translationAssociation);
         foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
-            $this->getPropertyAccessor()->setValue($object, $property, null);
+            if ($translationMeta->isCollectionValuedAssociation($translationField)) {
+                $this->getPropertyAccessor()->setValue($object, $property, array());
+            } else {
+                $this->getPropertyAccessor()->setValue($object, $property, null);
+            }
         }
     }
 
@@ -526,10 +531,14 @@ class TranslatableListener extends MappedEventSubscriber
         $translatableProperties = $this
             ->getTranslatableMetadata($objectManager, $object)
             ->getTranslatableProperties();
+        $translationMeta = $this->getTranslationClassMetadata($objectManager, $object, $translationAssociation);
 
         $hasNotNullProperties = false;
         foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
-            if (null !== $this->getPropertyAccessor()->getValue($object, $property)) {
+            $value = $this->getPropertyAccessor()->getValue($object, $property);
+            if ($translationMeta->isCollectionValuedAssociation($translationField) && count($value)) {
+                $hasNotNullProperties = true;
+            } elseif (!$translationMeta->isCollectionValuedAssociation($translationField) && (null !== $value)) {
                 $hasNotNullProperties = true;
             }
         }
@@ -584,6 +593,18 @@ class TranslatableListener extends MappedEventSubscriber
     private function getObjectClassMetadata(ObjectManager $objectManager, $object)
     {
         return $objectManager->getClassMetadata(get_class($object));
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @return \Doctrine\Common\Persistence\Mapping\ClassMetadata
+     */
+    private function getTranslationClassMetadata(ObjectManager $objectManager, $object, $translationAssociation)
+    {
+        $meta = $this->getObjectClassMetadata($objectManager, $object);
+        return $objectManager->getClassMetadata($meta->getAssociationTargetClass($translationAssociation));
     }
 
     /**

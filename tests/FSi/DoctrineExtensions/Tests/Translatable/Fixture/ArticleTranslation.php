@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 use FSi\DoctrineExtensions\Uploadable\Mapping\Annotation as Uploadable;
@@ -65,11 +66,23 @@ class ArticleTranslation
     protected $introImage;
 
     /**
+     * @var ArrayCollection|Comment[]
+     *
+     * @ORM\OneToMany(targetEntity="Comment", mappedBy="articleTranslation")
+     */
+    private $comments;
+
+    /**
      * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
      * @ORM\JoinColumn(name="article", referencedColumnName="id")
      * @var \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article
      */
     private $article;
+
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
+    }
 
     public function setTitle($title)
     {
@@ -144,5 +157,45 @@ class ArticleTranslation
     public function setIntroImage($introImage)
     {
         $this->introImage = $introImage;
+    }
+
+    /**
+     * @return ArrayCollection|Comment[]
+     */
+    public function getComments()
+    {
+        return $this->comments;
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function addComment(Comment $comment)
+    {
+        $this->comments->add($comment);
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function removeComment(Comment $comment)
+    {
+        $this->comments->removeElement($comment);
+    }
+
+    /**
+     * @return Article
+     */
+    public function getArticle()
+    {
+        return $this->article;
+    }
+
+    /**
+     * @param Article $article
+     */
+    public function setArticle($article)
+    {
+        $this->article = $article;
     }
 }
