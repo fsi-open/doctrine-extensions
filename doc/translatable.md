@@ -46,6 +46,7 @@ use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 
 /**
+ * @ORM\HasLifecycleCallbacks()
  * @ORM\Entity(repositoryClass="\FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
  */
 class Article
@@ -65,12 +66,6 @@ class Article
     private $date;
 
     /**
-     * @Translatable\Locale
-     * @var string
-     */
-    private $locale;
-
-    /**
      * @Translatable\Translatable(mappedBy="translations")
      * @var string
      */
@@ -83,14 +78,35 @@ class Article
     private $contents;
 
     /**
+     * @Translatable\Translatable(mappedBy="translations")
+     * @var Doctrine\Common\Collections\ArrayCollection|Comment[]
+     */
+    private $comments;
+
+    /**
+     * @Translatable\Locale
+     * @var string
+     */
+    private $locale;
+
+    /**
      * @ORM\OneToMany(targetEntity="ArticleTranslation", mappedBy="article", indexBy="locale")
-     * @var Doctrine\Common\Collections\ArrayCollection
+     * @var Doctrine\Common\Collections\ArrayCollection|ArticleTranslation[]
      */
     private $translations;
 
     public function __construct()
     {
+        $this->comments = new \Doctrine\Common\Collections\ArrayCollection();
         $this->translations = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
+    /**
+     * @ORM\PostLoad()
+     */
+    public function postLoad()
+    {
+        $this->comments = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     /**
@@ -135,6 +151,21 @@ class Article
         return $this->contents;
     }
 
+    public function getComments()
+    {
+        return $this->comments;
+    }
+
+    public function addComment(Comment $comment)
+    {
+        $this->comments->add($comment);
+    }
+
+    public function removeComment(Comment $comment)
+    {
+        $this->comments->removeElement($comment);
+    }
+
     public function setLocale($locale)
     {
         $this->locale = (string)$locale;
@@ -167,6 +198,9 @@ class Article
 }
 ```
 
+Please note the ``postLoad()`` method which is necessary to initialize translatable collection ``$comments`` before the
+real translated collection would be loaded from translation entity.
+
 The associated translation entity could be defined as follows:
 
 ```php
@@ -189,13 +223,6 @@ class ArticleTranslation
     private $id;
 
     /**
-     * @Translatable\Locale
-     * @ORM\Column(type="string", length=2)
-     * @var string
-     */
-    private $locale;
-
-    /**
      * @ORM\Column
      * @var string
      */
@@ -208,11 +235,29 @@ class ArticleTranslation
     private $contents;
 
     /**
+     * @ORM\OneToMany(targetEntity="Comment", mappedBy="articleTranslation")
+     * @var Doctrine\Common\Collections\ArrayCollection|Comment[]
+     */
+    private $comments;
+
+    /**
      * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
      * @ORM\JoinColumn(name="article", referencedColumnName="id")
      * @var Doctrine\Common\Collections\ArrayCollection
      */
     private $article;
+
+    /**
+     * @Translatable\Locale
+     * @ORM\Column(type="string", length=2)
+     * @var string
+     */
+    private $locale;
+
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
+    }
 
     public function setTitle($title)
     {
@@ -236,6 +281,21 @@ class ArticleTranslation
         return $this->contents;
     }
 
+    public function getComments()
+    {
+        return $this->comments;
+    }
+
+    public function addComment(Comment $comment)
+    {
+        $this->comments->add($comment);
+    }
+
+    public function removeComment(Comment $comment)
+    {
+        $this->comments->removeElement($comment);
+    }
+
     public function setLocale($locale)
     {
         $this->locale = (string)$locale;
@@ -246,9 +306,11 @@ class ArticleTranslation
     {
         return $this->locale;
     }
-
 }
 ```
+
+Additionally ``Comment`` is an ordinary entity associated with ``ArticleTranslation`` and its contents is irrelevant for
+this example.
 
 To operate with translations let's assume that our default locale is english:
 
@@ -262,6 +324,7 @@ Now it's really simple to create new article with some translation:
 $article = new Article();
 $article->setTitle('Article\'s title');
 $article->setContents('Contents of the article');
+$article->addComment(new Comment('Comments contents'));
 $em->persist($article);
 $em->flush();
 ```
@@ -272,6 +335,8 @@ Adding another translation may look like this:
 $article->setLocale('pl');
 $article->setTitle('Tytuł artykułu');
 $article->setContents('Treść artykułu');
+$article->addComment(new Comment('Treść pierwszego komentarza'));
+$article->addComment(new Comment('Treść drugiego komentarza'));
 $em->flush();
 ```
 
@@ -281,10 +346,12 @@ Retrieving article from database with currently set default locale is as simple 
 $article = $em->find($articleId);
 echo $article->getTitle();
 echo $article->getContents();
+echo count($article->getComments());
 $translatableListener->setLocale('pl');
 $em->refresh($article);
 echo $article->getTitle();
 echo $article->getContents();
+echo count($article->getComments());
 ```
 
 Thanks to the ``indexBy`` attribute set on translations association we can access
@@ -294,8 +361,10 @@ translations in all locales regardless from current default locale:
 $article = $em->find($articleId);
 echo $article->getTranslation('en')->getTitle();
 echo $article->getTranslation('en')->getContent();
+echo count($article->getTranslation('en')->getComments());
 echo $article->getTranslation('pl')->getTitle();
 echo $article->getTranslation('pl')->getContent();
+echo count($article->getTranslation('pl')->getComments());
 ```
 
 ## Using ``TranslatableRepository``
