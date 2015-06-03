@@ -20,7 +20,7 @@ abstract class AbstractYamlDriver extends AbstractFileDriver
      */
     protected function getFileMapping(ClassMetadataInterface $extendedClassMetadata)
     {
-        $element = Yaml::parse($this->findMappingFile($extendedClassMetadata));
+        $element = Yaml::parse(file_get_contents($this->findMappingFile($extendedClassMetadata)));
         if (isset($element[$extendedClassMetadata->getClassName()])) {
             return $element[$extendedClassMetadata->getClassName()];
         } else {
