@@ -31,12 +31,6 @@ class ChainHandlerTest extends BaseHandlerTest
         new ChainHandler(array());
     }
 
-    public function testIsNotInitializableWithWrongHandlers1()
-    {
-        $this->setExpectedException('PHPUnit_Framework_Error');
-        new ChainHandler('not array');
-    }
-
     public function testIsNotInitializableWithWrongHandlers2()
     {
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
