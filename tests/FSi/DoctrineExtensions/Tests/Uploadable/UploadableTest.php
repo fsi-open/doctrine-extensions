@@ -26,18 +26,6 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
         new UploadableListener(array(), $this->getFileHandlerMock());
     }
 
-    public function testIsNotInitializableWithoutFilesystems2()
-    {
-        $this->setExpectedException('PHPUnit_Framework_Error');
-        new UploadableListener(array('one' => 'not a filesystem'), $this->getFileHandlerMock());
-    }
-
-    public function testIsNotInitializableWithoutFilesystems3()
-    {
-        $this->setExpectedException('PHPUnit_Framework_Error');
-        new UploadableListener(array('one' => new User()), $this->getFileHandlerMock());
-    }
-
     public function testIsNotInitializableWithoutFilesystems4()
     {
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');

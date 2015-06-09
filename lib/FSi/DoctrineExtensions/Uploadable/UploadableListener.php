@@ -359,7 +359,7 @@ class UploadableListener extends MappedEventSubscriber
         $propertyObserver = $this->getPropertyObserver($objectManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             // File key.
-            $key = PropertyAccess::getPropertyAccessor()->getValue($object, $property);
+            $key = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
 
             // Injecting file.
             if (!empty($key)) {
@@ -388,7 +388,7 @@ class UploadableListener extends MappedEventSubscriber
 
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             if (!$propertyObserver->hasSavedValue($object, $config['targetField']) || $propertyObserver->hasValueChanged($object, $config['targetField'])) {
-                $accessor = PropertyAccess::getPropertyAccessor();
+                $accessor = PropertyAccess::createPropertyAccessor();
                 $file = $accessor->getValue($object, $config['targetField']);
 
                 $filesystem = $this->computeFilesystem($config);
@@ -437,7 +437,7 @@ class UploadableListener extends MappedEventSubscriber
     protected function deleteFiles($uploadableMeta, $object)
     {
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            if ($oldKey = PropertyAccess::getPropertyAccessor()->getValue($object, $property)) {
+            if ($oldKey = PropertyAccess::createPropertyAccessor()->getValue($object, $property)) {
                 $this->addToDelete(new File($oldKey, $this->computeFilesystem($config)));
             }
         }
