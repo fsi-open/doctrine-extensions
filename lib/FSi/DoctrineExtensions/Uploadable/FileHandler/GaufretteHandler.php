@@ -35,7 +35,7 @@ class GaufretteHandler extends AbstractHandler
             throw $this->generateNotSupportedException($file);
         }
 
-        return $file->getName();
+        return basename($file->getName());
     }
 
     /**

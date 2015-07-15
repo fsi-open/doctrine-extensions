@@ -265,7 +265,7 @@ abstract class GeneralTest extends BaseORMTest
 
     public function testExceptionWhenKeyIsToLong()
     {
-        $key = 'some/key' . str_repeat('/aaaa', 60);
+        $key = 'some/key' . str_repeat('aaaaa', 50);
 
         $user = $this->getUser();
         $file = new File($key, $this->_filesystem1);
@@ -275,6 +275,18 @@ abstract class GeneralTest extends BaseORMTest
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();
+    }
+
+    public function testFileHandlerReturnBasename()
+    {
+        $key = 'some/key/blabla';
+
+        $file = new File($key, $this->_filesystem1);
+        $file->setContent('');
+        $this->assertEquals('blabla', $this->_uploadableListener->getFileHandler()->getName($file));
+
+        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $this->assertEquals('penguins.jpg', $this->_uploadableListener->getFileHandler()->getName($file));
     }
 
     public function testLoadingFiles()
