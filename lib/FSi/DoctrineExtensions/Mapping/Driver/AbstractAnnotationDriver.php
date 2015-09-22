@@ -47,6 +47,9 @@ abstract class AbstractAnnotationDriver extends BaseAnnotationDriver implements 
      */
     public function loadClassMetadata(ClassMetadataInterface $metadata)
     {
+        if ($this->getBaseMetadataFactory()->isTransient($metadata->getClassName())) {
+            return;
+        }
         $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
     }
 
