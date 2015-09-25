@@ -245,9 +245,6 @@ class UploadableListener extends MappedEventSubscriber
                 if (!$uploadableMeta->hasUploadableProperties()) {
                     continue;
                 }
-                if ($object instanceof Proxy) {
-                    continue;
-                }
                 $this->updateFiles($entityManager, $uploadableMeta, $object, $eventAdapter);
             }
         }

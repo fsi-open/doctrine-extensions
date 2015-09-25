@@ -47,6 +47,9 @@ abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterf
      */
     public function loadClassMetadata(ClassMetadataInterface $metadata)
     {
+        if ($this->getBaseMetadataFactory()->isTransient($metadata->getClassName())) {
+            return;
+        }
         $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
     }
 

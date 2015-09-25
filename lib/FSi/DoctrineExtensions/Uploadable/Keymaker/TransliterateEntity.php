@@ -9,6 +9,8 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\Keymaker;
 
+use Doctrine\Common\Util\ClassUtils;
+
 class TransliterateEntity implements KeymakerInterface
 {
     const DEFAULT_PATTERN = '/{fqcn}/{property}/{id}/{original_name}';
@@ -22,6 +24,8 @@ class TransliterateEntity implements KeymakerInterface
             $pattern = self::DEFAULT_PATTERN;
         }
 
+        $className = ClassUtils::getClass($object);
+
         return preg_replace(
             array(
                 '/\{fqcn\}/',
@@ -30,7 +34,7 @@ class TransliterateEntity implements KeymakerInterface
                 '/\{original_name\}/',
             ),
             array(
-                preg_replace('/\\\\/', '', get_class($object)),
+                preg_replace('/\\\\/', '', $className),
                 $property,
                 $id,
                 $this->cleanFileName($originalName),

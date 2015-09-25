@@ -155,9 +155,6 @@ class TranslatableListener extends MappedEventSubscriber
 
         foreach ($unitOfWork->getIdentityMap() as $class => $entities) {
             foreach ($entities as $object) {
-                if ($object instanceof Proxy) {
-                    continue;
-                }
                 $this->updateObjectTranslations($entityManager, $object);
             }
         }
