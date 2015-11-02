@@ -29,9 +29,10 @@ class ClassMetadata extends AbstractClassMetadata
      *
      * @param string $translationAssociation
      * @param string $property
+     * @param bool $copyFromDefault
      * @param string $targetProperty
      */
-    public function addTranslatableProperty($translationAssociation, $property, $targetField = null)
+    public function addTranslatableProperty($translationAssociation, $property, $copyFromDefault, $targetField = null)
     {
         if (!isset($targetField)) {
             $targetField = $property;
@@ -39,7 +40,8 @@ class ClassMetadata extends AbstractClassMetadata
         if (!isset($this->translatableProperties[$translationAssociation])) {
             $this->translatableProperties[$translationAssociation] = array();
         }
-        $this->translatableProperties[$translationAssociation][$property] = $targetField;
+        $this->translatableProperties[$translationAssociation][] =
+            new PropertyMetadata($this, $property, $targetField, $copyFromDefault);
     }
 
     /**

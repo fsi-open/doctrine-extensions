@@ -18,4 +18,5 @@ final class Translatable extends Annotation
 {
     public $mappedBy;
     public $targetField;
+    public $copyFromDefault = true;
 }
