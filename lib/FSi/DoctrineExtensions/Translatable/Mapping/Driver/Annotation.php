@@ -44,6 +44,7 @@ class Annotation extends AbstractAnnotationDriver
                 $extendedClassMetadata->addTranslatableProperty(
                     $translatableAnnotation->mappedBy,
                     $property->getName(),
+                    $translatableAnnotation->copyFromDefault,
                     $translatableAnnotation->targetField
                 );
             }

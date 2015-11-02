@@ -16,6 +16,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Proxy\Proxy;
 use FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository;
+use FSi\DoctrineExtensions\Translatable\Mapping\PropertyMetadata;
 use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use FSi\Component\Metadata\ClassMetadataInterface;
@@ -279,8 +280,8 @@ class TranslatableListener extends MappedEventSubscriber
             return;
         }
 
-        if (isset($this->_defaultLocale) &&
-            $this->findAndLoadObjectTranslationByLocale($objectManager, $object, $translationAssociation, $this->_defaultLocale)) {
+        if (isset($this->_defaultLocale) && $this->_defaultLocale !== $locale &&
+            $this->findAndLoadObjectTranslationByLocale($objectManager, $object, $translationAssociation, $this->_defaultLocale, true)) {
             return;
         }
 
@@ -295,8 +296,13 @@ class TranslatableListener extends MappedEventSubscriber
      * @param mixed $locale
      * @return bool
      */
-    private function findAndLoadObjectTranslationByLocale(ObjectManager $objectManager, $object, $translationAssociation, $locale)
-    {
+    private function findAndLoadObjectTranslationByLocale(
+        ObjectManager $objectManager,
+        $object,
+        $translationAssociation,
+        $locale,
+        $isDefaultTranslationFallback = false
+    ) {
         $translation = $this->getRepository($objectManager, $object)
             ->findTranslation($object, $locale, $translationAssociation);
 
@@ -304,7 +310,13 @@ class TranslatableListener extends MappedEventSubscriber
             return false;
         }
 
-        $this->copyTranslationFieldsToObjectProperties($objectManager, $object, $translationAssociation, $translation);
+        $this->copyTranslationFieldsToObjectProperties(
+            $objectManager,
+            $object,
+            $translationAssociation,
+            $translation,
+            $isDefaultTranslationFallback
+        );
         $this->setObjectLocale($objectManager, $object, $locale);
 
         return true;
@@ -315,16 +327,26 @@ class TranslatableListener extends MappedEventSubscriber
      * @param object $object
      * @param string $translationAssociation
      * @param object $translation
+     * @param bool $isDefaultTranslationFallback
      */
-    private function copyTranslationFieldsToObjectProperties(ObjectManager $objectManager, $object, $translationAssociation, $translation)
-    {
+    private function copyTranslationFieldsToObjectProperties(
+        ObjectManager $objectManager,
+        $object,
+        $translationAssociation,
+        $translation,
+        $isDefaultTranslationFallback
+    ) {
         $translatableProperties = $this->getTranslatableMetadata($objectManager, $object)->getTranslatableProperties();
 
-        foreach ($translatableProperties[$translationAssociation] as $property => $translationField) {
+        /** @var PropertyMetadata $propertyMetadata */
+        foreach ($translatableProperties[$translationAssociation] as $propertyMetadata) {
+            if ($isDefaultTranslationFallback && !$propertyMetadata->isCopyFromDefault()) {
+                continue;
+            }
             $this->getPropertyAccessor()->setValue(
                 $object,
-                $property,
-                $this->getPropertyAccessor()->getValue($translation, $translationField)
+                $propertyMetadata->getName(),
+                $this->getPropertyAccessor()->getValue($translation, $propertyMetadata->getTargetField())
             );
         }
     }
