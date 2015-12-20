@@ -26,6 +26,7 @@ class Annotation extends AbstractAnnotationDriver
     protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
         $classReflection = $extendedClassMetadata->getClassReflection();
+
         foreach ($classReflection->getProperties() as $property) {
             if ($baseClassMetadata->isMappedSuperclass && !$property->isPrivate() ||
                 $baseClassMetadata->isInheritedField($property->name) ||
