@@ -9,10 +9,16 @@
 
 namespace FSi\DoctrineExtensions\Translatable;
 
+use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\Common\Persistence\ObjectManager;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
+use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
+/**
+ * @internal
+ */
 class TranslationHelper
 {
     /**
@@ -29,80 +35,77 @@ class TranslationHelper
     }
 
     /**
-     * @param ObjectAssociationContext $context
+     * @param ClassTranslationContext $context
      * @param object $translation
      * @param string $locale
      */
-    public function copyTranslationProperties(ObjectAssociationContext $context, $translation, $locale)
+    public function copyTranslationProperties(ClassTranslationContext $context, $object, $translation, $locale)
     {
-        $propertyAccessor = $this->getPropertyAccessor();
-        $object = $context->getObject();
-
-        foreach ($context->getAssociationMetadata()->getProperties() as $targetField => $sourceField) {
-            $value = $propertyAccessor->getValue($translation, $sourceField);
-            $propertyAccessor->setValue($object, $targetField, $value);
-        }
-
+        $this->copyProperties($translation, $object, array_flip($context->getAssociationMetadata()->getProperties()));
         $this->setObjectLocale($context->getTranslatableMetadata(), $object, $locale);
     }
 
     /**
-     * @param ObjectAssociationContext $context
+     * @param ClassTranslationContext $context
      * @param string $defaultLocale
      * @throws Exception\AnnotationException
      */
-    public function copyPropertiesToTranslation(ObjectAssociationContext $context, $defaultLocale)
-    {
-        $object = $context->getObject();
+    public function copyPropertiesToTranslation(
+        ObjectManager $objectManager,
+        TranslatableRepositoryInterface $translatableRepository,
+        ClassTranslationContext $context,
+        $object,
+        $defaultLocale
+    ) {
         $translationAssociationMeta = $context->getAssociationMetadata();
 
-        $locale = $context->getObjectLocale();
+        $locale = $this->getObjectLocale($context, $object);
         if (!isset($locale)) {
             $locale = $defaultLocale;
         }
 
-        $translation = $context->getTranslatableRepository()->getTranslation(
+        $translation = $translatableRepository->getTranslation(
             $object,
             $locale,
             $translationAssociationMeta->getAssociationName()
         );
 
-        $objectManager = $context->getObjectManager();
         if (!$objectManager->contains($translation)) {
             $objectManager->persist($translation);
         }
 
-        $this->copyPropertiesIfDifferent($object, $translation, $translationAssociationMeta->getProperties());
+        $this->copyProperties($object, $translation, $translationAssociationMeta->getProperties());
     }
 
     /**
-     * @param ObjectAssociationContext $context
+     * @param ClassTranslationContext $context
      * @throws Exception\AnnotationException
      */
-    public function removeEmptyTranslation(ObjectAssociationContext $context)
-    {
-        if ($this->hasTranslatedProperties($context)) {
+    public function removeEmptyTranslation(
+        ObjectManager $objectManager,
+        ClassMetadata $translationMeta,
+        TranslatableRepositoryInterface $translatableRepository,
+        ClassTranslationContext $context,
+        $object
+    ) {
+        if ($this->hasTranslatedProperties($translationMeta, $context, $object)) {
             return;
         }
 
-        $context->getTranslationClassMetadata();
-        $object = $context->getObject();
-
-        $objectLocale = $context->getObjectLocale();
+        $objectLocale = $this->getObjectLocale($context, $object);
         if (!isset($objectLocale)) {
             return;
         }
 
         $translationAssociationMeta = $context->getAssociationMetadata();
         $associationName = $translationAssociationMeta->getAssociationName();
-        $translatableRepository = $context->getTranslatableRepository();
         $translation = $translatableRepository->findTranslation($object, $objectLocale, $associationName);
 
         if (!isset($translation)) {
             return;
         }
 
-        $context->getObjectManager()->remove($translation);
+        $objectManager->remove($translation);
 
         $translations = $translatableRepository->getTranslations($object, $associationName);
         if ($translations->contains($translation)) {
@@ -111,13 +114,11 @@ class TranslationHelper
     }
 
     /**
-     * @param ObjectAssociationContext $context
+     * @param ClassTranslationContext $context
      */
-    public function clearTranslatableProperties(ObjectAssociationContext $context)
+    public function clearTranslatableProperties(ClassMetadata $translationMeta, ClassTranslationContext $context, $object)
     {
-        $object = $context->getObject();
         $propertyAccessor = $this->getPropertyAccessor();
-        $translationMeta = $context->getTranslationClassMetadata();
 
         foreach ($context->getAssociationMetadata()->getProperties() as $property => $translationField) {
             if ($translationMeta->isCollectionValuedAssociation($translationField)) {
@@ -131,14 +132,12 @@ class TranslationHelper
     }
 
     /**
-     * @param ObjectAssociationContext $context
+     * @param ClassTranslationContext $context
      * @return bool
      */
-    public function hasTranslatedProperties(ObjectAssociationContext $context)
+    public function hasTranslatedProperties(ClassMetadata $translationMeta, ClassTranslationContext $context, $object)
     {
-        $object = $context->getObject();
         $properties = $context->getAssociationMetadata()->getProperties();
-        $translationMeta = $context->getTranslationClassMetadata();
         $propertyAccessor = $this->getPropertyAccessor();
 
         foreach ($properties as $property => $translationField) {
@@ -151,6 +150,17 @@ class TranslationHelper
         }
 
         return false;
+    }
+
+    /**
+     * @param ClassTranslationContext $context
+     * @param $object
+     * @return string
+     */
+    public function getObjectLocale(ClassTranslationContext $context, $object)
+    {
+        $localeProperty = $context->getTranslatableMetadata()->localeProperty;
+        return $this->getPropertyAccessor()->getValue($object, $localeProperty);
     }
 
     /**
@@ -169,15 +179,13 @@ class TranslationHelper
      * @param object $target
      * @param array $properties
      */
-    private function copyPropertiesIfDifferent($source, $target, $properties)
+    private function copyProperties($source, $target, $properties)
     {
         $propertyAccessor = $this->getPropertyAccessor();
 
         foreach ($properties as $sourceField => $targetField) {
             $value = $propertyAccessor->getValue($source, $sourceField);
-            if ($propertyAccessor->getValue($target, $targetField) !== $value) {
-                $propertyAccessor->setValue($target, $targetField, $value);
-            }
+            $propertyAccessor->setValue($target, $targetField, $value);
         }
     }
 

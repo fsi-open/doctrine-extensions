@@ -188,7 +188,8 @@ class TranslatableListener extends MappedEventSubscriber
 
         foreach ($translatableMeta->getTranslationAssociationMetadatas() as $associationMeta) {
 
-            $context = new ObjectAssociationContext($objectManager, $associationMeta, $object);
+            $classMeta = $this->getObjectClassMetadata($objectManager, $object);
+            $context = new ClassTranslationContext($classMeta, $associationMeta);
             $associationName = $associationMeta->getAssociationName();
             $translation = $repository->findTranslation($object, $locale, $associationName);
 
@@ -199,9 +200,10 @@ class TranslatableListener extends MappedEventSubscriber
             }
 
             if (isset($translation)) {
-                $this->translationHelper->copyTranslationProperties($context, $translation, $locale);
+                $this->translationHelper->copyTranslationProperties($context, $object, $translation, $locale);
             } else {
-                $this->translationHelper->clearTranslatableProperties($context);
+                $translationMeta = $this->getTranslationClassMetadata($objectManager, $context, $object);
+                $this->translationHelper->clearTranslatableProperties($translationMeta, $context, $object);
             }
         }
     }
@@ -308,14 +310,20 @@ class TranslatableListener extends MappedEventSubscriber
 
         foreach ($translatableMeta->getTranslationAssociationMetadatas() as $associationMeta) {
 
-            $context = new ObjectAssociationContext($objectManager, $associationMeta, $object);
+            $classMeta = $this->getObjectClassMetadata($objectManager, $object);
+            $context = new ClassTranslationContext($classMeta, $associationMeta);
 
-            $locale = $context->getObjectLocale();
+            $locale = $this->translationHelper->getObjectLocale($context, $object);
             if (!isset($locale)) {
                 $locale = $this->getLocale();
             }
 
-            $hasTranslatedProperties = $this->translationHelper->hasTranslatedProperties($context);
+            $translationMeta = $this->getTranslationClassMetadata($objectManager, $context, $object);
+            $hasTranslatedProperties = $this->translationHelper->hasTranslatedProperties(
+                $translationMeta,
+                $context,
+                $object
+            );
 
             if (!isset($locale) && $hasTranslatedProperties) {
                 throw new Exception\RuntimeException(
@@ -323,10 +331,24 @@ class TranslatableListener extends MappedEventSubscriber
                 );
             }
 
+            $translatableRepository = $this->getRepository($objectManager, $object);
+
             if ($hasTranslatedProperties) {
-                $this->translationHelper->copyPropertiesToTranslation($context, $locale);
+                $this->translationHelper->copyPropertiesToTranslation(
+                    $objectManager,
+                    $translatableRepository,
+                    $context,
+                    $object,
+                    $locale
+                );
             } else {
-                $this->translationHelper->removeEmptyTranslation($context);
+                $this->translationHelper->removeEmptyTranslation(
+                    $objectManager,
+                    $translationMeta,
+                    $translatableRepository,
+                    $context,
+                    $object
+                );
             }
         }
     }
@@ -361,6 +383,22 @@ class TranslatableListener extends MappedEventSubscriber
     private function getObjectClassMetadata(ObjectManager $objectManager, $object)
     {
         return $objectManager->getClassMetadata(get_class($object));
+    }
+
+    /**
+     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param object $object
+     * @param string $translationAssociation
+     * @return \Doctrine\Common\Persistence\Mapping\ClassMetadata
+     */
+    private function getTranslationClassMetadata(
+        ObjectManager $objectManager,
+        ClassTranslationContext $context,
+        $object
+    ) {
+        $meta = $this->getObjectClassMetadata($objectManager, $object);
+        $assocName = $context->getAssociationMetadata()->getAssociationName();
+        return $objectManager->getClassMetadata($meta->getAssociationTargetClass($assocName));
     }
 
     /**
