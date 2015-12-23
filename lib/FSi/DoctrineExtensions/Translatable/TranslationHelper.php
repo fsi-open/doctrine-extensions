@@ -36,8 +36,9 @@ class TranslationHelper
 
     /**
      * @param ClassTranslationContext $context
-     * @param object $translation
-     * @param string $locale
+     * @param $object
+     * @param $translation
+     * @param $locale
      */
     public function copyTranslationProperties(ClassTranslationContext $context, $object, $translation, $locale)
     {
@@ -46,9 +47,11 @@ class TranslationHelper
     }
 
     /**
+     * @param ObjectManager $objectManager
+     * @param TranslatableRepositoryInterface $translatableRepository
      * @param ClassTranslationContext $context
+     * @param object $object
      * @param string $defaultLocale
-     * @throws Exception\AnnotationException
      */
     public function copyPropertiesToTranslation(
         ObjectManager $objectManager,
@@ -78,17 +81,18 @@ class TranslationHelper
     }
 
     /**
+     * @param ObjectManager $objectManager
+     * @param TranslatableRepositoryInterface $translatableRepository
      * @param ClassTranslationContext $context
-     * @throws Exception\AnnotationException
+     * @param object $object
      */
     public function removeEmptyTranslation(
         ObjectManager $objectManager,
-        ClassMetadata $translationMeta,
         TranslatableRepositoryInterface $translatableRepository,
         ClassTranslationContext $context,
         $object
     ) {
-        if ($this->hasTranslatedProperties($translationMeta, $context, $object)) {
+        if ($this->hasTranslatedProperties($context, $object)) {
             return;
         }
 
@@ -115,9 +119,11 @@ class TranslationHelper
 
     /**
      * @param ClassTranslationContext $context
+     * @param $object
      */
-    public function clearTranslatableProperties(ClassMetadata $translationMeta, ClassTranslationContext $context, $object)
+    public function clearTranslatableProperties(ClassTranslationContext $context, $object)
     {
+        $translationMeta = $context->getTranslationMetadata();
         $propertyAccessor = $this->getPropertyAccessor();
 
         foreach ($context->getAssociationMetadata()->getProperties() as $property => $translationField) {
@@ -133,10 +139,12 @@ class TranslationHelper
 
     /**
      * @param ClassTranslationContext $context
+     * @param $object
      * @return bool
      */
-    public function hasTranslatedProperties(ClassMetadata $translationMeta, ClassTranslationContext $context, $object)
+    public function hasTranslatedProperties(ClassTranslationContext $context, $object)
     {
+        $translationMeta = $context->getTranslationMetadata();
         $properties = $context->getAssociationMetadata()->getProperties();
         $propertyAccessor = $this->getPropertyAccessor();
 

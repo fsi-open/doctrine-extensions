@@ -29,16 +29,39 @@ class ClassTranslationContext
     private $associationMetadata;
 
     /**
-     * @param ObjectManager $objectManager
+     * @var ClassMetadata
+     */
+    private $translationMetadata;
+
+    /**
+     * @param ClassMetadata $classMetadata
      * @param TranslationAssociationMetadata $associationMetadata
-     * @param object $object
+     * @param ClassMetadata $translationMetadata
      */
     public function __construct(
         ClassMetadata $classMetadata,
-        TranslationAssociationMetadata $associationMetadata
+        TranslationAssociationMetadata $associationMetadata,
+        ClassMetadata $translationMetadata
     ) {
         $this->classMetadata = $classMetadata;
         $this->associationMetadata = $associationMetadata;
+        $this->translationMetadata = $translationMetadata;
+    }
+
+    /**
+     * @return ClassMetadata
+     */
+    public function getClassMetadata()
+    {
+        return $this->classMetadata;
+    }
+
+    /**
+     * @return Mapping\ClassMetadata
+     */
+    public function getTranslatableMetadata()
+    {
+        return $this->associationMetadata->getClassMetadata();
     }
 
     /**
@@ -50,10 +73,10 @@ class ClassTranslationContext
     }
 
     /**
-     * @return Mapping\ClassMetadata
+     * @return ClassMetadata
      */
-    public function getTranslatableMetadata()
+    public function getTranslationMetadata()
     {
-        return $this->associationMetadata->getClassMetadata();
+        return $this->translationMetadata;
     }
 }
