@@ -190,12 +190,11 @@ class TranslatableListener extends MappedEventSubscriber
             return;
         }
 
-        $repository = $this->getRepository($objectManager, $object);
-
         foreach ($translatableMeta->getTranslationAssociationMetadatas() as $associationMeta) {
 
             $context = $this->getTranslationContext($objectManager, $associationMeta, $object);
             $associationName = $associationMeta->getAssociationName();
+            $repository = $context->getTranslatableRepository();
             $translation = $repository->findTranslation($object, $locale, $associationName);
 
             //default locale fallback
@@ -329,12 +328,9 @@ class TranslatableListener extends MappedEventSubscriber
                 );
             }
 
-            $translatableRepository = $this->getRepository($objectManager, $object);
-
             if ($hasTranslatedProperties) {
                 $this->translationHelper->copyPropertiesToTranslation(
                     $objectManager,
-                    $translatableRepository,
                     $context,
                     $object,
                     $locale
@@ -342,7 +338,6 @@ class TranslatableListener extends MappedEventSubscriber
             } else {
                 $this->translationHelper->removeEmptyTranslation(
                     $objectManager,
-                    $translatableRepository,
                     $context,
                     $object
                 );
@@ -362,16 +357,11 @@ class TranslatableListener extends MappedEventSubscriber
         $object
     ) {
         $classMeta = $this->getObjectClassMetadata($objectManager, $object);
-        $associationName = $associationMeta->getAssociationName();
-        $translationMeta = $this->getTranslationClassMetadata(
-            $objectManager,
-            $object,
-            $associationName
-        );
         $className = $classMeta->getName();
+        $associationName = $associationMeta->getAssociationName();
 
         if (empty($this->classTranslationContexts[$className][$associationName])) {
-            $context = new ClassTranslationContext($classMeta, $associationMeta, $translationMeta);
+            $context = new ClassTranslationContext($objectManager, $classMeta, $associationMeta);
             $this->classTranslationContexts[$className][$associationName] = $context;
         }
 
@@ -382,45 +372,11 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * @param ObjectManager $objectManager
      * @param object $object
-     * @throws Exception\AnnotationException
-     * @return TranslatableRepository
-     */
-    private function getRepository(ObjectManager $objectManager, $object)
-    {
-        $meta = $this->getObjectClassMetadata($objectManager, $object);
-        $repository = $objectManager->getRepository($meta->getName());
-
-        if (!($repository instanceof TranslatableRepositoryInterface)) {
-            throw new Exception\AnnotationException(sprintf(
-                'Entity "%s" has "%s" as its "repositoryClass" which does not implement \FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface',
-                $meta->getName(),
-                get_class($repository)
-            ));
-        }
-
-        return $repository;
-    }
-
-    /**
-     * @param ObjectManager $objectManager
-     * @param object $object
      * @return ClassMetadata
      */
     private function getObjectClassMetadata(ObjectManager $objectManager, $object)
     {
         return $objectManager->getClassMetadata(get_class($object));
-    }
-
-    /**
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @param object $object
-     * @param string $translationAssociation
-     * @return \Doctrine\Common\Persistence\Mapping\ClassMetadata
-     */
-    private function getTranslationClassMetadata(ObjectManager $objectManager, $object, $associationName)
-    {
-        $meta = $this->getObjectClassMetadata($objectManager, $object);
-        return $objectManager->getClassMetadata($meta->getAssociationTargetClass($associationName));
     }
 
     /**

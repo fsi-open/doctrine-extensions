@@ -55,7 +55,6 @@ class TranslationHelper
      */
     public function copyPropertiesToTranslation(
         ObjectManager $objectManager,
-        TranslatableRepositoryInterface $translatableRepository,
         ClassTranslationContext $context,
         $object,
         $defaultLocale
@@ -67,6 +66,7 @@ class TranslationHelper
             $locale = $defaultLocale;
         }
 
+        $translatableRepository = $context->getTranslatableRepository();
         $translation = $translatableRepository->getTranslation(
             $object,
             $locale,
@@ -88,7 +88,6 @@ class TranslationHelper
      */
     public function removeEmptyTranslation(
         ObjectManager $objectManager,
-        TranslatableRepositoryInterface $translatableRepository,
         ClassTranslationContext $context,
         $object
     ) {
@@ -103,6 +102,7 @@ class TranslationHelper
 
         $translationAssociationMeta = $context->getAssociationMetadata();
         $associationName = $translationAssociationMeta->getAssociationName();
+        $translatableRepository = $context->getTranslatableRepository();
         $translation = $translatableRepository->findTranslation($object, $objectLocale, $associationName);
 
         if (!isset($translation)) {
