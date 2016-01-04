@@ -47,14 +47,12 @@ class TranslationHelper
     }
 
     /**
-     * @param ObjectManager $objectManager
      * @param TranslatableRepositoryInterface $translatableRepository
      * @param ClassTranslationContext $context
      * @param object $object
      * @param string $defaultLocale
      */
     public function copyPropertiesToTranslation(
-        ObjectManager $objectManager,
         ClassTranslationContext $context,
         $object,
         $defaultLocale
@@ -73,6 +71,7 @@ class TranslationHelper
             $translationAssociationMeta->getAssociationName()
         );
 
+        $objectManager = $context->getObjectManager();
         if (!$objectManager->contains($translation)) {
             $objectManager->persist($translation);
         }
@@ -81,13 +80,11 @@ class TranslationHelper
     }
 
     /**
-     * @param ObjectManager $objectManager
      * @param TranslatableRepositoryInterface $translatableRepository
      * @param ClassTranslationContext $context
      * @param object $object
      */
     public function removeEmptyTranslation(
-        ObjectManager $objectManager,
         ClassTranslationContext $context,
         $object
     ) {
@@ -109,7 +106,7 @@ class TranslationHelper
             return;
         }
 
-        $objectManager->remove($translation);
+        $context->getObjectManager()->remove($translation);
 
         $translations = $translatableRepository->getTranslations($object, $associationName);
         if ($translations->contains($translation)) {

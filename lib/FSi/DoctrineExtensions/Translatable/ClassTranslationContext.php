@@ -96,4 +96,12 @@ class ClassTranslationContext
 
         return $repository;
     }
+
+    /**
+     * @return ObjectManager
+     */
+    public function getObjectManager()
+    {
+        return $this->objectManager;
+    }
 }

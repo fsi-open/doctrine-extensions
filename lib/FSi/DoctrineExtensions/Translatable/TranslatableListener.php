@@ -330,14 +330,12 @@ class TranslatableListener extends MappedEventSubscriber
 
             if ($hasTranslatedProperties) {
                 $this->translationHelper->copyPropertiesToTranslation(
-                    $objectManager,
                     $context,
                     $object,
                     $locale
                 );
             } else {
                 $this->translationHelper->removeEmptyTranslation(
-                    $objectManager,
                     $context,
                     $object
                 );
