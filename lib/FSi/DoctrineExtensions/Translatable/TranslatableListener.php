@@ -363,7 +363,6 @@ class TranslatableListener extends MappedEventSubscriber
             $this->classTranslationContexts[$className][$associationName] = $context;
         }
 
-
         return $this->classTranslationContexts[$className][$associationName];
     }
 
