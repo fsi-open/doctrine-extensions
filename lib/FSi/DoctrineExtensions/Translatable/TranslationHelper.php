@@ -147,9 +147,9 @@ class TranslationHelper
 
         foreach ($properties as $property => $translationField) {
             $value = $propertyAccessor->getValue($object, $property);
-            if ($translationMeta->isCollectionValuedAssociation($translationField) && count($value)) {
-                return true;
-            } elseif (!$translationMeta->isCollectionValuedAssociation($translationField) && (null !== $value)) {
+            if ($translationMeta->isCollectionValuedAssociation($translationField) && count($value)
+                || !$translationMeta->isCollectionValuedAssociation($translationField) && null !== $value
+            ) {
                 return true;
             }
         }
