@@ -10,6 +10,7 @@
 namespace FSi\DoctrineExtensions\Translatable\Mapping;
 
 use FSi\Component\Metadata\AbstractClassMetadata;
+use Doctrine\Common\Persistence\Mapping\ClassMetadata as DoctrineClassMetadata;
 
 class ClassMetadata extends AbstractClassMetadata
 {
@@ -60,5 +61,19 @@ class ClassMetadata extends AbstractClassMetadata
     public function getTranslatableProperties()
     {
         return $this->translatableProperties;
+    }
+
+    /**
+     * @return TranslationAssociationMetadata[]
+     */
+    public function getTranslationAssociationMetadatas()
+    {
+        $metadatas = array();
+
+        foreach ($this->getTranslatableProperties() as $association => $properties) {
+            $metadatas[] = new TranslationAssociationMetadata($this, $association, $properties);
+        }
+
+        return $metadatas;
     }
 }

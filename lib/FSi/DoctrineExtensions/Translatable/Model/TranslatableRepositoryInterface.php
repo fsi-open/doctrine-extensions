@@ -66,6 +66,14 @@ interface TranslatableRepositoryInterface
     public function getTranslation($object, $locale, $translationAssociation = 'translations');
 
     /**
+     * @param $object
+     * @param string $translationAssociation
+     * @return \Doctrine\Common\Collections\Collection
+     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
+     */
+    public function getTranslations($object, $translationAssociation = 'translations');
+
+    /**
      * @param object $object
      * @param mixed $locale
      * @param string $translationAssociation

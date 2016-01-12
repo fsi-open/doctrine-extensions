@@ -151,6 +151,31 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     }
 
     /**
+     * @param object $object
+     * @param string $translationAssociation
+     * @return \Doctrine\Common\Collections\Collection
+     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
+     */
+    public function getTranslations($object, $translationAssociation = 'translations')
+    {
+        $translations = $this->getClassMetadata()->getFieldValue($object, $translationAssociation);
+
+        if ($translations === null) {
+            return new ArrayCollection();
+        }
+
+        if (!($translations instanceof Collection)) {
+            throw new RuntimeException(sprintf(
+                'Entity %s must contains implementation of "Doctrine\Common\Collections\Collection" in "%s" association',
+                $this->getClassName(),
+                $translationAssociation
+            ));
+        }
+
+        return $translations;
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function findNonIndexedTranslation($object, $translationAssociation, $locale)
@@ -322,31 +347,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
 
         $translationExtendedMeta = $this->getTranslationExtendedMetadata($translationAssociation);
         return ($translationAssociationMapping['indexBy'] == $translationExtendedMeta->localeProperty);
-    }
-
-    /**
-     * @param object $object
-     * @param string $translationAssociation
-     * @return \Doctrine\Common\Collections\Collection
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
-     */
-    protected function getTranslations($object, $translationAssociation)
-    {
-        $translations = $this->getClassMetadata()->getFieldValue($object, $translationAssociation);
-
-        if ($translations === null) {
-            return new ArrayCollection();
-        }
-
-        if (!($translations instanceof Collection)) {
-            throw new RuntimeException(sprintf(
-                'Entity %s must contains implementation of "Doctrine\Common\Collections\Collection" in "%s" association',
-                $this->getClassName(),
-                $translationAssociation
-            ));
-        }
-
-        return $translations;
     }
 
     /**
