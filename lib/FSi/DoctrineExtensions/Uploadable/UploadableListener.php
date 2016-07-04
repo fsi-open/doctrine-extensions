@@ -380,6 +380,10 @@ class UploadableListener extends MappedEventSubscriber
     {
         $propertyObserver = $this->getPropertyObserver($objectManager);
 
+        if ($object instanceof \Doctrine\Common\Persistence\Proxy) {
+            $object->__load();
+        }
+
         $id = $eventAdapter->extractIdentifier($objectManager, $object, false);
         $id = implode('-', $id);
 
