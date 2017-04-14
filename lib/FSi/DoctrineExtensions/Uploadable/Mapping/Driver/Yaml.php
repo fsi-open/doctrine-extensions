@@ -23,7 +23,7 @@ class Yaml extends AbstractYamlDriver
     {
         $mapping = $this->getFileMapping($extendedClassMetadata);
 
-        if (isset($mapping['type']) && ($mapping['type'] == 'entity') && isset($mapping['fields']) && is_array($mapping['fields'])) {
+        if (isset($mapping['type']) && isset($mapping['fields']) && is_array($mapping['fields'])) {
             foreach ($mapping['fields'] as $field => $config) {
                 if (isset($config['fsi']) && is_array($config['fsi']) && isset($config['fsi']['uploadable'])) {
                     $uploadable = $config['fsi']['uploadable'];
