@@ -4,11 +4,11 @@
 It supports **Yaml**, **Xml** and **Annotation** drivers which will be chosen depending on
 currently used mapping driver for ObjectManager which the event listener is attached to.
 **Mapping** extension also provides abstraction layer of **EventArgs** to make it possible
-to use single listener for different object managers like **ODM** and **ORM**. The main purpose
+to use single listeners for different object managers like **ODM** and **ORM**. The main purpose
 of this component is to make it easy to implement specific listeners and their additional mapping
 drivers. It's achieved mostly by using and extending FSi Metadata component.
 
-## Tutorial on creation of mapped extension ##
+## Creating a mapped extension ##
 
 First, lets asume we will use ``Extension`` namespace for our additional
 extension library. You should create an ``Extension`` directory in your library
@@ -48,8 +48,8 @@ Now lets create some files which are necessary for our extension:
 directory. And **Driver** directory should be named as ``Driver``. These are the conventions
 of **Mapping** extension.
 
-That is all we will need for now. As you may noticed we will create an encoding
-listener which could encode your fields by specified annotations. In real life it
+That is all we will need for now. As you may have noticed, we will create an encoding
+listener which will encode your fields by specified annotations. In real life it
 may not be useful since object will not know how to match the value.
 
 ## Define available annotations and setup drivers ##
@@ -128,10 +128,11 @@ class Annotation extends AbstractAnnotationDriver
 ```
 
 A little explanation about ``$extendedClassMetadata`` argument is needed here. Interface for ``loadExtendedClassMetadata()``
-method requires it implement ``FSi\Component\Metadata\ClassMetadataInterface`` but specfic extension can define any custom
-class implementing this interface and place it as ``Mapping\ClassMetadata`` in the extension's namespace. In our example it
-would be ``Extension\Encoder\Mapping\ClassMetadata``. When such a class is not defined then the standard
-``FSi\Component\Metadata\ClassMetadata`` will be used. It should be powerfull enough in most cases.
+method requires a parameter implementing ``FSi\Component\Metadata\ClassMetadataInterface``, but specfic extension can
+define any custom class implementing this interface and place it as ``Mapping\ClassMetadata`` in the
+extension's namespace. In our example it would be ``Extension\Encoder\Mapping\ClassMetadata``.
+When such a class is not defined then the standard ``FSi\Component\Metadata\ClassMetadata``
+will be used. It should be powerful enough for most cases.
 
 ## Finally, let's create the listener ##
 
@@ -264,7 +265,7 @@ class User
 }
 ```
 
-If you will try to create a new ``User`` you will get encoded fields in database.
+Now if you create a new ``User``, you will get encoded fields in database.
 
 **Notice:** event adapter uses ``EventArgs`` to recognize with which manager
 we are dealing with. It also uses event arguments to retrieve manager and transforms

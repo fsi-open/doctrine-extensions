@@ -8,10 +8,11 @@ Documentation for each extension can be found in ``/doc`` folder:
 - [doc/translatable.md](doc/translatable.md) - *Translatable*
 - [doc/uploadable.md](doc/uploadable.md) - *Uploadable*
 
-## 1. Download Doctrine Extensions
+## Installation
 
-Add to composer.json
-```
+Add this line to composer.json:
+
+```json
     "require": {
         "fsi/doctrine-extensions": "~1.1"
     }

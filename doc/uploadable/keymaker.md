@@ -2,7 +2,7 @@
 
 ## Keymaker
 
-Uploadable comes with default keymaker.
+The Uploadable component comes a with default keymaker called `Entity`:
 
 ```php
 <?php
@@ -12,7 +12,9 @@ use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 $keymaker = new Entity();
 ```
 
-You can use it as default keymaker (as described in uploadable documentation), or explicitely per field. Either way you can always set `pattern` for keymaker:
+You can use it either as the default keymaker (as described in uploadable documentation),
+or explicitely per field. Should you want to, you can provide the `keyPattern`
+parameter directly in the definition.
 
 ```php
 <?php
@@ -41,19 +43,21 @@ class User
 }
 ```
 
-Specified `keyPattern` will be passed to keymaker during key generation, so you can control that process.
+Here's how the `/{fqcn}/{property}/{original_name}` pattern will be created:
 
-Some variables will be replaced:
-* {fqcn} - Fully qualified class name **without** slashes, so `Acme\DemoBundle\Bundle\Entity\User` will become `AcmeDemoBundleBundleEntityUser`.
-* {property} - Property name, in example above it would be `field` and `field2`.
-* {id} - Identity of entity.
-* {original_name} - Name of file.
+* {fqcn} - is a fully qualified class name **without** slashes, so `Acme\DemoBundle\Bundle\Entity\User` will become `AcmeDemoBundleBundleEntityUser`.
+* {property} - is the property name, in example above it would be `field` and `field2`.
+* {id} - is the identity of entity.
+* {original_name} - is the original name of the file.
 
-Others variables as well as consts (numbers, slashes etc) will be ignored.
+Others variables, as well as constants (numbers, slashes etc), will be ignored.
 
-Default `keyPattern` for `FSi\DoctrineExtensions\Uploadable\Keymaker\Entity` is `/{fqcn}/{property}/{id}/{original_name}`.
+The default `keyPattern` for `FSi\DoctrineExtensions\Uploadable\Keymaker\Entity` is `/{fqcn}/{property}/{id}/{original_name}`.
 
-**Heads up!** With keyPattern it's easy to make situation when uploadable extension can't generate unique key, so please be carefull with this option.
+**Heads up!** With `keyPattern` it's easy to make situation when uploadable extension can't generate unique key, so please be carefull with this option.
 
 ## Transliterate Keymaker
-A new keymaker has been added, `FSi\DoctrineExtensions\Uploadable\Keymaker\TransliterateEntity`, providing support for striping all problematic special characters, replacing spaces with '-', as well as translating non-lating characters to lowercase latin. It requires the [PHP Intl extension](http://php.net/manual/en/intl.installation.php) in order to function.
+A new keymaker has been added, `FSi\DoctrineExtensions\Uploadable\Keymaker\TransliterateEntity`,
+ providing support for striping all problematic special characters, replacing spaces with '-', 
+as well as translating non-lating characters to lowercase latin. It requires the 
+[PHP Intl extension](http://php.net/manual/en/intl.installation.php) in order to function.

@@ -1,6 +1,6 @@
 # Uploadable - Uploadable behavioral extension for Doctrine 2
 
-**Uploadable** will automate for you storing files as a field of entity.
+**Uploadable** will automate storing files as a field of entity.
 
 Features:
 - it uses Gaufrette in background (https://github.com/KnpLabs/Gaufrette) so you can use all of its adapters (local. amazon s3, opencloud and many more)
@@ -80,14 +80,14 @@ You can find documentation to keymaker shipped with uploadable extension here [/
 ## Uploadable options
 
 - **targetField** - Required. Attribute of entity, the file object will be loaded to.
-- **filesystem** - Filesystem name. If not set, default filesystem will be chosen.
+- **filesystem** - Filesystem name. If not set, the default filesystem will be chosen.
 - **keymaker** - Strategy for creating file keys, null by default. Instance of `FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface`
 - **keyLength** - Allowed key length, 255 by default.
-- **keyPattern** - Pattern of key. Depend on keymaker, can contain replaceable variables.
+- **keyPattern** - Pattern of key. Depends on the keymaker, can contain replaceable variables.
 
 ## Simple entity annotations and usage example
 
-Here is an example of an entity with uploadable property:
+Here is an example of an entity with an uploadable property:
 
 ```php
 <?php
@@ -245,7 +245,7 @@ $file2->exists(); // false
 
 ## Update of content
 
-If file is already attached, you can modify file directly.
+If file is already attached, you can modify it directly.
 
 ```php
 <?php
