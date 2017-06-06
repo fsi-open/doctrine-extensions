@@ -72,7 +72,7 @@ class ODM implements AdapterInterface
             return $id;
         }
 
-        return array($meta->identifier => $id);
+        return [$meta->identifier => $id];
     }
 
     /**
@@ -85,7 +85,7 @@ class ODM implements AdapterInterface
     public function __call($method, $args)
     {
         $method = str_replace('Object', $this->getDomainObjectName(), $method);
-        return call_user_func_array(array($this->args, $method), $args);
+        return call_user_func_array([$this->args, $method], $args);
     }
 
     /**

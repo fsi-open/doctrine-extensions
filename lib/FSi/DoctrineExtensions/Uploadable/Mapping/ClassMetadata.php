@@ -16,7 +16,7 @@ class ClassMetadata extends AbstractClassMetadata
     /**
      * @var array
      */
-    protected $uploadableProperties = array();
+    protected $uploadableProperties = [];
 
     /**
      * Set specified property as uploadable.
@@ -30,13 +30,13 @@ class ClassMetadata extends AbstractClassMetadata
      */
     public function addUploadableProperty($property, $targetField, $filesystem = null, $keymaker = null, $keyLength = null, $keyPattern = null)
     {
-        $this->uploadableProperties[$property] = array(
+        $this->uploadableProperties[$property] = [
             'targetField' => $targetField,
             'filesystem' => $filesystem,
             'keymaker' => $keymaker,
             'keyLength' => $keyLength,
             'keyPattern' => $keyPattern,
-        );
+        ];
     }
 
     /**

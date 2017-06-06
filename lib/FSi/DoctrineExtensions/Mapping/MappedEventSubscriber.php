@@ -37,14 +37,14 @@ abstract class MappedEventSubscriber implements EventSubscriber
      *
      * @var \FSi\DoctrineExtensions\Mapping\ExtensionMetadataFactory[]
      */
-    private $extensionMetadataFactory = array();
+    private $extensionMetadataFactory = [];
 
     /**
      * List of event adapters used for this listener.
      *
      * @var array
      */
-    private $adapters = array();
+    private $adapters = [];
 
     /**
      * Custom annotation reader.
@@ -116,7 +116,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
     protected function getEventAdapter(EventArgs $args)
     {
         $class = get_class($args);
-        if (preg_match('@Doctrine\\\([^\\\]+)@', $class, $m) && in_array($m[1], array('ODM', 'ORM'))) {
+        if (preg_match('@Doctrine\\\([^\\\]+)@', $class, $m) && in_array($m[1], ['ODM', 'ORM'])) {
             if (!isset($this->adapters[$m[1]])) {
                 $adapterClass = $this->getNamespace() . '\\Mapping\\Event\\Adapter\\' . $m[1];
                 if (!class_exists($adapterClass)) {

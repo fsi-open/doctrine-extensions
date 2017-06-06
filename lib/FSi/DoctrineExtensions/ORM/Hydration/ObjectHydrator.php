@@ -27,7 +27,7 @@ class ObjectHydrator extends AbstractHydrator
      *
      * @var array
      */
-    private $ce = array();
+    private $ce = [];
 
     /* The following parts are reinitialized on every hydration run. */
 
@@ -54,17 +54,17 @@ class ObjectHydrator extends AbstractHydrator
     /**
      * @var array
      */
-    private $rootAliases = array();
+    private $rootAliases = [];
 
     /**
      * @var array
      */
-    private $initializedCollections = array();
+    private $initializedCollections = [];
 
     /**
      * @var array
      */
-    private $existingCollections = array();
+    private $existingCollections = [];
 
     /**
      * @var PostHydrateEventDispatcher
@@ -84,10 +84,10 @@ class ObjectHydrator extends AbstractHydrator
         parent::onClear($eventArgs);
 
         $aliases = array_keys($this->identifierMap);
-        $this->identifierMap = array();
+        $this->identifierMap = [];
 
         foreach ($aliases as $alias) {
-            $this->identifierMap[$alias] = array();
+            $this->identifierMap[$alias] = [];
         }
     }
 
@@ -96,9 +96,9 @@ class ObjectHydrator extends AbstractHydrator
      */
     protected function prepare()
     {
-        $this->identifierMap = array();
-        $this->resultPointers = array();
-        $this->idTemplate = array();
+        $this->identifierMap = [];
+        $this->resultPointers = [];
+        $this->idTemplate = [];
 
         $this->resultCounter = 0;
         $this->postHydrateEventDispatcher = new PostHydrateEventDispatcher($this->_em, $this->_hints);
@@ -108,7 +108,7 @@ class ObjectHydrator extends AbstractHydrator
         }
 
         foreach ($this->_rsm->aliasMap as $dqlAlias => $className) {
-            $this->identifierMap[$dqlAlias] = array();
+            $this->identifierMap[$dqlAlias] = [];
             $this->idTemplate[$dqlAlias] = '';
 
             if (!isset($this->ce[$className])) {
@@ -168,7 +168,7 @@ class ObjectHydrator extends AbstractHydrator
         $this->identifierMap =
         $this->initializedCollections =
         $this->existingCollections =
-        $this->resultPointers = array();
+        $this->resultPointers = [];
 
         unset($this->postHydrateEventDispatcher);
 
@@ -182,8 +182,8 @@ class ObjectHydrator extends AbstractHydrator
      */
     protected function hydrateAllData()
     {
-        $result = array();
-        $cache = array();
+        $result = [];
+        $cache = [];
 
         while ($row = $this->_stmt->fetch(PDO::FETCH_ASSOC)) {
             $this->hydrateRowData($row, $cache, $result);
@@ -226,7 +226,7 @@ class ObjectHydrator extends AbstractHydrator
     {
         // Initialize
         $id = $this->idTemplate; // initialize the id-memory
-        $nonemptyComponents = array();
+        $nonemptyComponents = [];
         // Split the row data into chunks of class data.
         $rowData = $this->gatherRowData($row, $cache, $id, $nonemptyComponents);
 
@@ -386,7 +386,7 @@ class ObjectHydrator extends AbstractHydrator
                 // if this row has a NULL value for the root result id then make it a null result.
                 if (!isset($nonemptyComponents[$dqlAlias]) ) {
                     if ($this->_rsm->isMixed) {
-                        $result[] = array($entityKey => null);
+                        $result[] = [$entityKey => null];
                     } else {
                         $result[] = null;
                     }
@@ -400,7 +400,7 @@ class ObjectHydrator extends AbstractHydrator
                     $element = $this->getEntity($rowData[$dqlAlias], $dqlAlias);
 
                     if ($this->_rsm->isMixed) {
-                        $element = array($entityKey => $element);
+                        $element = [$entityKey => $element];
                     }
 
                     if (isset($this->_rsm->indexByMap[$dqlAlias])) {

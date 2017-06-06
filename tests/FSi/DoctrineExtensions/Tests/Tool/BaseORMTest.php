@@ -119,7 +119,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
 
         $config->expects($this->any())
             ->method('getDefaultQueryHints')
-            ->will($this->returnValue(array()));
+            ->will($this->returnValue([]));
 
         $config->expects($this->any())
             ->method('getRepositoryFactory')
@@ -162,20 +162,20 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $this->_filesystem1 = new Filesystem(new Local(FILESYSTEM1));
         $this->_filesystem2 = new Filesystem(new Local(FILESYSTEM2));
 
-        $handler = new FileHandler\ChainHandler(array(
+        $handler = new FileHandler\ChainHandler([
             new FileHandler\GaufretteHandler(),
             new FileHandler\SplFileInfoHandler(),
-        ));
+        ]);
         $keymaker = new Entity();
-        $this->_uploadableListener = new UploadableListener(array('one' => $this->_filesystem1, 'two' => $this->_filesystem2), $handler);
+        $this->_uploadableListener = new UploadableListener(['one' => $this->_filesystem1, 'two' => $this->_filesystem2], $handler);
         $this->_uploadableListener->setDefaultFilesystem($this->_filesystem1);
         $this->_uploadableListener->setDefaultKeymaker($keymaker);
         $evm->addEventSubscriber($this->_uploadableListener);
 
-        $connectionParams = array(
+        $connectionParams = [
             'driver' => 'pdo_sqlite',
             'memory' => true,
-        );
+        ];
 
         $config = $this->getMockAnnotatedConfig();
         $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config, $evm);

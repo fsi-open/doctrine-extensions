@@ -28,18 +28,18 @@ class ChainHandlerTest extends BaseHandlerTest
     public function testInitializableWithoutHandlers()
     {
         new ChainHandler();
-        new ChainHandler(array());
+        new ChainHandler([]);
     }
 
     public function testIsNotInitializableWithWrongHandlers2()
     {
         $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new ChainHandler(array('not handler'));
+        new ChainHandler(['not handler']);
     }
 
     public function testIsInitializableWithHandlers()
     {
-        new ChainHandler(array($this->getHandlerMock()));
+        new ChainHandler([$this->getHandlerMock()]);
     }
 
     public function testPassesCallToHandlersInProperOrder()
@@ -119,7 +119,7 @@ class ChainHandlerTest extends BaseHandlerTest
         // Fourth handler should never be reached, since third supports input.
         $four->expects($this->never())->method($this->anything());
 
-        $handler = new ChainHandler(array($one, $two, $three, $four));
+        $handler = new ChainHandler([$one, $two, $three, $four]);
         $this->assertTrue($handler->supports($input));
         $this->assertEquals($name, $handler->getName($input));
         $this->assertEquals($result, $handler->getContent($input));

@@ -76,18 +76,18 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
     private function validateFile(DOMDocument $dom)
     {
         // Schemas for validation.
-        $schemaLocations = array(
+        $schemaLocations = [
             'http://fsi.pl/schemas/orm/doctrine-extensions-mapping' => realpath(__DIR__ . '/../../../../../doctrine-extensions-mapping.xsd'),
             'http://doctrine-project.org/schemas/orm/doctrine-mapping' => $this->getDoctrineSchemePath(),
-        );
+        ];
 
         // Elements from unknown namespaces are removed before validation.
-        $known = array(
+        $known = [
             'http://fsi.pl/schemas/orm/doctrine-extensions-mapping',
             'http://doctrine-project.org/schemas/orm/doctrine-mapping',
             'http://www.w3.org/XML/1998/namespace',
             'http://www.w3.org/2001/XMLSchema-instance',
-        );
+        ];
         $xpath = new DOMXPath($dom);
         foreach ($xpath->query('namespace::*', $dom->documentElement) as $xmlns) {
             if (in_array($xmlns->nodeValue, $known)) {

@@ -22,7 +22,7 @@ class ClassMetadata extends AbstractClassMetadata
     /**
      * @var array
      */
-    protected $translatableProperties = array();
+    protected $translatableProperties = [];
 
     /**
      * Add specified property as translatable. The real translation is stored in $targetField inside
@@ -38,7 +38,7 @@ class ClassMetadata extends AbstractClassMetadata
             $targetField = $property;
         }
         if (!isset($this->translatableProperties[$translationAssociation])) {
-            $this->translatableProperties[$translationAssociation] = array();
+            $this->translatableProperties[$translationAssociation] = [];
         }
         $this->translatableProperties[$translationAssociation][$property] = $targetField;
     }
@@ -68,7 +68,7 @@ class ClassMetadata extends AbstractClassMetadata
      */
     public function getTranslationAssociationMetadatas()
     {
-        $metadatas = array();
+        $metadatas = [];
 
         foreach ($this->getTranslatableProperties() as $association => $properties) {
             $metadatas[] = new TranslationAssociationMetadata($this, $association, $properties);

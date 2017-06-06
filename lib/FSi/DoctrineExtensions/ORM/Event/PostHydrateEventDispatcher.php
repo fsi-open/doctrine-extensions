@@ -36,14 +36,14 @@ class PostHydrateEventDispatcher
      *
      * @var array
      */
-    private $hints = array();
+    private $hints = [];
 
     /**
      * Entities enqueued for postHydrate dispatching
      *
      * @var array
      */
-    private $entities = array();
+    private $entities = [];
 
     /**
      * Constructs a new dispatcher instance
@@ -51,7 +51,7 @@ class PostHydrateEventDispatcher
      * @param EntityManager $em
      * @param array $hints
      */
-    public function __construct(EntityManager $em, array $hints = array())
+    public function __construct(EntityManager $em, array $hints = [])
     {
         $this->entityManager = $em;
         $this->metadataFactory = $em->getMetadataFactory();
@@ -76,7 +76,7 @@ class PostHydrateEventDispatcher
             $this->eventManager->dispatchEvent(Events::postHydrate, new LifecycleEventArgs($entity, $this->entityManager));
         } else {
             if (!isset($this->entities[$className])) {
-                $this->entities[$className] = array();
+                $this->entities[$className] = [];
             }
 
             $this->entities[$className][] = $entity;

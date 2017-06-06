@@ -65,7 +65,7 @@ class ORM implements AdapterInterface
             $id = $em->getUnitOfWork()->getEntityIdentifier($object);
         } else {
             $meta = $em->getClassMetadata(get_class($object));
-            $id = array();
+            $id = [];
             foreach ($meta->identifier as $name) {
                 $id[$name] = ReflectionProperty::factory($meta->name, $name)->getValue($object);
                 // return null if one of identifiers is missing
@@ -91,7 +91,7 @@ class ORM implements AdapterInterface
     public function __call($method, $args)
     {
         $method = str_replace('Object', $this->getDomainObjectName(), $method);
-        return call_user_func_array(array($this->args, $method), $args);
+        return call_user_func_array([$this->args, $method], $args);
     }
 
     /**

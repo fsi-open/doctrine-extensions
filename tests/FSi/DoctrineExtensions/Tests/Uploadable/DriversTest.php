@@ -23,12 +23,12 @@ class DriversTest extends \PHPUnit_Framework_TestCase
     {
         $base = 'FSi\\DoctrineExtensions\\Uploadable\\Mapping\\Driver\\';
 
-        return array(
-            array($base . 'Xml'),
-            array($base . 'Yaml'),
-            array($base . 'Annotation'),
-            array($base . 'SimplifiedXml'),
-            array($base . 'SimplifiedYaml'),
-        );
+        return [
+            [$base . 'Xml'],
+            [$base . 'Yaml'],
+            [$base . 'Annotation'],
+            [$base . 'SimplifiedXml'],
+            [$base . 'SimplifiedYaml'],
+        ];
     }
 }

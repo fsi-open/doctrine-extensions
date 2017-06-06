@@ -103,11 +103,11 @@ class TranslatableListener extends MappedEventSubscriber
      */
     public function getSubscribedEvents()
     {
-        return array(
+        return [
             'postLoad',
             'postHydrate',
             'preFlush'
-        );
+        ];
     }
 
     /**

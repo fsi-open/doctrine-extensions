@@ -74,11 +74,11 @@ class InheritanceTest extends BaseORMTest
      */
     protected function getUsedEntityFixtures()
     {
-        return array(
+        return [
             self::PAGE,
             self::EXCERPT_PAGE,
             self::EVENT_PAGE,
             self::PROMOTION_PAGE
-        );
+        ];
     }
 }

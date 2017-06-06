@@ -722,12 +722,12 @@ class ListenerTest extends BaseTranslatableTest
 
     protected function getUsedEntityFixtures()
     {
-        return array(
+        return [
             self::CATEGORY,
             self::SECTION,
             self::COMMENT,
             self::ARTICLE,
             self::ARTICLE_TRANSLATION
-        );
+        ];
     }
 }

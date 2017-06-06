@@ -35,7 +35,7 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * @var array
      */
-    protected $filesystems = array();
+    protected $filesystems = [];
 
     /**
      * @var Filesystem
@@ -57,7 +57,7 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * @var array
      */
-    protected $toDelete = array();
+    protected $toDelete = [];
 
     /**
      * @var \FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface
@@ -84,7 +84,7 @@ class UploadableListener extends MappedEventSubscriber
      */
     public function setFilesystems($filesystems)
     {
-        $this->filesystems = array();
+        $this->filesystems = [];
 
         if ($filesystems instanceof FilesystemMap) {
             $filesystems = $filesystems->all();
@@ -132,13 +132,13 @@ class UploadableListener extends MappedEventSubscriber
      */
     public function getSubscribedEvents()
     {
-        return array(
+        return [
             'preFlush',
             'postLoad',
             'postPersist',
             'postFlush',
             'postRemove',
-        );
+        ];
     }
 
     /**

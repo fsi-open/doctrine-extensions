@@ -27,9 +27,9 @@ class GeneralAnnotationTest extends GeneralTest
 
     public static function wrongClasses()
     {
-        $classes = array();
+        $classes = [];
         for ($i = 1; $i < 11; $i++) {
-            $classes[] = array(self::BASE . 'User' . $i);
+            $classes[] = [self::BASE . 'User' . $i];
         }
         return $classes;
     }
@@ -49,8 +49,8 @@ class GeneralAnnotationTest extends GeneralTest
      */
     protected function getUsedEntityFixtures()
     {
-        return array(
+        return [
             self::USER,
-        );
+        ];
     }
 }

@@ -18,13 +18,13 @@ class QueryBuilderTest extends BaseTranslatableTest
 {
     protected function getUsedEntityFixtures()
     {
-        return array(
+        return [
             self::CATEGORY,
             self::SECTION,
             self::COMMENT,
             self::ARTICLE,
             self::ARTICLE_TRANSLATION
-        );
+        ];
     }
 
     public function testJoinTranslationWithWrongJoinType()
@@ -511,7 +511,7 @@ class QueryBuilderTest extends BaseTranslatableTest
         $comment1->setId(1);
         $comment2 = new Comment();
         $comment2->setId(2);
-        $whereComments = array($comment1, $comment2);
+        $whereComments = [$comment1, $comment2];
 
         $qb = new QueryBuilder($this->_em);
         $qb->select('a');
@@ -549,7 +549,7 @@ class QueryBuilderTest extends BaseTranslatableTest
         $category1->setId(1);
         $category2 = new Category();
         $category2->setId(2);
-        $whereCategories = array($category1, $category2);
+        $whereCategories = [$category1, $category2];
 
         $qb = new QueryBuilder($this->_em);
         $qb->select('a');
@@ -650,7 +650,7 @@ class QueryBuilderTest extends BaseTranslatableTest
         $comment1->setId(1);
         $comment2 = new Comment();
         $comment2->setId(2);
-        $whereComments = array($comment1, $comment2);
+        $whereComments = [$comment1, $comment2];
 
         $qb = new QueryBuilder($this->_em);
         $qb->select('a');
@@ -777,7 +777,7 @@ class QueryBuilderTest extends BaseTranslatableTest
         $comment1->setId(1);
         $comment2 = new Comment();
         $comment2->setId(2);
-        $whereComments = array($comment1, $comment2);
+        $whereComments = [$comment1, $comment2];
 
         $qb = new QueryBuilder($this->_em);
         $qb->select('a');
