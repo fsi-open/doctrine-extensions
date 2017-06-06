@@ -730,5 +730,4 @@ class ListenerTest extends BaseTranslatableTest
             self::ARTICLE_TRANSLATION
         );
     }
-
 }

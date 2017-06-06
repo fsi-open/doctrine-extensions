@@ -23,7 +23,7 @@ use Doctrine\ORM\Proxy\Proxy;
 class ORM implements AdapterInterface
 {
     /**
-     * @var \Doctrine\Common\EventArgs;
+     * @var EventArgs;
      */
     private $args;
 

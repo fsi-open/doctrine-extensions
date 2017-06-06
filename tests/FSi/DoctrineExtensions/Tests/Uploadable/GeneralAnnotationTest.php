@@ -33,6 +33,7 @@ class GeneralAnnotationTest extends GeneralTest
         }
         return $classes;
     }
+
     /**
      * {@inheritdoc}
      *

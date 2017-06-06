@@ -58,9 +58,6 @@ class GaufretteHandlerTest extends BaseHandlerTest
         $file = new FSiFile('key2', $filesystem1);
         $file->setContent(self::CONTENT);
 
-        return array(
-            array($gaufrette),
-            array($file),
-        );
+        return array(array($gaufrette), array($file));
     }
 }

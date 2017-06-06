@@ -21,7 +21,7 @@ class TranslatableWithoutTranslations
      * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @var integer $id
+     * @var integer
      */
     private $id;
 
@@ -38,7 +38,6 @@ class TranslatableWithoutTranslations
     private $locale;
 
     /**
-     * Get id
      * @return integer
      */
     public function getId()

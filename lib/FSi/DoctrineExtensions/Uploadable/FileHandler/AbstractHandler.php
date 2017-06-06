@@ -14,7 +14,7 @@ use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 abstract class AbstractHandler implements FileHandlerInterface
 {
     /**
-     * @param $file
+     * @param mixed $file
      * @return \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
     protected function generateNotSupportedException($file)

@@ -21,17 +21,17 @@ interface AdapterInterface
      *
      * @param \Doctrine\Common\EventArgs $args
      */
-    function setEventArgs(EventArgs $args);
+    public function setEventArgs(EventArgs $args);
 
     /**
      * Get the name of domain object
      *
      * @return string
      */
-    function getDomainObjectName();
+    public function getDomainObjectName();
 
     /**
      * Get the name of used manager for this event adapter.
      */
-    function getManagerName();
+    public function getManagerName();
 }

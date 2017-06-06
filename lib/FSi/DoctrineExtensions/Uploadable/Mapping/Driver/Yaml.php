@@ -28,7 +28,11 @@ class Yaml extends AbstractYamlDriver
                 if (isset($config['fsi']) && is_array($config['fsi']) && isset($config['fsi']['uploadable'])) {
                     $uploadable = $config['fsi']['uploadable'];
                     if (!is_array($uploadable)) {
-                        throw new MappingException(sprintf('Wrong "uploadable" format for "%s" field in "%s" entity.', $field, $extendedClassMetadata->getClassName()));
+                        throw new MappingException(sprintf(
+                            'Wrong "uploadable" format for "%s" field in "%s" entity.',
+                            $field,
+                            $extendedClassMetadata->getClassName()
+                        ));
                     }
                     $extendedClassMetadata->addUploadableProperty(
                         $field,

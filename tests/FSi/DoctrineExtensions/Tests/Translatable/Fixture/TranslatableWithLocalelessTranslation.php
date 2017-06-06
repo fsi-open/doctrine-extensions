@@ -50,7 +50,6 @@ class TranslatableWithLocalelessTranslation
     }
 
     /**
-     * Get id
      * @return integer
      */
     public function getId()

@@ -58,8 +58,7 @@ class ChainHandlerTest extends BaseHandlerTest
         $contentCounter = 0;
         $that = $this;
 
-        $one
-            ->expects($this->any())
+        $one->expects($this->any())
             ->method('supports')
             ->with($input)
             ->will($this->returnCallback(
@@ -71,8 +70,7 @@ class ChainHandlerTest extends BaseHandlerTest
             ))
         ;
 
-        $two
-            ->expects($this->any())
+        $two->expects($this->any())
             ->method('supports')
             ->with($input)
             ->will($this->returnCallback(
@@ -84,8 +82,7 @@ class ChainHandlerTest extends BaseHandlerTest
             ))
         ;
 
-        $three
-            ->expects($this->any())
+        $three->expects($this->any())
             ->method('supports')
             ->with($input)
             ->will($this->returnCallback(
@@ -96,8 +93,7 @@ class ChainHandlerTest extends BaseHandlerTest
                 }
             ))
         ;
-        $three
-            ->expects($this->once())
+        $three->expects($this->once())
             ->method('getName')
             ->with($input)
             ->will($this->returnCallback(
@@ -108,8 +104,7 @@ class ChainHandlerTest extends BaseHandlerTest
                 }
             ))
         ;
-        $three
-            ->expects($this->once())
+        $three->expects($this->once())
             ->method('getContent')
             ->with($input)
             ->will($this->returnCallback(
@@ -122,10 +117,7 @@ class ChainHandlerTest extends BaseHandlerTest
         ;
 
         // Fourth handler should never be reached, since third supports input.
-        $four
-            ->expects($this->never())
-            ->method($this->anything())
-        ;
+        $four->expects($this->never())->method($this->anything());
 
         $handler = new ChainHandler(array($one, $two, $three, $four));
         $this->assertTrue($handler->supports($input));

@@ -23,7 +23,7 @@ use Doctrine\ODM\MongoDB\Proxy\Proxy;
 class ODM implements AdapterInterface
 {
     /**
-     * @var \Doctrine\Common\EventArgs
+     * @var EventArgs
      */
     private $args;
 
@@ -70,9 +70,9 @@ class ODM implements AdapterInterface
 
         if ($single || !$id) {
             return $id;
-        } else {
-            return array($meta->identifier => $id);
         }
+
+        return array($meta->identifier => $id);
     }
 
     /**

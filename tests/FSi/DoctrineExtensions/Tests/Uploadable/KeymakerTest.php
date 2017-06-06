@@ -44,7 +44,10 @@ class KeymakerTest extends \PHPUnit_Framework_TestCase
         return array(
             array(null, '/FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::PROPERTY . '/' . self::ID . '/' . self::ORIGINAL_NAME),
             array('{fqcn}/{id}/constant', 'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::ID . '/constant'),
-            array('{fqcn}/{property}/{wrong_tag}/{id}/{original_name}', 'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::PROPERTY . '/{wrong_tag}/' . self::ID . '/' . self::ORIGINAL_NAME),
+            array(
+                '{fqcn}/{property}/{wrong_tag}/{id}/{original_name}',
+                'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::PROPERTY . '/{wrong_tag}/' . self::ID . '/' . self::ORIGINAL_NAME
+            ),
         );
     }
 }

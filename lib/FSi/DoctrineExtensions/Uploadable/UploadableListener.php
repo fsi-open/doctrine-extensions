@@ -20,12 +20,10 @@ use FSi\DoctrineExtensions\Mapping\Event\AdapterInterface;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
-use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use Gaufrette\Filesystem;
 use Gaufrette\FilesystemMap;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Doctrine\ORM\Proxy\Proxy;
 
 class UploadableListener extends MappedEventSubscriber
 {
@@ -239,7 +237,7 @@ class UploadableListener extends MappedEventSubscriber
         $unitOfWork = $entityManager->getUnitOfWork();
         $eventAdapter = $this->getEventAdapter($eventArgs);
 
-        foreach ($unitOfWork->getIdentityMap() as $class => $entities) {
+        foreach ($unitOfWork->getIdentityMap() as $entities) {
             foreach ($entities as $object) {
                 $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
                 if (!$uploadableMeta->hasUploadableProperties()) {
@@ -388,7 +386,9 @@ class UploadableListener extends MappedEventSubscriber
         $id = implode('-', $id);
 
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            if (!$propertyObserver->hasSavedValue($object, $config['targetField']) || $propertyObserver->hasValueChanged($object, $config['targetField'])) {
+            if (!$propertyObserver->hasSavedValue($object, $config['targetField'])
+                || $propertyObserver->hasValueChanged($object, $config['targetField'])
+            ) {
                 $accessor = PropertyAccess::createPropertyAccessor();
                 $file = $accessor->getValue($object, $config['targetField']);
 
@@ -408,7 +408,10 @@ class UploadableListener extends MappedEventSubscriber
                 }
 
                 if (!$this->getFileHandler()->supports($file)) {
-                    throw new RuntimeException(sprintf('Can\'t handle resource of type "%s".', is_object($file) ? get_class($file) : gettype($file)));
+                    throw new RuntimeException(sprintf(
+                        'Can\'t handle resource of type "%s".',
+                        is_object($file) ? get_class($file) : gettype($file)
+                    ));
                 }
 
                 $keymaker = $this->computeKeymaker($config);
@@ -438,7 +441,8 @@ class UploadableListener extends MappedEventSubscriber
     protected function deleteFiles($uploadableMeta, $object)
     {
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            if ($oldKey = PropertyAccess::createPropertyAccessor()->getValue($object, $property)) {
+            $oldKey = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
+            if ($oldKey) {
                 $this->addToDelete(new File($oldKey, $this->computeFilesystem($config)));
             }
         }
@@ -466,30 +470,59 @@ class UploadableListener extends MappedEventSubscriber
     {
         foreach ($extendedClassMetadata->getUploadableProperties() as $field => $options) {
             if (empty($options['targetField'])) {
-                throw new MappingException(sprintf('Mapping "Uploadable" in property "%s" of class "%s" does not have required "targetField" attribute, or attribute is empty.', $field, $baseClassMetadata->name));
+                throw new MappingException(sprintf(
+                    'Mapping "Uploadable" in property "%s" of class "%s" does not have required "targetField" attribute, or attribute is empty.',
+                    $field,
+                    $baseClassMetadata->name
+                ));
             }
 
             if (!property_exists($baseClassMetadata->name, $options['targetField'])) {
-                throw new MappingException(sprintf('Mapping "Uploadable" in property "%s" of class "%s" has "targetField" set to "%s", which doesn\'t exist.', $field, $baseClassMetadata->name, $options['targetField']));
+                throw new MappingException(sprintf(
+                    'Mapping "Uploadable" in property "%s" of class "%s" has "targetField" set to "%s", which doesn\'t exist.',
+                    $field,
+                    $baseClassMetadata->name,
+                    $options['targetField']
+                ));
             }
 
             if ($baseClassMetadata->hasField($options['targetField'])) {
-                throw new MappingException(sprintf('Mapping "Uploadable" in property "%s" of class "%s" have "targetField" that points at already mapped field ("%s").', $field, $baseClassMetadata->name, $options['targetField']));
+                throw new MappingException(sprintf(
+                    'Mapping "Uploadable" in property "%s" of class "%s" have "targetField" that points at already mapped field ("%s").',
+                    $field,
+                    $baseClassMetadata->name,
+                    $options['targetField']
+                ));
             }
 
             if (!$baseClassMetadata->hasField($field)) {
-                throw new MappingException(sprintf('Property "%s" of class "%s" have mapping "Uploadable" but isn\'t mapped as Doctrine\'s column.', $field, $baseClassMetadata->name, $options['targetField']));
+                throw new MappingException(sprintf(
+                    'Property "%s" of class "%s" have mapping "Uploadable" but isn\'t mapped as Doctrine\'s column.',
+                    $field,
+                    $baseClassMetadata->name,
+                    $options['targetField']
+                ));
             }
 
-            if (!is_null($options['keyLength']) and !is_numeric($options['keyLength'])) {
-                throw new MappingException(sprintf('Property "%s" of class "%s" have mapping "Uploadable" with key length is not a number.', $field, $baseClassMetadata->name, $options['targetField']));
+            if (!is_null($options['keyLength']) && !is_numeric($options['keyLength'])) {
+                throw new MappingException(sprintf(
+                    'Property "%s" of class "%s" have mapping "Uploadable" with key length is not a number.',
+                    $field,
+                    $baseClassMetadata->name,
+                    $options['targetField']
+                ));
             }
 
-            if (!is_null($options['keyLength']) and $options['keyLength'] < 1) {
-                throw new MappingException(sprintf('Property "%s" of class "%s" have mapping "Uploadable" with key length less than 1.', $field, $baseClassMetadata->name, $options['targetField']));
+            if (!is_null($options['keyLength']) && $options['keyLength'] < 1) {
+                throw new MappingException(sprintf(
+                    'Property "%s" of class "%s" have mapping "Uploadable" with key length less than 1.',
+                    $field,
+                    $baseClassMetadata->name,
+                    $options['targetField']
+                ));
             }
 
-            if (!is_null($options['keymaker']) and !$options['keymaker'] instanceof KeymakerInterface) {
+            if (!is_null($options['keymaker']) && !$options['keymaker'] instanceof KeymakerInterface) {
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" does have keymaker that isn\'t instance of expected FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface ("%s" given).',
                     $field,
@@ -560,8 +593,14 @@ class UploadableListener extends MappedEventSubscriber
     private function generateNewKey(KeymakerInterface $keymaker, $object, $property, $id, $fileName, $keyLength, $keyPattern, Filesystem $filesystem)
     {
         while ($filesystem->has($newKey = $keymaker->createKey($object, $property, $id, $fileName, $keyPattern))) {
-            if ($match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches)) {
-                $fileName = sprintf('%s_%s%s', $matches[1], strval($matches[2] + 1), isset($matches[3])?$matches[3]:'');
+            $match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches);
+            if ($match) {
+                $fileName = sprintf(
+                    '%s_%s%s',
+                    $matches[1],
+                    strval($matches[2] + 1),
+                    isset($matches[3]) ? $matches[3] : ''
+                );
             } else {
                 $fileParts = explode('.', $fileName);
                 if (count($fileParts) > 1) {
@@ -574,7 +613,11 @@ class UploadableListener extends MappedEventSubscriber
         }
 
         if (mb_strlen($newKey) > $keyLength) {
-            throw new RuntimeException(sprintf('Generated key exceeded limit of %d characters (had %d characters).', $keyLength, mb_strlen($newKey)));
+            throw new RuntimeException(sprintf(
+                'Generated key exceeded limit of %d characters (had %d characters).',
+                $keyLength,
+                mb_strlen($newKey)
+            ));
         }
 
         return $newKey;

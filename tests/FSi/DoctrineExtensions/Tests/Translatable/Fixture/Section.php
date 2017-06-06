@@ -10,7 +10,6 @@
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
-use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
@@ -47,7 +46,6 @@ class Section
     }
 
     /**
-     * Get id
      * @return integer
      */
     public function getId()

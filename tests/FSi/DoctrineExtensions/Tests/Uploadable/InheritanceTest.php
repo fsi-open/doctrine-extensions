@@ -12,7 +12,6 @@ namespace FSi\DoctrineExtensions\Tests\Uploadable;
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance\Event;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance\Promotion;
-use FSi\DoctrineExtensions\Uploadable\File;
 
 class InheritanceTest extends BaseORMTest
 {

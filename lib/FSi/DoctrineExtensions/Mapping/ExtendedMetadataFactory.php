@@ -22,7 +22,7 @@ final class ExtendedMetadataFactory extends MetadataFactory
     /**
      * Object manager, entity or document.
      *
-     * @var \Doctrine\Common\Persistence\ObjectManager
+     * @var ObjectManager
      */
     private $objectManager;
 
@@ -68,17 +68,17 @@ final class ExtendedMetadataFactory extends MetadataFactory
      * read the metadata required by extension.
      *
      * @param object $omDriver
-     * @throws \FSi\DoctrineExtensions\Mapping\Exception\RuntimeException if driver was not found in extension or it is not compatible
-     * @return \FSi\DoctrineExtensions\Mapping\Driver\DriverInterface
+     * @throws Exception\RuntimeException if driver was not found in extension or it is not compatible
+     * @return DriverInterface
      */
     private function getDriver($omDriver)
     {
         $driver = null;
         $className = get_class($omDriver);
         $driverName = substr($className, strrpos($className, '\\') + 1);
-        if ($omDriver instanceof DriverChain ||
-            $driverName == 'DriverChain' ||
-            $driverName == 'MappingDriverChain'
+        if ($omDriver instanceof DriverChain
+            || $driverName == 'DriverChain'
+            || $driverName == 'MappingDriverChain'
         ) {
             $driver = new DriverChain();
             foreach ($omDriver->getDrivers() as $namespace => $nestedOmDriver) {
@@ -91,12 +91,17 @@ final class ExtendedMetadataFactory extends MetadataFactory
             if (!class_exists($driverClassName)) {
                 $driverClassName = $this->extensionNamespace . '\Mapping\Driver\Annotation';
                 if (!class_exists($driverClassName)) {
-                    throw new Exception\RuntimeException("Failed to fallback to annotation driver: ({$driverClassName}), extension driver was not found.");
+                    throw new Exception\RuntimeException(
+                        "Failed to fallback to annotation driver: ({$driverClassName}), extension driver was not found."
+                    );
                 }
             }
             $driver = new $driverClassName();
             if (!$driver instanceof DriverInterface) {
-                throw new Exception\RuntimeException(sprintf("Driver of class %s does not implement required FSi\DoctrineExtensions\Mapping\Driver\DriverInterface", get_class($driver)));
+                throw new Exception\RuntimeException(sprintf(
+                    "Driver of class %s does not implement required FSi\DoctrineExtensions\Mapping\Driver\DriverInterface",
+                    get_class($driver)
+                ));
             }
             if ($driver instanceof AbstractFileDriver) {
                 /** @var $driver FileDriver */

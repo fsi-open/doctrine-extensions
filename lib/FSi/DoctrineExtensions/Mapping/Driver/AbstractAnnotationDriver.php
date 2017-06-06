@@ -18,7 +18,7 @@ use FSi\DoctrineExtensions\Mapping\Exception;
 abstract class AbstractAnnotationDriver extends BaseAnnotationDriver implements DriverInterface
 {
     /**
-     * @var \Doctrine\Common\Persistence\Mapping\ClassMetadataFactory
+     * @var ClassMetadataFactory
      */
     private $baseMetadataFactory;
 

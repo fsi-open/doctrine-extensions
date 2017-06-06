@@ -15,12 +15,9 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\Common\Util\Debug;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 use FSi\DoctrineExtensions\Uploadable\UploadableListener;
-use FSi\DoctrineExtensions\Versionable\VersionableListener;
-use FSi\DoctrineExtensions\LoStorage\LoStorageListener;
 use FSi\DoctrineExtensions\Uploadable\FileHandler;
 use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
@@ -81,44 +78,37 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
     protected function getMockAnnotatedConfig()
     {
         $config = $this->getMock('Doctrine\ORM\Configuration');
-        $config
-            ->expects($this->once())
+        $config->expects($this->once())
             ->method('getProxyDir')
             ->will($this->returnValue(TESTS_TEMP_DIR))
         ;
 
-        $config
-            ->expects($this->once())
+        $config->expects($this->once())
             ->method('getProxyNamespace')
             ->will($this->returnValue('Proxy'))
         ;
 
-        $config
-            ->expects($this->once())
+        $config->expects($this->once())
             ->method('getAutoGenerateProxyClasses')
             ->will($this->returnValue(true))
         ;
 
-        $config
-            ->expects($this->once())
+        $config->expects($this->once())
             ->method('getClassMetadataFactoryName')
             ->will($this->returnValue('Doctrine\\ORM\\Mapping\\ClassMetadataFactory'))
         ;
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getMetadataCacheImpl')
             ->will($this->returnValue(new ArrayCache()))
         ;
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getQuoteStrategy')
             ->will($this->returnValue(new \Doctrine\ORM\Mapping\DefaultQuoteStrategy()))
         ;
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getCustomHydrationMode')
             ->will($this->returnCallback(function ($hydrationMode) {
                 if ($hydrationMode == \FSi\DoctrineExtensions\ORM\Query::HYDRATE_OBJECT) {
@@ -127,27 +117,23 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             }))
         ;
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getDefaultQueryHints')
             ->will($this->returnValue(array()));
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getRepositoryFactory')
             ->will($this->returnValue(new DefaultRepositoryFactory()))
         ;
 
         $mappingDriver = $this->getMetadataDriverImplementation();
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getMetadataDriverImpl')
             ->will($this->returnValue($mappingDriver))
         ;
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getDefaultRepositoryClassName')
             ->will($this->returnValue('Doctrine\\ORM\\EntityRepository'))
         ;
@@ -155,8 +141,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $this->_logger = new \Doctrine\DBAL\Logging\DebugStack();
         $this->_logger->enabled = false;
 
-        $config
-            ->expects($this->any())
+        $config->expects($this->any())
             ->method('getSQLLogger')
             ->will($this->returnValue($this->_logger))
         ;
@@ -188,8 +173,8 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         $evm->addEventSubscriber($this->_uploadableListener);
 
         $connectionParams = array(
-            'driver'    => 'pdo_sqlite',
-            'memory'    => true,
+            'driver' => 'pdo_sqlite',
+            'memory' => true,
         );
 
         $config = $this->getMockAnnotatedConfig();
@@ -198,7 +183,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
 
         $schema = array_map(function($class) use ($em) {
             return $em->getClassMetadata($class);
-        }, (array)$this->getUsedEntityFixtures());
+        }, (array) $this->getUsedEntityFixtures());
 
         $schemaTool = new SchemaTool($em);
         $schemaTool->dropSchema($schema);

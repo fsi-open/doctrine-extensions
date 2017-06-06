@@ -10,7 +10,6 @@
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
 use Doctrine\ORM\Query\Expr;
-use FSi\DoctrineExtensions\Exception\InvalidArgumentException;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
 use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder;

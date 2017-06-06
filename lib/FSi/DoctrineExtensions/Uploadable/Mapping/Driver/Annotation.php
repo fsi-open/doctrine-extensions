@@ -10,7 +10,6 @@
 namespace FSi\DoctrineExtensions\Uploadable\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use FSi\Component\Reflection\ReflectionClass;
 use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractAnnotationDriver;
 
@@ -25,14 +24,16 @@ class Annotation extends AbstractAnnotationDriver
     {
         $classReflection = $extendedClassMetadata->getClassReflection();
         foreach ($classReflection->getProperties() as $property) {
-            if ($baseClassMetadata->isMappedSuperclass && !$property->isPrivate() ||
-                $baseClassMetadata->isInheritedField($property->name) ||
-                isset($baseClassMetadata->associationMappings[$property->name]['inherited'])
+            if ($baseClassMetadata->isMappedSuperclass
+                && !$property->isPrivate()
+                || $baseClassMetadata->isInheritedField($property->name)
+                || isset($baseClassMetadata->associationMappings[$property->name]['inherited'])
             ) {
                 continue;
             }
 
-            if ($uploadableAnnotation = $this->getAnnotationReader()->getPropertyAnnotation($property, self::UPLOADABLE)) {
+            $uploadableAnnotation = $this->getAnnotationReader()->getPropertyAnnotation($property, self::UPLOADABLE);
+            if ($uploadableAnnotation) {
                 $extendedClassMetadata->addUploadableProperty(
                     $property->getName(),
                     $uploadableAnnotation->targetField,

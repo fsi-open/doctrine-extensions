@@ -9,8 +9,6 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
-use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use FSi\DoctrineExtensions\Uploadable\UploadableListener;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use Gaufrette\FilesystemMap;

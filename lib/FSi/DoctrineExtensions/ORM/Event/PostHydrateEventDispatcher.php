@@ -17,23 +17,17 @@ use FSi\DoctrineExtensions\ORM\Events;
 class PostHydrateEventDispatcher
 {
     /**
-     * Entity Manager
-     *
-     * @var \Doctrine\ORM\EntityManager
+     * @var EntityManager
      */
     private $entityManager;
 
     /**
-     * Listeners Invoker
-     *
-     * @var \Doctrine\Common\EventManager
+     * @var EventManager
      */
     private $eventManager;
 
     /**
-     * Metadata Factory
-     *
-     * @var \Doctrine\ORM\Mapping\ClassMetadataFactory
+     * @var ClassMetadataFactory
      */
     private $metadataFactory;
 

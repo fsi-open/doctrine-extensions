@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -38,7 +39,7 @@ class Category
 
     public function __construct()
     {
-        $this->articles = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->articles = new ArrayCollection();
     }
 
     /**
@@ -50,7 +51,6 @@ class Category
     }
 
     /**
-     * Get id
      * @return integer
      */
     public function getId()
