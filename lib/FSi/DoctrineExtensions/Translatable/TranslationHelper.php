@@ -58,7 +58,7 @@ class TranslationHelper
         $translationAssociationMeta = $context->getAssociationMetadata();
 
         $locale = $this->getObjectLocale($context, $object);
-        if (!isset($locale)) {
+        if (is_null($locale) || $locale === '') {
             $locale = $defaultLocale;
         }
 
@@ -81,16 +81,14 @@ class TranslationHelper
      * @param ClassTranslationContext $context
      * @param object $object
      */
-    public function removeEmptyTranslation(
-        ClassTranslationContext $context,
-        $object
-    ) {
+    public function removeEmptyTranslation(ClassTranslationContext $context, $object)
+    {
         if ($this->hasTranslatedProperties($context, $object)) {
             return;
         }
 
         $objectLocale = $this->getObjectLocale($context, $object);
-        if (!isset($objectLocale)) {
+        if (is_null($objectLocale) || $objectLocale === '') {
             return;
         }
 

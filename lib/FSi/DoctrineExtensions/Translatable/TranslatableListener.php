@@ -178,7 +178,6 @@ class TranslatableListener extends MappedEventSubscriber
         }
 
         foreach ($translatableMeta->getTranslationAssociationMetadatas() as $associationMeta) {
-
             $context = $this->getTranslationContext($objectManager, $associationMeta, $object);
             $associationName = $associationMeta->getAssociationName();
             $repository = $context->getTranslatableRepository();
@@ -310,7 +309,7 @@ class TranslatableListener extends MappedEventSubscriber
 
             $context = $this->getTranslationContext($objectManager, $associationMeta, $object);
             $locale = $this->translationHelper->getObjectLocale($context, $object);
-            if (!isset($locale)) {
+            if (is_null($locale) || $locale === '') {
                 $locale = $this->getLocale();
             }
 
