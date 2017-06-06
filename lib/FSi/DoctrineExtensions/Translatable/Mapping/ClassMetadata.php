@@ -10,7 +10,6 @@
 namespace FSi\DoctrineExtensions\Translatable\Mapping;
 
 use FSi\Component\Metadata\AbstractClassMetadata;
-use Doctrine\Common\Persistence\Mapping\ClassMetadata as DoctrineClassMetadata;
 
 class ClassMetadata extends AbstractClassMetadata
 {
@@ -30,7 +29,7 @@ class ClassMetadata extends AbstractClassMetadata
      *
      * @param string $translationAssociation
      * @param string $property
-     * @param string $targetProperty
+     * @param string|null $targetField
      */
     public function addTranslatableProperty($translationAssociation, $property, $targetField = null)
     {

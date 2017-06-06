@@ -88,7 +88,8 @@ class ClassTranslationContext
 
         if (!($repository instanceof TranslatableRepositoryInterface)) {
             throw new Exception\AnnotationException(sprintf(
-                'Entity "%s" has "%s" as its "repositoryClass" which does not implement \FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface',
+                'Entity "%s" has "%s" as its "repositoryClass" which does not implement '
+                . '\FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface',
                 $this->classMetadata->getName(),
                 get_class($repository)
             ));

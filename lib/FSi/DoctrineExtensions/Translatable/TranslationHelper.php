@@ -9,8 +9,6 @@
 
 namespace FSi\DoctrineExtensions\Translatable;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use Doctrine\Common\Persistence\ObjectManager;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -80,7 +78,6 @@ class TranslationHelper
     }
 
     /**
-     * @param TranslatableRepositoryInterface $translatableRepository
      * @param ClassTranslationContext $context
      * @param object $object
      */
@@ -116,7 +113,7 @@ class TranslationHelper
 
     /**
      * @param ClassTranslationContext $context
-     * @param $object
+     * @param object $object
      */
     public function clearTranslatableProperties(ClassTranslationContext $context, $object)
     {
@@ -147,8 +144,10 @@ class TranslationHelper
 
         foreach ($properties as $property => $translationField) {
             $value = $propertyAccessor->getValue($object, $property);
-            if ($translationMeta->isCollectionValuedAssociation($translationField) && count($value)
-                || !$translationMeta->isCollectionValuedAssociation($translationField) && null !== $value
+            if ($translationMeta->isCollectionValuedAssociation($translationField)
+                && count($value)
+                || !$translationMeta->isCollectionValuedAssociation($translationField)
+                && null !== $value
             ) {
                 return true;
             }
@@ -187,7 +186,6 @@ class TranslationHelper
     private function copyProperties($source, $target, $properties)
     {
         $propertyAccessor = $this->getPropertyAccessor();
-
         foreach ($properties as $sourceField => $targetField) {
             $value = $propertyAccessor->getValue($source, $sourceField);
             $propertyAccessor->setValue($target, $targetField, $value);
