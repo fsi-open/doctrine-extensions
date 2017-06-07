@@ -61,9 +61,7 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * Set the current locale
-     *
-     * @param mixed $locale
+     * @param string $locale
      * @return \FSi\DoctrineExtensions\Translatable\TranslatableListener
      */
     public function setLocale($locale)
@@ -73,9 +71,7 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * Get the current locale
-     *
-     * @return mixed
+     * @return string|null
      */
     public function getLocale()
     {
@@ -83,9 +79,7 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * Set the default locale
-     *
-     * @param mixed $defaultLocale
+     * @param string $defaultLocale
      * @return \FSi\DoctrineExtensions\Translatable\TranslatableListener
      */
     public function setDefaultLocale($defaultLocale)
@@ -95,9 +89,7 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * Get the default locale
-     *
-     * @return mixed
+     * @return string|null
      */
     public function getDefaultLocale()
     {
@@ -111,11 +103,11 @@ class TranslatableListener extends MappedEventSubscriber
      */
     public function getSubscribedEvents()
     {
-        return array(
+        return [
             'postLoad',
             'postHydrate',
             'preFlush'
-        );
+        ];
     }
 
     /**

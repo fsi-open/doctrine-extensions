@@ -24,7 +24,7 @@ abstract class AbstractYamlDriver extends AbstractFileDriver
         if (isset($element[$extendedClassMetadata->getClassName()])) {
             return $element[$extendedClassMetadata->getClassName()];
         } else {
-            return array();
+            return [];
         }
     }
 }

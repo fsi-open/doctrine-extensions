@@ -16,13 +16,13 @@ class ChainHandler extends AbstractHandler
     /**
      * @var array
      */
-    protected $handlers = array();
+    protected $handlers = [];
 
     /**
      * @param array $handlers
      * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
-    public function __construct(array $handlers = array())
+    public function __construct(array $handlers = [])
     {
         $i = 0;
         foreach ($handlers as $handler) {

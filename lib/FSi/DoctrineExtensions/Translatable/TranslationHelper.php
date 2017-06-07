@@ -125,7 +125,7 @@ class TranslationHelper
 
         foreach ($context->getAssociationMetadata()->getProperties() as $property => $translationField) {
             if ($translationMeta->isCollectionValuedAssociation($translationField)) {
-                $propertyAccessor->setValue($object, $property, array());
+                $propertyAccessor->setValue($object, $property, []);
             } else {
                 $propertyAccessor->setValue($object, $property, null);
             }

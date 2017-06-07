@@ -138,16 +138,14 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         $this->validateTranslationAssociation($translationAssociation);
 
         if ($this->areTranslationsIndexedByLocale($translationAssociation)) {
-            return $this
-                ->getTranslations($object, $translationAssociation)
-                ->get($locale);
-        } else {
-            return $this->findNonIndexedTranslation(
-                $object,
-                $translationAssociation,
-                $locale
-            );
+            return $this->getTranslations($object, $translationAssociation)->get($locale);
         }
+
+        return $this->findNonIndexedTranslation(
+            $object,
+            $translationAssociation,
+            $locale
+        );
     }
 
     /**
@@ -212,11 +210,9 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         );
 
         if ($this->areTranslationsIndexedByLocale($translationAssociation)) {
-            $this->getTranslations($object, $translationAssociation)
-                ->set($locale, $translation);
+            $this->getTranslations($object, $translationAssociation)->set($locale, $translation);
         } else {
-            $this->getTranslations($object, $translationAssociation)
-                ->add($translation);
+            $this->getTranslations($object, $translationAssociation)->add($translation);
         }
 
         return $translation;
@@ -350,19 +346,16 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     }
 
     /**
-     * @param object $translation
      * @param string $translationAssociation
+     * @param object $translation
      * @return mixed
      */
     protected function getTranslationLocale($translationAssociation, $translation)
     {
-        return $this
-            ->getTranslationMetadata($translationAssociation)
-            ->getFieldValue(
-                $translation,
-                $this->getTranslationExtendedMetadata($translationAssociation)
-                    ->localeProperty
-            );
+        return $this->getTranslationMetadata($translationAssociation)->getFieldValue(
+            $translation,
+            $this->getTranslationExtendedMetadata($translationAssociation)->localeProperty
+        );
     }
 
     /**
@@ -372,13 +365,11 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
      */
     protected function setTranslationLocale($translationAssociation, $translation, $locale)
     {
-        $this->getTranslationMetadata($translationAssociation)
-            ->setFieldValue(
-                $translation,
-                $this->getTranslationExtendedMetadata($translationAssociation)
-                    ->localeProperty,
-                $locale
-            );
+        $this->getTranslationMetadata($translationAssociation)->setFieldValue(
+            $translation,
+            $this->getTranslationExtendedMetadata($translationAssociation)->localeProperty,
+            $locale
+        );
     }
 
     /**
@@ -390,12 +381,11 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     protected function setTranslationObject($translationAssociation, $translation, $object)
     {
         $translationAssociationMapping = $this->getClassMetadata()->getAssociationMapping($translationAssociation);
-        $this->getTranslationMetadata($translationAssociation)
-            ->setFieldValue(
-                $translation,
-                $translationAssociationMapping['mappedBy'],
-                $object
-            );
+        $this->getTranslationMetadata($translationAssociation)->setFieldValue(
+            $translation,
+            $translationAssociationMapping['mappedBy'],
+            $object
+        );
     }
 
     /**

@@ -28,9 +28,9 @@ class GeneralYamlTest extends GeneralTest
 
     public static function wrongClasses()
     {
-        $classes = array();
+        $classes = [];
         for ($i = 1; $i < 8; $i++) {
-            $classes[] = array(self::BASE . 'User' . $i);
+            $classes[] = [self::BASE . 'User' . $i];
         }
         return $classes;
     }
@@ -58,8 +58,8 @@ class GeneralYamlTest extends GeneralTest
      */
     protected function getUsedEntityFixtures()
     {
-        return array(
+        return [
             self::USER,
-        );
+        ];
     }
 }

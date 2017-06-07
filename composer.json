@@ -2,7 +2,7 @@
     "name": "fsi/doctrine-extensions",
     "type": "library",
     "description": "FSi Behavioral Doctrine Extensions",
-    "keywords": ["fsi", "doctrine-extensions"],
+    "keywords": ["fsi", "doctrine-extensions", "doctrine", "orm", "odm", "translatable", "uploadable"],
     "license": "MIT",
     "authors": [
         {
@@ -32,9 +32,13 @@
         "phpunit/phpunit": "3.7.*"
     },
     "autoload": {
-        "psr-0": {
-            "FSi\\DoctrineExtensions": "lib/",
-            "FSi\\DoctrineExtensions\\Tests": "tests/"
+        "psr-4": {
+            "FSi\\DoctrineExtensions\\": "lib/FSi/DoctrineExtensions/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FSi\\DoctrineExtensions\\Tests\\": "tests/FSi/DoctrineExtensions/Tests/"
         }
     },
     "config": {

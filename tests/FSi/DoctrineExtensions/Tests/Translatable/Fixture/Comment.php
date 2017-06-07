@@ -10,7 +10,6 @@
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
-use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 
 /**
  * @ORM\Entity
@@ -109,5 +108,4 @@ class Comment
     {
         return $this->id;
     }
-
 }

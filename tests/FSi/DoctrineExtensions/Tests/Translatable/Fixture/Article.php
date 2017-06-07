@@ -88,7 +88,7 @@ class Article
      * @ORM\JoinTable(name="article2category",
      *      joinColumns={@ORM\JoinColumn(name="category", referencedColumnName="id", onDelete="CASCADE")},
      *      inverseJoinColumns={@ORM\JoinColumn(name="article", referencedColumnName="id")}
-     *      )
+     * )
      * @var ArrayCollection
      */
     private $categories;
@@ -109,7 +109,6 @@ class Article
     }
 
     /**
-     * Get id
      * @return integer
      */
     public function getId()

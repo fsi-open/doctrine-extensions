@@ -239,20 +239,20 @@ class RepositoryTest extends BaseTranslatableTest
 
         /** @var TranslatableRepository $repository */
         $repository = $this->_em->getRepository(self::ARTICLE);
-        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(array('title' => self::CATEGORY_1));
-        $section = $this->_em->getRepository(self::SECTION)->findOneBy(array('title' => self::SECTION_1));
-        $comment = $this->_em->getRepository(self::COMMENT)->findOneBy(array('content' => 'Ipsum'));
+        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(['title' => self::CATEGORY_1]);
+        $section = $this->_em->getRepository(self::SECTION)->findOneBy(['title' => self::SECTION_1]);
+        $comment = $this->_em->getRepository(self::COMMENT)->findOneBy(['content' => 'Ipsum']);
 
         $this->_logger->enabled = true;
         /** @var Article $article */
-        $articles = $repository->findTranslatableBy(array(
+        $articles = $repository->findTranslatableBy([
             'date' => '2014-02-02 00:00:00', //fiend in Article, not translated
             'title' => self::POLISH_TITLE_1, //field in ArticleTranslation with same name
             'teaser' => self::POLISH_TEASER, //field in ArticleTranslation with different name
             'section' => $section, //field in Article - single value association
             'categories' => $category, //field in Article - collection value association
             'comments' => $comment, //translatable property in Article - one to many association
-        ), array('date' => 'ASC', 'title' => 'DESC'));
+        ], ['date' => 'ASC', 'title' => 'DESC']);
 
         $this->assertCount(1, $articles);
         $this->assertEquals($this->_languagePl, $articles[0]->getLocale());
@@ -276,9 +276,9 @@ class RepositoryTest extends BaseTranslatableTest
         $repository = $this->_em->getRepository(self::ARTICLE);
 
         /** @var Article $article */
-        $articles = $repository->findTranslatableBy(array(
+        $articles = $repository->findTranslatableBy([
             'date' => '2014-01-01 00:00:00',
-        ));
+        ]);
 
         $this->assertEquals(self::ENGLISH_TITLE_1, $articles[0]->getTitle());
         $this->assertEquals(self::ENGLISH_TEASER, $articles[0]->getTeaser());
@@ -300,7 +300,7 @@ class RepositoryTest extends BaseTranslatableTest
 
         /** @var Article $article */
         $articles = $repository->findTranslatableBy(
-            array('date' => '2014-01-01 00:00:00'),
+            ['date' => '2014-01-01 00:00:00'],
             null,
             null,
             null,
@@ -324,20 +324,20 @@ class RepositoryTest extends BaseTranslatableTest
 
         /** @var TranslatableRepository $repository */
         $repository = $this->_em->getRepository(self::ARTICLE);
-        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(array('title' => self::CATEGORY_1));
-        $section = $this->_em->getRepository(self::SECTION)->findOneBy(array('title' => self::SECTION_1));
-        $comment1 = $this->_em->getRepository(self::COMMENT)->findOneBy(array('content' => 'Ipsum'));
-        $comment2 = $this->_em->getRepository(self::COMMENT)->findOneBy(array('content' => 'Lorem'));
+        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(['title' => self::CATEGORY_1]);
+        $section = $this->_em->getRepository(self::SECTION)->findOneBy(['title' => self::SECTION_1]);
+        $comment1 = $this->_em->getRepository(self::COMMENT)->findOneBy(['content' => 'Ipsum']);
+        $comment2 = $this->_em->getRepository(self::COMMENT)->findOneBy(['content' => 'Lorem']);
 
         /** @var Article $article */
-        $article = $repository->findTranslatableOneBy(array(
+        $article = $repository->findTranslatableOneBy([
             'date' => '2014-02-02 00:00:00', //fiend in Article, not translated
             'title' => self::POLISH_TITLE_1, //field in ArticleTranslation with same name
             'teaser' => self::POLISH_TEASER, //field in ArticleTranslation with different name
             'section' => $section, //field in Article - single value association
             'categories' => $category, //field in Article - collection value association
-            'comments' => array($comment1, $comment2), //translatable property in Article - one to many association
-        ));
+            'comments' => [$comment1, $comment2], //translatable property in Article - one to many association
+        ]);
 
         $this->assertEquals($this->_languagePl, $article->getLocale());
         $this->assertEquals(self::POLISH_TITLE_1, $article->getTitle());
@@ -346,9 +346,9 @@ class RepositoryTest extends BaseTranslatableTest
 
         $this->setExpectedException('\Doctrine\ORM\NoResultException');
 
-        $repository->findTranslatableOneBy(array(
+        $repository->findTranslatableOneBy([
             'date' => '2014-01-01 00:00:01', //value that not exists
-        ));
+        ]);
     }
 
     /**
@@ -366,9 +366,9 @@ class RepositoryTest extends BaseTranslatableTest
         $repository = $this->_em->getRepository(self::ARTICLE);
 
         /** @var Article $article */
-        $article = $repository->findTranslatableOneBy(array(
+        $article = $repository->findTranslatableOneBy([
             'date' => '2014-01-01 00:00:00',
-        ));
+        ]);
 
         $this->assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
         $this->assertEquals(self::ENGLISH_TEASER, $article->getTeaser());
@@ -390,7 +390,7 @@ class RepositoryTest extends BaseTranslatableTest
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy(
-            array('date' => '2014-01-01 00:00:00'),
+            ['date' => '2014-01-01 00:00:00'],
             null,
             $this->_languagePl
         );
@@ -402,13 +402,13 @@ class RepositoryTest extends BaseTranslatableTest
 
     protected function getUsedEntityFixtures()
     {
-        return array(
+        return [
             self::CATEGORY,
             self::SECTION,
             self::COMMENT,
             self::ARTICLE,
             self::ARTICLE_TRANSLATION
-        );
+        ];
     }
 
     private function fillDataForFindTranslatable()

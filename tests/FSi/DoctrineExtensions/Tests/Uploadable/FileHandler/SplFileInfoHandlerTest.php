@@ -10,7 +10,6 @@
 namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 
 use FSi\DoctrineExtensions\Uploadable\FileHandler\SplFileInfoHandler;
-use FSi\DoctrineExtensions\Tests\Uploadable\Utils;
 use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
 

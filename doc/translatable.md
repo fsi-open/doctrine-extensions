@@ -2,19 +2,19 @@
 
 **Translatable** behaviour will automate storing and retrieving translations in entities. Translated values are persisted in
 specialized translation entities associated with base entity. Each base entity with translatable properties has to be associated
-with at least one translation entity. Retrieving en entity with translatable properties copies their values from the translation
+with at least one translation entity. Retrieving an entity with translatable properties copies their values from the translation
 for current locale. Changing values of these properties and flushing changes copies values to the appropriate translation
 entity.
 
 Features:
 
-- supports multiple translatable properties in entity
-- supports grouping translations of translatable properties of the same entity in different translation entities
-- supports removing translation entity for specific locale by setting all translatable properties to null
-- supports string or integer type for locale field; defining locale as an association to another entity is not supported
-- supports indexing translations collection by locale (or some other field) which simplifies accessing different translations
-  at the same time from one instance of base entity
-- supports manipulating multiple translations in one ORM transaction
+- Supports multiple translatable properties in entity.
+- Supports grouping translations of translatable properties of the same entity in different translation entities.
+- Supports removing translation entity for specific locale by setting all translatable properties to null.
+- Supports string or integer type for locale field; defining locale as an association to another entity is not supported.
+- Supports indexing translations collection by locale (or some other field) which simplifies accessing different translations
+  at the same time from one instance of base entity.
+- Supports manipulating multiple translations in one ORM transaction.
 
 ## Creating and attaching the TranslatableListener to the event manager ##
 
@@ -103,6 +103,8 @@ class Article
 
     /**
      * @ORM\PostLoad()
+     * This is required, since doctrine will omit the __construct() method on
+     * loading the entity from the database and the `comments` field will be null.
      */
     public function postLoad()
     {
@@ -110,7 +112,6 @@ class Article
     }
 
     /**
-     * Get id
      * @return integer
      */
     public function getId()
@@ -189,11 +190,7 @@ class Article
 
     public function getTranslation($locale)
     {
-        if ($this->hasTranslation($locale)) {
-            return $this->translations[$locale];
-        } else {
-            return null;
-        }
+        return $this->hasTranslation($locale) ? $this->translations[$locale] : null;
     }
 }
 ```
@@ -309,8 +306,8 @@ class ArticleTranslation
 }
 ```
 
-Additionally ``Comment`` is an ordinary entity associated with ``ArticleTranslation`` and its contents is irrelevant for
-this example.
+``Comment`` is an ordinary entity associated with ``ArticleTranslation``
+and its contents are irrelevant for this example.
 
 To operate with translations let's assume that our default locale is english:
 
@@ -355,7 +352,7 @@ echo count($article->getComments());
 ```
 
 Thanks to the ``indexBy`` attribute set on translations association we can access
-translations in all locales regardless from current default locale:
+translations in all locales regardless of current default locale:
 
 ```php
 $article = $em->find($articleId);
@@ -370,7 +367,7 @@ echo count($article->getTranslation('pl')->getComments());
 ## Using ``TranslatableRepository``
 
 This extension also provides ``TranslatableRepository`` class with some helper methods
-which make manipulating multiple translations at once easier. In order to use it
+which makes manipulating multiple translations at once easier. In order to use it
 you must set ``entityRepository`` on you translatable entity like in this example:
 
 ```php
@@ -430,9 +427,8 @@ if ($repository->hasTranslation($article, 'en')) {
 
 ### Selecting entities with current translations in one query
 
-It is common task where using translations to select entities along with their
-translations in the currently set locale. It's easy using another helper method
-on ``TranslatableRepository``.
+You will probably often want to select entities along with their translations in
+the currently set locale. This is easy with another helper method of ``TranslatableRepository``.
 
 ```php
 $translatableListener->setLocale('de');
@@ -457,7 +453,7 @@ $qb = $repository->createTranslatableQueryBuilder('a', 't', 'dt');
 $qb->where('t.Title LIKE ?', '%article%');
 ```
 
-** Heads Up!!** ``QueryBuilder`` object returned by ``createTranslatableQueryBuilder()``
+**Heads Up!!** ``QueryBuilder`` object returned by ``createTranslatableQueryBuilder()``
 extends ``\Doctrine\ORM\QueryBuilder`` and it's ``getQuery()`` method returns
 query which has already set custom hydration mode. This custom hydration mode is
 necessary in order to hydrate objects along with their translations and
@@ -469,10 +465,10 @@ object.
 
 ### Finding entities by translatable fields
 
-``TranslatableRepository`` has two additional methods which can be used to find translatable
+``TranslatableRepository`` has two additional methods that can be used to find translatable
 entities by values of their regular ORM fields or translatable fields. Using these methods
 you don't have to know whether field of entity is regular ORM mapped field or translatable
-field. Both methods takes currently set locale and default locale into consideration.
+field. Both methods take currently set locale and default locale into consideration.
 
 ```php
 $repository = $em->getRepository('Article');
@@ -486,8 +482,8 @@ $article = $repository->findTranslatableOneBy(array(
 
 ## Translatable QueryBuilder
 
-When all of the above methods of retrieving translatable entities are not enough there is
-``FSi\DoctrineExtensions\Translatable\Query\QueryBuilder`` class which gives full control
+If all of the above methods of retrieving translatable entities are not enough, there is
+``FSi\DoctrineExtensions\Translatable\Query\QueryBuilder`` class which gives you full control
 over the logic of retrieving entities and their translations. Below are some examples of
 using it. For more take a look at [QueryBuilder](../lib/FSi/DoctrineExtensions/Translatable/Query/QueryBuilder.php)
 
@@ -537,7 +533,7 @@ $qb
 **property** annotation
 
 Property marked with this annotation is automatically copied from/into associated field translation entity. Such a property can
-not be persistent, while associated field in translation can be persistent or not i.e. when it's also an uploadable field
+not be persistent, while the associated field in translation can be persistent or not i.e. when it's also an uploadable field
 (for more information see [uploadable.md](uploadable.md)).
 
 **options:**

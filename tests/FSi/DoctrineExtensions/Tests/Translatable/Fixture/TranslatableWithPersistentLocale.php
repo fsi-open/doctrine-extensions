@@ -51,7 +51,6 @@ class TranslatableWithPersistentLocale
     }
 
     /**
-     * Get id
      * @return integer
      */
     public function getId()

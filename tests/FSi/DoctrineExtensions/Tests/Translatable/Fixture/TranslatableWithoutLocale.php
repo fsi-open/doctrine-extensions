@@ -38,7 +38,6 @@ class TranslatableWithoutLocale
     private $translations;
 
     /**
-     * Get id
      * @return integer
      */
     public function getId()

@@ -12,7 +12,7 @@ if (!file_exists(TESTS_TEMP_DIR . '/cache')) {
     }
 }
 
-foreach (array(FILESYSTEM1, FILESYSTEM2) as $filesystem) {
+foreach ([FILESYSTEM1, FILESYSTEM2] as $filesystem) {
     if (!file_exists( $filesystem)) {
         if (!mkdir($filesystem, 0777, true)) {
             die(sprintf('Failed to create filesystem cache directory for tests "%s"', $filesystem));

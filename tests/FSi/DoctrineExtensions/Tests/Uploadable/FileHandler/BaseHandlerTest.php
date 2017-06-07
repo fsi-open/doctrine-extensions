@@ -60,11 +60,11 @@ abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
 
     public static function wrongInputs()
     {
-        return array(
-            array('not file'),
-            array(array()),
-            array(new \stdClass()),
-            array(42),
-        );
+        return [
+            ['not file'],
+            [[]],
+            [new \stdClass()],
+            [42],
+        ];
     }
 }

@@ -27,17 +27,17 @@ class QueryBuilder extends BaseQueryBuilder
     /**
      * @var array
      */
-    private $aliasToClassMap = array();
+    private $aliasToClassMap = [];
 
     /**
      * @var array
      */
-    private $translationsAliases = array();
+    private $translationsAliases = [];
 
     /**
      * @var array
      */
-    private $translatableFieldsInSelect = array();
+    private $translatableFieldsInSelect = [];
 
     /**
      * @inheritdoc
@@ -51,7 +51,7 @@ class QueryBuilder extends BaseQueryBuilder
             $this->validateJoinParent($join);
             $this->validateJoinAssociation($join);
             $this->addJoinExprToAliasMap($join);
-        } elseif (in_array($dqlPartName, array('from', 'join'))) {
+        } elseif (in_array($dqlPartName, ['from', 'join'])) {
             throw new RuntimeException(sprintf(
                 "Trying to add incompatible expression to DQL part '%s' in QueryBuilder",
                 $dqlPartName
@@ -561,7 +561,7 @@ class QueryBuilder extends BaseQueryBuilder
     private function addJoinedTranslationsAlias($join, $locale, $alias)
     {
         if (!isset($this->translationsAliases[$join])) {
-            $this->translationsAliases[$join] = array();
+            $this->translationsAliases[$join] = [];
         }
         $this->translationsAliases[$join][$locale] = $alias;
     }

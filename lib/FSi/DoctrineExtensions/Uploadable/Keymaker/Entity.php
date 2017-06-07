@@ -27,18 +27,18 @@ class Entity implements KeymakerInterface
         $className = ClassUtils::getClass($object);
 
         return preg_replace(
-            array(
+            [
                 '/\{fqcn\}/',
                 '/\{property\}/',
                 '/\{id\}/',
                 '/\{original_name\}/',
-            ),
-            array(
+            ],
+            [
                 preg_replace('/\\\\/', '', $className),
                 $property,
                 $id,
                 $originalName,
-            ),
+            ],
             $pattern
         );
     }

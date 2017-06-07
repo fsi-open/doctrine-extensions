@@ -16,7 +16,7 @@ use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
 class DriverChain extends BaseDriverChain implements DriverInterface
 {
     /**
-     * @var \Doctrine\Common\Persistence\Mapping\ClassMetadataFactory
+     * @var ClassMetadataFactory
      */
     private $baseMetadataFactory;
 
