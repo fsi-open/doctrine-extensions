@@ -173,7 +173,7 @@ class Article
 
     public function getLocale()
     {
-        return $this->locale;
+        return (string) $this->locale;
     }
 
     public function addCategory(Category $category)
