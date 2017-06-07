@@ -10,7 +10,6 @@
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 
@@ -97,15 +96,6 @@ class Article
     {
         $this->comments = new ArrayCollection();
         $this->translations = new ArrayCollection();
-    }
-
-    /**
-     * @ORM\PostLoad()
-     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
-     */
-    public function postLoad(LifecycleEventArgs $eventArgs)
-    {
-        $this->comments = new ArrayCollection();
     }
 
     /**
