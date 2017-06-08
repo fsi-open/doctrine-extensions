@@ -64,15 +64,7 @@ class ORM implements AdapterInterface
         if ($object instanceof Proxy) {
             $id = $em->getUnitOfWork()->getEntityIdentifier($object);
         } else {
-            $meta = $em->getClassMetadata(get_class($object));
-            $id = [];
-            foreach ($meta->identifier as $name) {
-                $id[$name] = ReflectionProperty::factory($meta->name, $name)->getValue($object);
-                // return null if one of identifiers is missing
-                if (!$id[$name]) {
-                    return null;
-                }
-            }
+            $id = $em->getClassMetadata(get_class($object))->getIdentifierValues($object);
         }
 
         if ($single) {
