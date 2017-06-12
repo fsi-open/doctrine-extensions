@@ -7,9 +7,12 @@
  * file that was distributed with this source code.
  */
 
-namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture\XML;
+namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common;
 
-class PageTranslation
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+
+class Page
 {
     /**
      * @var integer
@@ -27,9 +30,14 @@ class PageTranslation
     private $content;
 
     /**
-     * @var Page
+     * @var PageTranslation[]|Collection
      */
-    private $page;
+    private $translations;
+
+    public function __construct()
+    {
+        $this->translations = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -56,13 +64,13 @@ class PageTranslation
         $this->content = $content;
     }
 
-    public function getPage()
+    public function getTranslation($locale)
     {
-        return $this->page;
+        return $this->translations[$locale];
     }
 
-    public function setPage(Page $page = null)
+    public function getTranslations()
     {
-        $this->page = $page;
+        return $this->translations;
     }
 }

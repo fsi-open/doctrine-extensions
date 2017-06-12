@@ -1,0 +1,18 @@
+FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\PageTranslation:
+    type: entity
+    id:
+        id:
+            type: integer
+            generator:
+                strategy: AUTO
+    fields:
+        locale:
+            type: string
+            length: 2
+            fsi:
+                translatable:
+                    locale: locale
+    manyToOne:
+        page:
+            targetEntity: FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\Page
+            inversedBy: translations

@@ -9,15 +9,15 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
-use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\Page;
 
-class XMLTest extends BaseTranslatableTest
+class YAMLTest extends BaseTranslatableTest
 {
     const PAGE = 'FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Common\\Page';
     const PAGE_TRANSLATION = 'FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Common\\PageTranslation';
 
-    public function testXMLMapping()
+    public function testYAMLMapping()
     {
         $this->_logger->enabled = true;
 
@@ -62,7 +62,7 @@ class XMLTest extends BaseTranslatableTest
 
     protected function getMetadataDriverImplementation()
     {
-        return new XmlDriver(sprintf('%s/Fixture/XML/config', __DIR__));
+        return new YamlDriver(sprintf('%s/Fixture/YAML/config', __DIR__));
     }
 
     protected function getUsedEntityFixtures()
