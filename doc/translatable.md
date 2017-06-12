@@ -608,3 +608,7 @@ example in translation entity:
      */
     private $locale;
 ```
+
+## XML and YAML mapping reference ##
+
+See [here](translatable/xml.md) and [here](translatable/yaml.md), respectively.

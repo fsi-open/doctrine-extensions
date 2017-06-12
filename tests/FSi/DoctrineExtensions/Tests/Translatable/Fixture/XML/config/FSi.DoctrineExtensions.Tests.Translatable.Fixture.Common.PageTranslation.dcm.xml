@@ -12,7 +12,7 @@
 
         <field type="string" name="content" length="255"/>
         <field type="string" name="locale" length="2">
-            <fsi:locale field="locale" />
+            <fsi:locale />
         </field>
 
         <many-to-one field="page" target-entity="Page" inversed-by="translations" />

@@ -50,7 +50,7 @@ class Xml extends AbstractXmlDriver
         foreach ($mapping->field as $fieldMapping) {
             $translationMapping = $fieldMapping->children(self::FSI_NAMESPACE_URI);
             if (isset($translationMapping->{self::LOCALE})) {
-                $extendedClassMetadata->localeProperty = $this->getAttribute($translationMapping->{self::LOCALE}, 'field');
+                $extendedClassMetadata->localeProperty = $this->getAttribute($fieldMapping, 'name');
             }
         }
     }
