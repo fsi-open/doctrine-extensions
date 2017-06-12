@@ -31,7 +31,11 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
         $dom = new DOMDocument();
         $dom->load($fileLocation);
         if (!$this->validateFile($dom)) {
-            throw new MappingException(sprintf('There are wrong mappings in xml mapping for class "%s" in file "%s"', $extendedClassMetadata->getClassName(), $fileLocation));
+            throw new MappingException(sprintf(
+                'There are wrong mappings in XML mapping for class "%s" in file "%s"',
+                $extendedClassMetadata->getClassName(),
+                $fileLocation
+            ));
         }
 
         $xmlElement = simplexml_load_file($fileLocation);
@@ -40,13 +44,13 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
         $className = $extendedClassMetadata->getClassName();
         if (isset($xmlElement->entity)) {
             foreach ($xmlElement->entity as $entityElement) {
-                if ($this->getAttribute($entityElement, 'name') == $className) {
+                if ($this->getAttribute($entityElement, 'name') === $className) {
                     return $entityElement;
                 }
             }
         } elseif (isset($xmlElement->{'mapped-superclass'})) {
             foreach ($xmlElement->{'mapped-superclass'} as $mappedSuperClass) {
-                if ($this->getAttribute($mappedSuperClass, 'name') == $className) {
+                if ($this->getAttribute($mappedSuperClass, 'name') === $className) {
                     return $mappedSuperClass;
                 }
             }
@@ -68,7 +72,7 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
     }
 
     /**
-     * Validatin xml file.
+     * Validating xml file.
      *
      * @param \DOMDocument $dom
      * @return bool
@@ -118,8 +122,7 @@ elementFormDefault="qualified">
 EOF
         ;
 
-        $valid = @$dom->schemaValidateSource($source);
-        return $valid;
+        return @$dom->schemaValidateSource($source);
     }
 
     /**

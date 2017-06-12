@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+    http://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd"
+    xmlns:fsi="http://fsi.pl/schemas/orm/doctrine-extensions-mapping">
+
+    <entity name="FSi\DoctrineExtensions\Tests\Translatable\Fixture\XML\Page"
+            repository-class="FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository"
+    >
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+        <one-to-many field="translations" target-entity="PageTranslation" mapped-by="page" index-by="locale" />
+
+        <fsi:locale field="locale" />
+        <fsi:translatable field="content" mappedBy="translations" />
+    </entity>
+
+</doctrine-mapping>
