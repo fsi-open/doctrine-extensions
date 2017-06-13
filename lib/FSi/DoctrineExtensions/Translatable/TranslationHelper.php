@@ -9,8 +9,8 @@
 
 namespace FSi\DoctrineExtensions\Translatable;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use Doctrine\Common\Persistence\ObjectManager;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -42,7 +42,12 @@ class TranslationHelper
      */
     public function copyTranslationProperties(ClassTranslationContext $context, $object, $translation, $locale)
     {
-        $this->copyProperties($translation, $object, array_flip($context->getAssociationMetadata()->getProperties()));
+        $this->copyProperties(
+            $translation,
+            $object,
+            array_flip($context->getAssociationMetadata()->getProperties()),
+            $context->getTranslationMetadata()
+        );
         $this->setObjectLocale($context->getTranslatableMetadata(), $object, $locale);
     }
 
@@ -60,7 +65,7 @@ class TranslationHelper
         $translationAssociationMeta = $context->getAssociationMetadata();
 
         $locale = $this->getObjectLocale($context, $object);
-        if (!isset($locale)) {
+        if (is_null($locale) || $locale === '') {
             $locale = $defaultLocale;
         }
 
@@ -76,24 +81,26 @@ class TranslationHelper
             $objectManager->persist($translation);
         }
 
-        $this->copyProperties($object, $translation, $translationAssociationMeta->getProperties());
+        $this->copyProperties(
+            $object,
+            $translation,
+            $translationAssociationMeta->getProperties(),
+            $context->getTranslationMetadata()
+        );
     }
 
     /**
-     * @param TranslatableRepositoryInterface $translatableRepository
      * @param ClassTranslationContext $context
      * @param object $object
      */
-    public function removeEmptyTranslation(
-        ClassTranslationContext $context,
-        $object
-    ) {
+    public function removeEmptyTranslation(ClassTranslationContext $context, $object)
+    {
         if ($this->hasTranslatedProperties($context, $object)) {
             return;
         }
 
         $objectLocale = $this->getObjectLocale($context, $object);
-        if (!isset($objectLocale)) {
+        if (is_null($objectLocale) || $objectLocale === '') {
             return;
         }
 
@@ -116,7 +123,7 @@ class TranslationHelper
 
     /**
      * @param ClassTranslationContext $context
-     * @param $object
+     * @param object $object
      */
     public function clearTranslatableProperties(ClassTranslationContext $context, $object)
     {
@@ -147,8 +154,10 @@ class TranslationHelper
 
         foreach ($properties as $property => $translationField) {
             $value = $propertyAccessor->getValue($object, $property);
-            if ($translationMeta->isCollectionValuedAssociation($translationField) && count($value)
-                || !$translationMeta->isCollectionValuedAssociation($translationField) && null !== $value
+            if ($translationMeta->isCollectionValuedAssociation($translationField)
+                && count($value)
+                || !$translationMeta->isCollectionValuedAssociation($translationField)
+                && null !== $value
             ) {
                 return true;
             }
@@ -184,11 +193,20 @@ class TranslationHelper
      * @param object $target
      * @param array $properties
      */
-    private function copyProperties($source, $target, $properties)
+    private function copyProperties($source, $target, $properties, ClassMetadata $classMetadata)
     {
         $propertyAccessor = $this->getPropertyAccessor();
-
         foreach ($properties as $sourceField => $targetField) {
+            if ($classMetadata->isCollectionValuedAssociation($targetField)
+                && $propertyAccessor->getValue($target, $targetField) === null
+            ) {
+                $reflection = new \ReflectionClass($target);
+                $property = $reflection->getProperty($targetField);
+                $property->setAccessible(true);
+                $property->setValue($target, new ArrayCollection());
+                $property->setAccessible(false);
+            }
+
             $value = $propertyAccessor->getValue($source, $sourceField);
             $propertyAccessor->setValue($target, $targetField, $value);
         }

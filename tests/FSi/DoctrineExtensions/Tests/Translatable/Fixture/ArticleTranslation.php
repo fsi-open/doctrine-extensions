@@ -172,6 +172,7 @@ class ArticleTranslation
      */
     public function addComment(Comment $comment)
     {
+        $comment->setArticleTranslation($this);
         $this->comments->add($comment);
     }
 
@@ -181,6 +182,7 @@ class ArticleTranslation
     public function removeComment(Comment $comment)
     {
         $this->comments->removeElement($comment);
+        $comment->setArticleTranslation(null);
     }
 
     /**

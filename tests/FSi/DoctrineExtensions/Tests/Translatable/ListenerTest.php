@@ -548,6 +548,30 @@ class ListenerTest extends BaseTranslatableTest
     }
 
     /**
+     * Assert that an empty string returned in Article::getLocale() will not mask
+     * the fact that no locale was set for either the listener or the entity.
+     */
+    public function testCurrentLocaleSetToNull()
+    {
+        $this->_translatableListener->setDefaultLocale($this->_languagePl);
+        $this->_translatableListener->setLocale(null);
+
+        $article = new Article();
+        $article->setDate(new \DateTime());
+        $article->setLocale(null);
+        $article->setTitle(self::POLISH_TITLE_1);
+        $article->setContents(self::POLISH_CONTENTS_1);
+
+        $this->setExpectedException(
+            "\FSi\DoctrineExtensions\Translatable\Exception\RuntimeException",
+            "Neither object's locale nor the current locale was set for translatable properties"
+        );
+
+        $this->_em->persist($article);
+        $this->_em->flush();
+    }
+
+    /**
      * Test entity creation with two translation and check its state after $em->clear(), change default locale and load with some
      * specific translation
      */

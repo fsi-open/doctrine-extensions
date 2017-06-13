@@ -102,16 +102,6 @@ class Article
     }
 
     /**
-     * @ORM\PostLoad()
-     * This is required, since doctrine will omit the __construct() method on
-     * loading the entity from the database and the `comments` field will be null.
-     */
-    public function postLoad()
-    {
-        $this->comments = new \Doctrine\Common\Collections\ArrayCollection();
-    }
-
-    /**
      * @return integer
      */
     public function getId()
@@ -194,9 +184,6 @@ class Article
     }
 }
 ```
-
-Please note the ``postLoad()`` method which is necessary to initialize translatable collection ``$comments`` before the
-real translated collection would be loaded from translation entity.
 
 The associated translation entity could be defined as follows:
 
