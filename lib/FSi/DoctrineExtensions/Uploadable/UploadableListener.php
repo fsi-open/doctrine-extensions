@@ -478,7 +478,7 @@ class UploadableListener extends MappedEventSubscriber
                 ));
             }
 
-            if (!property_exists($className, $options['targetField'])) {
+            if (!$this->propertyExistsInClassTree($className, $options['targetField'])) {
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" has "targetField" set to "%s", which doesn\'t exist.',
                     $field,
@@ -622,5 +622,24 @@ class UploadableListener extends MappedEventSubscriber
         }
 
         return $newKey;
+    }
+
+    /**
+     * @param string $class
+     * @param string $property
+     * @return boolean
+     */
+    private function propertyExistsInClassTree($class, $property)
+    {
+        if (property_exists($class, $property)) {
+            return true;
+        }
+
+        $parentClass = get_parent_class($class);
+        if ($parentClass !== false) {
+            return $this->propertyExistsInClassTree($parentClass, $property);
+        }
+
+        return false;
     }
 }

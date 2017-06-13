@@ -10,6 +10,9 @@
 namespace FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance;
 
 use Doctrine\ORM\Mapping as ORM;
+use FSi\DoctrineExtensions\Uploadable\File;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Annotation as FSi;
+use SplFileInfo;
 
 /**
  * @ORM\Entity
@@ -26,10 +29,41 @@ class Person
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    protected $id;
+    private $id;
+
+    /**
+     * @ORM\Column(nullable=true)
+     * @FSi\Uploadable(targetField="file")
+     */
+    private $filePath;
+
+    /**
+     * @var File|SplFileInfo
+     */
+    private $file;
 
     public function getId()
     {
         return $this->id;
+    }
+
+    public function getFilePath()
+    {
+        return $this->filePath;
+    }
+
+    public function setFilePath($filePath)
+    {
+        $this->filePath = $filePath;
+    }
+
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    public function setFile($file)
+    {
+        $this->file = $file;
     }
 }
