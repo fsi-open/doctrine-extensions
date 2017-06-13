@@ -469,19 +469,20 @@ class UploadableListener extends MappedEventSubscriber
     protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
         foreach ($extendedClassMetadata->getUploadableProperties() as $field => $options) {
+            $className = $baseClassMetadata->getName();
             if (empty($options['targetField'])) {
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" does not have required "targetField" attribute, or attribute is empty.',
                     $field,
-                    $baseClassMetadata->name
+                    $className
                 ));
             }
 
-            if (!property_exists($baseClassMetadata->name, $options['targetField'])) {
+            if (!property_exists($className, $options['targetField'])) {
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" has "targetField" set to "%s", which doesn\'t exist.',
                     $field,
-                    $baseClassMetadata->name,
+                    $className,
                     $options['targetField']
                 ));
             }
@@ -490,7 +491,7 @@ class UploadableListener extends MappedEventSubscriber
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" have "targetField" that points at already mapped field ("%s").',
                     $field,
-                    $baseClassMetadata->name,
+                    $className,
                     $options['targetField']
                 ));
             }
@@ -499,7 +500,7 @@ class UploadableListener extends MappedEventSubscriber
                 throw new MappingException(sprintf(
                     'Property "%s" of class "%s" have mapping "Uploadable" but isn\'t mapped as Doctrine\'s column.',
                     $field,
-                    $baseClassMetadata->name,
+                    $className,
                     $options['targetField']
                 ));
             }
@@ -508,7 +509,7 @@ class UploadableListener extends MappedEventSubscriber
                 throw new MappingException(sprintf(
                     'Property "%s" of class "%s" have mapping "Uploadable" with key length is not a number.',
                     $field,
-                    $baseClassMetadata->name,
+                    $className,
                     $options['targetField']
                 ));
             }
@@ -517,7 +518,7 @@ class UploadableListener extends MappedEventSubscriber
                 throw new MappingException(sprintf(
                     'Property "%s" of class "%s" have mapping "Uploadable" with key length less than 1.',
                     $field,
-                    $baseClassMetadata->name,
+                    $className,
                     $options['targetField']
                 ));
             }
@@ -526,7 +527,7 @@ class UploadableListener extends MappedEventSubscriber
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" does have keymaker that isn\'t instance of expected FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface ("%s" given).',
                     $field,
-                    $baseClassMetadata->name,
+                    $className,
                     is_object($options['keymaker']) ? get_class($options['keymaker']) : gettype($options['keymaker'])
                 ));
             }
