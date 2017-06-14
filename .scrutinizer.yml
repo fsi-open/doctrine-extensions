@@ -10,4 +10,4 @@ checks:
 tools:
     php_cpd: true
     php_pdepend:
-    excluded_dirs: [vendor]
+        excluded_dirs: [vendor]
