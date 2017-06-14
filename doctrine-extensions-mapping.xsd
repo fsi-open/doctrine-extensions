@@ -14,17 +14,17 @@
         <xs:attribute name="keyPattern" type="xs:string" use="optional"/>
     </xs:complexType>
 
-    <xs:element name="translatable" type="fsi:translatable"/>
+    <xs:element name="translatable-field" type="fsi:translatable-field"/>
 
-    <xs:complexType name="translatable">
+    <xs:complexType name="translatable-field">
         <xs:attribute name="mappedBy" type="xs:string" use="required"/>
         <xs:attribute name="field" type="xs:string" use="required"/>
         <xs:attribute name="targetField" type="xs:string" use="optional"/>
     </xs:complexType>
 
-    <xs:element name="locale" type="fsi:locale"/>
+    <xs:element name="translatable-locale" type="fsi:translatable-locale"/>
 
-    <xs:complexType name="locale">
+    <xs:complexType name="translatable-locale">
         <xs:attribute name="field" type="xs:string" use="optional" default="locale"/>
     </xs:complexType>
 

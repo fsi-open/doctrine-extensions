@@ -13,8 +13,8 @@
         </id>
         <one-to-many field="translations" target-entity="PageTranslation" mapped-by="page" index-by="locale" />
 
-        <fsi:locale field="locale" />
-        <fsi:translatable field="content" mappedBy="translations" />
+        <fsi:translatable-locale field="locale" />
+        <fsi:translatable-field field="content" mappedBy="translations" />
     </entity>
 
 </doctrine-mapping>

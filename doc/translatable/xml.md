@@ -45,8 +45,8 @@ XML for the entity:
         </id>
         <one-to-many field="translations" target-entity="Acme\DemoBundle\Entity\UserTranslation" mapped-by="user" index-by="locale" />
 
-        <fsi:locale field="locale" /><!-- "field" is required to point at which property the mapping points -->
-        <fsi:translatable field="name" mappedBy="translations" />
+        <fsi:translatable-locale field="locale" /><!-- "field" is required to point at which property the mapping points -->
+        <fsi:translatable-field field="name" mappedBy="translations" />
     </entity>
 
 </doctrine-mapping>
@@ -94,7 +94,7 @@ XML for the translation:
         
         <field type="string" name="content" length="255"/>
         <field type="string" name="locale" length="2">
-            <fsi:locale /><!-- No value needed, field name is used as locale property identifier -->
+            <fsi:translatable-locale /><!-- No value needed, field name is used as locale property identifier -->
         </field>
 
         <many-to-one field="user" target-entity="cme\DemoBundle\Entity\User" inversed-by="translations" />

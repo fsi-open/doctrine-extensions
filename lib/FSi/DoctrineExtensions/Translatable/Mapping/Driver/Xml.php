@@ -15,8 +15,8 @@ use FSi\DoctrineExtensions\Mapping\Driver\AbstractXmlDriver;
 
 class Xml extends AbstractXmlDriver
 {
-    const LOCALE = 'locale';
-    const FIELD_TRANSLATION = 'translatable';
+    const LOCALE = 'translatable-locale';
+    const FIELD_TRANSLATION = 'translatable-field';
 
     /**
      * {@inheritdoc}
