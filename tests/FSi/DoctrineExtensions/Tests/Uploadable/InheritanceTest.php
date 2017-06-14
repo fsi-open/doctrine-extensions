@@ -10,6 +10,7 @@
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance\Employee;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance\Event;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance\Promotion;
 
@@ -19,6 +20,8 @@ class InheritanceTest extends BaseORMTest
     const EXCERPT_PAGE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Inheritance\\ExcerptContentPage';
     const EVENT_PAGE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Inheritance\\Event';
     const PROMOTION_PAGE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Inheritance\\Promotion';
+    const PERSON = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Inheritance\\Person';
+    const EMPLOYEE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Inheritance\\Employee';
 
     const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
@@ -63,6 +66,20 @@ class InheritanceTest extends BaseORMTest
         $this->assertNotNull($promotion->getIntroImage());
     }
 
+    public function testUploadablePropertyInSingleTableInInheritance()
+    {
+        $employee = new Employee();
+        $employee->setFile(new \SplFileInfo(TESTS_PATH . self::TEST_FILE1));
+
+        $this->_em->persist($employee);
+        $this->_em->flush();
+        $this->_em->clear();
+
+        $employee = $this->_em->find(self::EMPLOYEE, $employee->getId());
+
+        $this->assertNotNull($employee->getFile());
+    }
+
     protected function tearDown()
     {
         Utils::deleteRecursive(FILESYSTEM1);
@@ -78,7 +95,9 @@ class InheritanceTest extends BaseORMTest
             self::PAGE,
             self::EXCERPT_PAGE,
             self::EVENT_PAGE,
-            self::PROMOTION_PAGE
+            self::PROMOTION_PAGE,
+            self::PERSON,
+            self::EMPLOYEE
         ];
     }
 }
