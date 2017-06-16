@@ -9,15 +9,17 @@
 
 namespace FSi\DoctrineExtensions\ORM\Event;
 
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Query;
+use Doctrine\Common\EventManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\Mapping\ClassMetadataFactory;
+use Doctrine\ORM\Query;
 use FSi\DoctrineExtensions\ORM\Events;
 
 class PostHydrateEventDispatcher
 {
     /**
-     * @var EntityManager
+     * @var EntityManagerInterface
      */
     private $entityManager;
 
@@ -46,12 +48,10 @@ class PostHydrateEventDispatcher
     private $entities = [];
 
     /**
-     * Constructs a new dispatcher instance
-     *
-     * @param EntityManager $em
+     * @param EntityManagerInterface $em
      * @param array $hints
      */
-    public function __construct(EntityManager $em, array $hints = [])
+    public function __construct(EntityManagerInterface $em, array $hints = [])
     {
         $this->entityManager = $em;
         $this->metadataFactory = $em->getMetadataFactory();

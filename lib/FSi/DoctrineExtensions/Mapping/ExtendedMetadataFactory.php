@@ -20,29 +20,21 @@ use FSi\DoctrineExtensions\Mapping\Exception;
 final class ExtendedMetadataFactory extends MetadataFactory
 {
     /**
-     * Object manager, entity or document.
-     *
      * @var ObjectManager
      */
     private $objectManager;
 
     /**
-     * Extension namespace.
-     *
      * @var string
      */
     private $extensionNamespace;
 
     /**
-     * Annotation reader.
-     *
      * @var object
      */
     private $annotationReader;
 
     /**
-     * Initializes extension driver.
-     *
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $extensionNamespace
      * @param object $annotationReader
@@ -111,6 +103,7 @@ final class ExtendedMetadataFactory extends MetadataFactory
                 $driver->setAnnotationReader($this->annotationReader);
             }
         }
+
         return $driver;
     }
 }

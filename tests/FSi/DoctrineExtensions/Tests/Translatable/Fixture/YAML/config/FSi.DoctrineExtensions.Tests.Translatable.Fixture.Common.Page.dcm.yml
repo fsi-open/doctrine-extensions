@@ -1,0 +1,21 @@
+FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\Page:
+    type: entity
+    repositoryClass: FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository
+    id:
+        id:
+            type: integer
+            generator:
+                strategy: AUTO
+    fsi:
+        translatable:
+            locale: locale
+            fields:
+                content:
+                    mappedBy: translations
+                    targetField: content
+    oneToMany:
+        translations:
+            targetEntity: FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\PageTranslation
+            mappedBy: page
+            cascade: ["persist", "remove"]
+            indexBy: locale
