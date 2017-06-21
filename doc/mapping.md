@@ -1,10 +1,10 @@
 # Mapping extension for Doctrine 2
 
-**Mapping** extension makes it easy to map additional metadata for ORM/ODM event listeners.
+**Mapping** extension makes it easy to map additional metadata for ORM event listeners.
 It supports **Yaml**, **Xml** and **Annotation** drivers which will be chosen depending on
 currently used mapping driver for ObjectManager which the event listener is attached to.
 **Mapping** extension also provides abstraction layer of **EventArgs** to make it possible
-to use single listeners for different object managers like **ODM** and **ORM**. The main purpose
+to use single listeners for different object managers. The main purpose
 of this component is to make it easy to implement specific listeners and their additional mapping
 drivers. It's achieved mostly by using and extending FSi Metadata component.
 
@@ -277,7 +277,7 @@ specific methods for each manager.
 In most cases event listener will need specific functionality which will differ
 for every object manager. For instance, a query to load users will differ. The
 example bellow will illustrate how to handle such situations. You will need to
-extend default ORM and ODM event adapters to implement specific functions which
+extend default ORM event adapter to implement specific functions which
 will be available through the event adapter. First we will need to follow the
 mapping convention to use those extension points.
 
@@ -297,7 +297,6 @@ Update your directory structure:
                         Event
                             Adapter
                                 ORM.php
-                                ODM.php
                         Annotations.php
                     EncoderListener.php
     ...
@@ -315,24 +314,6 @@ namespace Extension\Encoder\Mapping\Event\Adapter;
 use FSi\DoctrineExtensions\Mapping\Event\Adapter\ORM as BaseAdapterORM;
 
 class ORM extends BaseAdapterORM
-{
-    public function someSpecificMethod()
-    {
-    
-    }
-}
-```
-
-Create extended ODM event adapter:
-
-```
-// file: vendor/Extension/Encoder/Mapping/Event/Adapter/ODM.php
-
-namespace Extension\Encoder\Mapping\Event\Adapter;
-
-use FSi\DoctrineExtensions\Mapping\Event\Adapter\ODM as BaseAdapterODM;
-
-class ODM extends BaseAdapterODM
 {
     public function someSpecificMethod()
     {

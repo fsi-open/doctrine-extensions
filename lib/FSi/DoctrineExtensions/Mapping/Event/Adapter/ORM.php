@@ -9,7 +9,6 @@
 
 namespace FSi\DoctrineExtensions\Mapping\Event\Adapter;
 
-use FSi\Component\Reflection\ReflectionProperty;
 use FSi\DoctrineExtensions\Mapping\Event\AdapterInterface;
 use Doctrine\Common\EventArgs;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
