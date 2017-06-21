@@ -21,7 +21,6 @@
         "symfony/yaml": "^2.2|^3.0",
         "fsi/reflection": "0.9.*",
         "fsi/metadata": "~0.9.2",
-        "fsi/property-observer": "~0.9.2",
         "knplabs/gaufrette": "~0.1.4"
     },
     "require-dev": {
