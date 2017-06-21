@@ -9,7 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\Mapping;
 
-use FSi\Component\Metadata\AbstractClassMetadata;
+use FSi\DoctrineExtensions\Metadata\AbstractClassMetadata;
 
 class ClassMetadata extends AbstractClassMetadata
 {

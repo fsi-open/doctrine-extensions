@@ -10,8 +10,8 @@
 namespace FSi\DoctrineExtensions\Translatable\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractXmlDriver;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
 class Xml extends AbstractXmlDriver
 {

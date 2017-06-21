@@ -10,22 +10,23 @@
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
-use FSi\Component\Metadata\Driver\DriverInterface as BaseDriverInterface;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
-interface DriverInterface extends BaseDriverInterface
+interface DriverInterface
 {
     /**
-     * Set metadata factory from the underlying ORM or ODM.
-     *
      * @param \Doctrine\Common\Persistence\Mapping\ClassMetadataFactory $metadataFactory
      * @return null
      */
     public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory);
 
     /**
-     * Get associated metadata factory for underlying ORM/ODM.
-     *
      * @return \Doctrine\Common\Persistence\Mapping\ClassMetadataFactory
      */
     public function getBaseMetadataFactory();
+
+    /**
+     * @param ClassMetadataInterface $metadata
+     */
+    public function loadClassMetadata(ClassMetadataInterface $metadata);
 }

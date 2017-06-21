@@ -15,8 +15,8 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\EventArgs;
-use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Mapping\Exception;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
 /**
  * This is extension of event subscriber class and is
@@ -76,7 +76,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
      *
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param string $class
-     * @return \FSi\Component\Metadata\ClassMetadataInterface
+     * @return \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface
      */
     public function getExtendedMetadata(ObjectManager $objectManager, $class)
     {
@@ -93,7 +93,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
      * Validate complete metadata for final class (i.e. that is not mapped-superclass).
      *
      * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
-     * @param \FSi\Component\Metadata\ClassMetadataInterface $extendedClassMetadata
+     * @param \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface $extendedClassMetadata
      */
     abstract protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
 
@@ -153,7 +153,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
      * Get extended metadata mapping reader.
      *
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @return \FSi\Component\Metadata\MetadataFactory
+     * @return \FSi\DoctrineExtensions\Metadata\MetadataFactory
      */
     protected function getExtendedMetadataFactory(ObjectManager $objectManager)
     {
@@ -174,7 +174,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
     /**
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param $object
-     * @return \FSi\Component\Metadata\ClassMetadataInterface
+     * @return \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface
      */
     protected function getObjectExtendedMetadata(ObjectManager $objectManager, $object)
     {

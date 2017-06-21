@@ -10,9 +10,9 @@
 namespace FSi\DoctrineExtensions\Translatable\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use FSi\Component\Metadata\ClassMetadataInterface;
-use FSi\DoctrineExtensions\Translatable\Exception\AnnotationException;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractAnnotationDriver;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
+use FSi\DoctrineExtensions\Translatable\Exception\AnnotationException;
 
 class Annotation extends AbstractAnnotationDriver
 {
