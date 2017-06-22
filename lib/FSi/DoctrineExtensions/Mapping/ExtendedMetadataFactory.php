@@ -9,8 +9,9 @@
 
 namespace FSi\DoctrineExtensions\Mapping;
 
+use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\Cache;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractAnnotationDriver;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractFileDriver;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverChain;
@@ -50,7 +51,7 @@ final class ExtendedMetadataFactory
     private $loadedMetadata = [];
 
     /**
-     * @var ObjectManager
+     * @var EntityManagerInterface
      */
     private $objectManager;
 
@@ -60,16 +61,16 @@ final class ExtendedMetadataFactory
     private $extensionNamespace;
 
     /**
-     * @var object
+     * @var Reader
      */
     private $annotationReader;
 
     /**
-     * @param ObjectManager $objectManager
+     * @param EntityManagerInterface $objectManager
      * @param string $extensionNamespace
-     * @param object $annotationReader
+     * @param Reader $annotationReader
      */
-    public function __construct(ObjectManager $objectManager, $extensionNamespace, $annotationReader)
+    public function __construct(EntityManagerInterface $objectManager, $extensionNamespace, $annotationReader)
     {
         $this->objectManager = $objectManager;
         $this->annotationReader = $annotationReader;
@@ -85,7 +86,6 @@ final class ExtendedMetadataFactory
             }
         }
 
-        $metadataClassName = null;
         if (class_exists($this->extensionNamespace . '\Mapping\ClassMetadata')) {
             $metadataClassName = ltrim(
                 sprintf('%s\Mapping\ClassMetadata', $this->extensionNamespace),
@@ -163,7 +163,6 @@ final class ExtendedMetadataFactory
      */
     private function getDriver($omDriver)
     {
-        $driver = null;
         $className = get_class($omDriver);
         $driverName = substr($className, strrpos($className, '\\') + 1);
         if ($omDriver instanceof DriverChain

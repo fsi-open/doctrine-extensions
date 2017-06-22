@@ -94,7 +94,7 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * Specifies the list of events to listen
      *
-     * @return array
+     * @return string[]
      */
     public function getSubscribedEvents()
     {

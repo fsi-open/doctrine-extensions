@@ -584,7 +584,7 @@ class UploadableListener extends MappedEventSubscriber
      * @param \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface $keymaker
      * @param object $object
      * @param string $property
-     * @param mixed $id
+     * @param string $id
      * @param string $fileName
      * @param integer $keyLength
      * @param string $keyPattern

@@ -107,6 +107,7 @@ class Yaml extends AbstractYamlDriver
 
     /**
      * @param array $array
+     * @param string $key
      * @return mixed
      */
     private function getValue(array $array, $key)
