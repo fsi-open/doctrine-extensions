@@ -19,6 +19,7 @@ use FSi\DoctrineExtensions\Translatable\Exception;
 use FSi\DoctrineExtensions\Translatable\Exception\MappingException;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 use FSi\DoctrineExtensions\Translatable\Mapping\TranslationAssociationMetadata;
+use InvalidArgumentException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
@@ -140,7 +141,6 @@ class TranslatableListener extends MappedEventSubscriber
      * This event handler will update, insert or remove translation entities if main object's translatable properties change.
      *
      * @param PreFlushEventArgs $eventArgs
-     * @return void
      */
     public function preFlush(PreFlushEventArgs $eventArgs)
     {
@@ -197,24 +197,20 @@ class TranslatableListener extends MappedEventSubscriber
      */
     protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
+        if (!($extendedClassMetadata instanceof TranslatableClassMetadata)) {
+            throw new InvalidArgumentException(sprintf(
+                'Expected metadata of class "%s", got "%s"',
+                '\FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata',
+                get_class($extendedClassMetadata)
+            ));
+        }
+
         if ($extendedClassMetadata->hasTranslatableProperties()) {
             $this->validateTranslatableLocaleProperty($baseClassMetadata, $extendedClassMetadata);
             $this->validateTranslatableProperties($baseClassMetadata, $extendedClassMetadata);
         } elseif (isset($extendedClassMetadata->localeProperty)) {
             $this->validateTranslationLocaleProperty($baseClassMetadata, $extendedClassMetadata);
         }
-    }
-
-    /**
-     * @return PropertyAccessor
-     */
-    private function getPropertyAccessor()
-    {
-        if (!isset($this->propertyAccessor)) {
-            $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        }
-
-        return $this->propertyAccessor;
     }
 
     /**
@@ -371,5 +367,17 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $meta = $this->getObjectClassMetadata($entityManager, $object);
         return $this->getExtendedMetadata($entityManager, $meta->getName());
+    }
+
+    /**
+     * @return PropertyAccessor
+     */
+    private function getPropertyAccessor()
+    {
+        if (!isset($this->propertyAccessor)) {
+            $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+        }
+
+        return $this->propertyAccessor;
     }
 }

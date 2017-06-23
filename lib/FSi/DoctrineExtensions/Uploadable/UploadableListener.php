@@ -21,7 +21,7 @@ use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
-use FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata as UploadableMetadata;
+use FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata as UploadableClassMetadata;
 use FSi\DoctrineExtensions\Uploadable\PropertyObserver\PropertyObserver;
 use Gaufrette\Filesystem;
 use Gaufrette\FilesystemMap;
@@ -347,10 +347,10 @@ class UploadableListener extends MappedEventSubscriber
      * Load object files and attach observers for key fields.
      *
      * @param object $object
-     * @param UploadableMetadata $uploadableMeta
+     * @param UploadableClassMetadata $uploadableMeta
      * @param EntityManagerInterface $entityManager
      */
-    protected function loadFiles($object, UploadableMetadata $uploadableMeta, EntityManagerInterface $entityManager)
+    protected function loadFiles($object, UploadableClassMetadata $uploadableMeta, EntityManagerInterface $entityManager)
     {
         $propertyObserver = $this->getPropertyObserver($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
@@ -366,11 +366,11 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param UploadableMetadata $uploadableMeta
+     * @param UploadableClassMetadata $uploadableMeta
      * @param object $object
      * @throws RuntimeException
      */
-    protected function updateFiles(EntityManagerInterface $entityManager, UploadableMetadata $uploadableMeta, $object)
+    protected function updateFiles(EntityManagerInterface $entityManager, UploadableClassMetadata $uploadableMeta, $object)
     {
         if ($object instanceof Proxy) {
             $object->__load();
@@ -425,11 +425,11 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param UploadableMetadata $uploadableMeta
+     * @param UploadableClassMetadata $uploadableMeta
      * @param object $object
      * @throws RuntimeException
      */
-    protected function deleteFiles(UploadableMetadata $uploadableMeta, $object)
+    protected function deleteFiles(UploadableClassMetadata $uploadableMeta, $object)
     {
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             $oldKey = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
@@ -459,7 +459,7 @@ class UploadableListener extends MappedEventSubscriber
      */
     protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
-        if (!($extendedClassMetadata instanceof UploadableMetadata)) {
+        if (!($extendedClassMetadata instanceof UploadableClassMetadata)) {
             throw new InvalidArgumentException(sprintf(
                 'Expected metadata of class "%s", got "%s"',
                 '\FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata',
@@ -524,7 +524,10 @@ class UploadableListener extends MappedEventSubscriber
 
             if (!is_null($options['keymaker']) && !$options['keymaker'] instanceof KeymakerInterface) {
                 throw new MappingException(sprintf(
-                    'Mapping "Uploadable" in property "%s" of class "%s" does have keymaker that isn\'t instance of expected FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface ("%s" given).',
+                    'Mapping "Uploadable" in property "%s" of class "%s" does have '
+                    . 'keymaker that isn\'t instance of expected '
+                    . 'FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface'
+                    . ' ("%s" given).',
                     $field,
                     $className,
                     is_object($options['keymaker']) ? get_class($options['keymaker']) : gettype($options['keymaker'])
