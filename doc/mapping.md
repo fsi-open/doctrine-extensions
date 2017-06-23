@@ -6,7 +6,7 @@ currently used mapping driver for ObjectManager which the event listener is atta
 **Mapping** extension also provides abstraction layer of **EventArgs** to make it possible
 to use single listeners for different object managers. The main purpose
 of this component is to make it easy to implement specific listeners and their additional mapping
-drivers. It's achieved mostly by using and extending FSi Metadata component.
+drivers.
 
 ## Creating a mapped extension ##
 
@@ -266,58 +266,3 @@ class User
 ```
 
 Now if you create a new ``User``, you will get encoded fields in database.
-
-**Notice:** event adapter uses ``EventArgs`` to recognize with which manager
-we are dealing with. It also uses event arguments to retrieve manager and transforms
-the method call in its way. You can extend the event adapter in order to add some
-specific methods for each manager.
-
-## Customizing event adapter for specific functions ##
-
-In most cases event listener will need specific functionality which will differ
-for every object manager. For instance, a query to load users will differ. The
-example bellow will illustrate how to handle such situations. You will need to
-extend default ORM event adapter to implement specific functions which
-will be available through the event adapter. First we will need to follow the
-mapping convention to use those extension points.
-
-### Extending default event adapters ###
-
-Update your directory structure:
-
-    project
-        ...
-        bootstrap.php
-        vendor
-            Extension
-                Encoder
-                    Mapping
-                        Driver
-                            Annotation.php
-                        Event
-                            Adapter
-                                ORM.php
-                        Annotations.php
-                    EncoderListener.php
-    ...
-
-Now **Mapping** extension will automatically create event adapter instances
-from the extended ones.
-
-Create extended ORM event adapter:
-
-```php
-// file: vendor/Extension/Encoder/Mapping/Event/Adapter/ORM.php
-
-namespace Extension\Encoder\Mapping\Event\Adapter;
-
-use FSi\DoctrineExtensions\Mapping\Event\Adapter\ORM as BaseAdapterORM;
-
-class ORM extends BaseAdapterORM
-{
-    public function someSpecificMethod()
-    {
-    
-    }
-}
-```

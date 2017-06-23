@@ -10,19 +10,22 @@
 namespace FSi\DoctrineExtensions\Uploadable;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use FSi\DoctrineExtensions\Mapping\Event\Adapter;
+use Doctrine\ORM\Proxy\Proxy;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
-use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
+use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
+use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
+use FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata as UploadableMetadata;
 use FSi\DoctrineExtensions\Uploadable\PropertyObserver\PropertyObserver;
 use Gaufrette\Filesystem;
 use Gaufrette\FilesystemMap;
+use InvalidArgumentException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class UploadableListener extends MappedEventSubscriber
@@ -39,10 +42,18 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @var Filesystem
-     *
-     * Default filesystem id.
      */
     protected $defaultFilesystem;
+
+    /**
+     * @var FileHandlerInterface
+     */
+    protected $fileHandler;
+
+    /**
+     * @var PropertyObserver
+     */
+    protected $propertyObserver;
 
     /**
      * @var integer
@@ -60,27 +71,19 @@ class UploadableListener extends MappedEventSubscriber
     protected $toDelete = [];
 
     /**
-     * @var \FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface
+     * @param array|FilesystemMap $filesystems
+     * @param FileHandlerInterface $fileHandler
+     * @throws RuntimeException
      */
-    protected $fileHandler;
-
-    /**
-     * @param array|\Gaufrette\FilesystemMap $filesystems
-     * @param \FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface $fileHandler
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
-     */
-    public function __construct($filesystems, FileHandler\FileHandlerInterface $fileHandler)
+    public function __construct($filesystems, FileHandlerInterface $fileHandler)
     {
-        // Filesystems.
         $this->setFilesystems($filesystems);
-
-        // Set file handler.
         $this->setFileHandler($fileHandler);
     }
 
     /**
-     * @param array|\Gaufrette\FilesystemMap $filesystems
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @param array|FilesystemMap $filesystems
+     * @throws RuntimeException
      */
     public function setFilesystems($filesystems)
     {
@@ -104,7 +107,7 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param string $id
-     * @param \Gaufrette\Filesystem $filesystem
+     * @param Filesystem $filesystem
      */
     public function setFilesystem($id, Filesystem $filesystem)
     {
@@ -120,7 +123,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @return \Gaufrette\Filesystem[]
+     * @return Filesystem[]
      */
     public function getFilesystems()
     {
@@ -142,7 +145,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param \Gaufrette\Filesystem $filesystem
+     * @param Filesystem $filesystem
      */
     public function setDefaultFilesystem(Filesystem $filesystem)
     {
@@ -158,8 +161,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @return \Gaufrette\Filesystem
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @return Filesystem
+     * @throws RuntimeException
      */
     public function getDefaultFilesystem()
     {
@@ -181,8 +184,8 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param string $id
-     * @return \Gaufrette\Filesystem
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @return Filesystem
+     * @throws RuntimeException
      */
     public function getFilesystem($id)
     {
@@ -196,34 +199,32 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * After loading the entity load file if any.
      *
-     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
+     * @param LifecycleEventArgs $eventArgs
      */
-    public function postLoad(LifecycleEventArgs  $eventArgs)
+    public function postLoad(LifecycleEventArgs $eventArgs)
     {
-        $eventAdapter = $this->getEventAdapter($eventArgs);
-        $objectManager = $eventAdapter->getObjectManager();
-        $object = $eventAdapter->getObject();
-        $uploadableMeta = $this->getObjectExtendedMetadata($objectManager, $object);
+        $entityManager = $eventArgs->getObjectManager();
+        $object = $eventArgs->getEntity();
+        $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
 
         if ($uploadableMeta->hasUploadableProperties()) {
-            $this->loadFiles($object, $uploadableMeta, $objectManager);
+            $this->loadFiles($object, $uploadableMeta, $entityManager);
         }
     }
 
     /**
-     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
+     * @param LifecycleEventArgs $eventArgs
      */
     public function postPersist(LifecycleEventArgs $eventArgs)
     {
-        $eventAdapter = $this->getEventAdapter($eventArgs);
-        $objectManager = $eventAdapter->getObjectManager();
-        $object = $eventAdapter->getObject();
-        $meta = $objectManager->getClassMetadata(get_class($object));
-        $uploadableMeta = $this->getExtendedMetadata($objectManager, $meta->name);
+        $entityManager = $eventArgs->getObjectManager();
+        $object = $eventArgs->getEntity();
+        $meta = $entityManager->getClassMetadata(get_class($object));
+        $uploadableMeta = $this->getExtendedMetadata($entityManager, $meta->name);
 
         if ($uploadableMeta->hasUploadableProperties()) {
-            $this->updateFiles($objectManager, $uploadableMeta, $object, $eventAdapter);
-            $uow = $objectManager->getUnitOfWork();
+            $this->updateFiles($entityManager, $uploadableMeta, $object);
+            $uow = $entityManager->getUnitOfWork();
             $uow->computeChangeSet($meta, $object);
         }
     }
@@ -231,13 +232,12 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * Check and eventually update files keys.
      *
-     * @param \Doctrine\ORM\Event\PreFlushEventArgs $eventArgs
+     * @param PreFlushEventArgs $eventArgs
      */
     public function preFlush(PreFlushEventArgs $eventArgs)
     {
         $entityManager = $eventArgs->getEntityManager();
         $unitOfWork = $entityManager->getUnitOfWork();
-        $eventAdapter = $this->getEventAdapter($eventArgs);
 
         foreach ($unitOfWork->getIdentityMap() as $entities) {
             foreach ($entities as $object) {
@@ -245,13 +245,13 @@ class UploadableListener extends MappedEventSubscriber
                 if (!$uploadableMeta->hasUploadableProperties()) {
                     continue;
                 }
-                $this->updateFiles($entityManager, $uploadableMeta, $object, $eventAdapter);
+                $this->updateFiles($entityManager, $uploadableMeta, $object);
             }
         }
     }
 
     /**
-     * @param \Doctrine\ORM\Event\PostFlushEventArgs $eventArgs
+     * @param PostFlushEventArgs $eventArgs
      */
     public function postFlush(PostFlushEventArgs $eventArgs)
     {
@@ -263,14 +263,13 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param \Doctrine\ORM\Event\LifecycleEventArgs $eventArgs
+     * @param LifecycleEventArgs $eventArgs
      */
     public function postRemove(LifecycleEventArgs $eventArgs)
     {
-        $eventAdapter = $this->getEventAdapter($eventArgs);
-        $objectManager = $eventAdapter->getObjectManager();
-        $object = $eventAdapter->getObject();
-        $uploadableMeta = $this->getObjectExtendedMetadata($objectManager, $object);
+        $entityManager = $eventArgs->getEntityManager();
+        $object = $eventArgs->getEntity();
+        $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
 
         if ($uploadableMeta->hasUploadableProperties()) {
             $this->deleteFiles($uploadableMeta, $object);
@@ -279,7 +278,7 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param int $length
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @throws RuntimeException
      */
     public function setDefaultKeyLength($length)
     {
@@ -299,8 +298,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface $keymaker
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @param KeymakerInterface $keymaker
+     * @throws RuntimeException
      */
     public function setDefaultKeymaker(KeymakerInterface $keymaker)
     {
@@ -316,8 +315,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
-     * @return \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface
+     * @throws RuntimeException
+     * @return KeymakerInterface
      */
     public function getDefaultKeymaker()
     {
@@ -337,7 +336,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @return \FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface
+     * @return FileHandlerInterface
      */
     public function getFileHandler()
     {
@@ -348,17 +347,15 @@ class UploadableListener extends MappedEventSubscriber
      * Load object files and attach observers for key fields.
      *
      * @param object $object
-     * @param \FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata $uploadableMeta
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param UploadableMetadata $uploadableMeta
+     * @param EntityManagerInterface $entityManager
      */
-    protected function loadFiles($object, $uploadableMeta, $objectManager)
+    protected function loadFiles($object, UploadableMetadata $uploadableMeta, EntityManagerInterface $entityManager)
     {
-        $propertyObserver = $this->getPropertyObserver($objectManager);
+        $propertyObserver = $this->getPropertyObserver($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            // File key.
             $key = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
 
-            // Injecting file.
             if (!empty($key)) {
                 $filesystem = $this->computeFilesystem($config);
                 $file = new File($key, $filesystem);
@@ -368,32 +365,25 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * Updating files keys.
-     *
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @param \FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata $uploadableMeta
+     * @param EntityManagerInterface $entityManager
+     * @param UploadableMetadata $uploadableMeta
      * @param object $object
-     * @param \FSi\DoctrineExtensions\Mapping\Event\Adapter\ORM $eventAdapter
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @throws RuntimeException
      */
-    protected function updateFiles(ObjectManager $objectManager, $uploadableMeta, $object, Adapter\ORM $eventAdapter)
+    protected function updateFiles(EntityManagerInterface $entityManager, UploadableMetadata $uploadableMeta, $object)
     {
-        $propertyObserver = $this->getPropertyObserver($objectManager);
-
-        if ($object instanceof \Doctrine\Common\Persistence\Proxy) {
+        if ($object instanceof Proxy) {
             $object->__load();
         }
 
-        $id = $eventAdapter->extractIdentifier($objectManager, $object, false);
-        $id = implode('-', $id);
-
+        $id = implode('-', $this->extractIdentifier($entityManager, $object));
+        $propertyObserver = $this->getPropertyObserver($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             if (!$propertyObserver->hasSavedValue($object, $config['targetField'])
                 || $propertyObserver->hasValueChanged($object, $config['targetField'])
             ) {
                 $accessor = PropertyAccess::createPropertyAccessor();
                 $file = $accessor->getValue($object, $config['targetField']);
-
                 $filesystem = $this->computeFilesystem($config);
 
                 // Since file has changed, the old one should be removed.
@@ -435,13 +425,11 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * Deleting files.
-     *
-     * @param \FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata $uploadableMeta
+     * @param UploadableMetadata $uploadableMeta
      * @param object $object
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @throws RuntimeException
      */
-    protected function deleteFiles($uploadableMeta, $object)
+    protected function deleteFiles(UploadableMetadata $uploadableMeta, $object)
     {
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             $oldKey = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
@@ -450,19 +438,19 @@ class UploadableListener extends MappedEventSubscriber
             }
         }
     }
-
     /**
      * Returns PropertyObserver for specified ObjectManager
      *
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @return mixed
+     * @param EntityManagerInterface $entityManager
+     * @return PropertyObserver
      */
-    protected function getPropertyObserver(ObjectManager $objectManager)
+    protected function getPropertyObserver(EntityManagerInterface $entityManager)
     {
-        $oid = spl_object_hash($objectManager);
+        $oid = spl_object_hash($entityManager);
         if (!isset($this->propertyObservers[$oid])) {
             $this->propertyObservers[$oid] = new PropertyObserver();
         }
+
         return $this->propertyObservers[$oid];
     }
 
@@ -471,6 +459,14 @@ class UploadableListener extends MappedEventSubscriber
      */
     protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
+        if (!($extendedClassMetadata instanceof UploadableMetadata)) {
+            throw new InvalidArgumentException(sprintf(
+                'Expected metadata of class "%s", got "%s"',
+                '\FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata',
+                get_class($extendedClassMetadata)
+            ));
+        }
+
         foreach ($extendedClassMetadata->getUploadableProperties() as $field => $options) {
             $className = $baseClassMetadata->getName();
             if (empty($options['targetField'])) {
@@ -546,7 +542,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param \FSi\DoctrineExtensions\Uploadable\File $file
+     * @param File $file
      */
     protected function addToDelete(File $file)
     {
@@ -555,7 +551,7 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param array $config
-     * @return \Gaufrette\Filesystem
+     * @return Filesystem
      */
     private function computeFilesystem(array $config)
     {
@@ -564,7 +560,7 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * @param array $config
-     * @return \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface
+     * @return KeymakerInterface
      */
     private function computeKeymaker($config)
     {
@@ -584,14 +580,14 @@ class UploadableListener extends MappedEventSubscriber
      * Algorithm to transform names from name.txt to name_i.txt and name_i.txt into name_{i++}.txt
      * when given key already exists and can't be reused.
      *
-     * @param \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface $keymaker
+     * @param KeymakerInterface $keymaker
      * @param object $object
      * @param string $property
      * @param string $id
      * @param string $fileName
      * @param integer $keyLength
      * @param string $keyPattern
-     * @param \Gaufrette\Filesystem $filesystem
+     * @param Filesystem $filesystem
      * @return string
      */
     private function generateNewKey(KeymakerInterface $keymaker, $object, $property, $id, $fileName, $keyLength, $keyPattern, Filesystem $filesystem)
@@ -625,6 +621,21 @@ class UploadableListener extends MappedEventSubscriber
         }
 
         return $newKey;
+    }
+
+    /**
+     * Extracts identifiers from object or proxy.
+     *
+     * @param EntityManagerInterface $em
+     * @param object $object
+     * @return array
+     */
+    private function extractIdentifier(EntityManagerInterface $em, $object)
+    {
+        return $object instanceof Proxy
+            ? $em->getUnitOfWork()->getEntityIdentifier($object)
+            : $em->getClassMetadata(get_class($object))->getIdentifierValues($object)
+        ;
     }
 
     /**

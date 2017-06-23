@@ -107,40 +107,6 @@ abstract class MappedEventSubscriber implements EventSubscriber
     abstract protected function getNamespace();
 
     /**
-     * Get an event adapter to handle event specific methods.
-     *
-     * @param \Doctrine\Common\EventArgs $args
-     * @return \FSi\DoctrineExtensions\Mapping\Event\Adapter\ORM
-     */
-    protected function getEventAdapter(EventArgs $args)
-    {
-        if (!$this->adapter) {
-            $this->adapter = new Adapter\ORM();
-        }
-        $this->adapter->setEventArgs($args);
-
-        return $this->adapter;
-    }
-
-    /**
-     * @param \Doctrine\Common\EventArgs $args
-     * @return \Doctrine\Common\Persistence\ObjectManager
-     */
-    protected function getEventObjectManager(EventArgs $args)
-    {
-        return $this->getEventAdapter($args)->getObjectManager();
-    }
-
-    /**
-     * @param \Doctrine\Common\EventArgs $args
-     * @return \Doctrine\Common\Persistence\ObjectManager
-     */
-    protected function getEventObject(EventArgs $args)
-    {
-        return $this->getEventAdapter($args)->getObject();
-    }
-
-    /**
      * Get extended metadata mapping reader.
      *
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager

@@ -9,13 +9,14 @@
 
 namespace FSi\DoctrineExtensions\Translatable;
 
-use Doctrine\Common\EventArgs;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Translatable\Exception;
+use FSi\DoctrineExtensions\Translatable\Exception\MappingException;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 use FSi\DoctrineExtensions\Translatable\Mapping\TranslationAssociationMetadata;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -48,8 +49,6 @@ class TranslatableListener extends MappedEventSubscriber
      */
     private $classTranslationContexts;
 
-    /**
-     */
     public function __construct()
     {
         $this->translationHelper = new TranslationHelper($this->getPropertyAccessor());
@@ -57,12 +56,10 @@ class TranslatableListener extends MappedEventSubscriber
 
     /**
      * @param string $locale
-     * @return \FSi\DoctrineExtensions\Translatable\TranslatableListener
      */
     public function setLocale($locale)
     {
         $this->currentLocale = $locale;
-        return $this;
     }
 
     /**
@@ -75,12 +72,10 @@ class TranslatableListener extends MappedEventSubscriber
 
     /**
      * @param string $defaultLocale
-     * @return \FSi\DoctrineExtensions\Translatable\TranslatableListener
      */
     public function setDefaultLocale($defaultLocale)
     {
         $this->defaultLocale = $defaultLocale;
-        return $this;
     }
 
     /**
@@ -120,13 +115,13 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * After loading the entity copy the current translation fields into non-persistent translatable properties
      *
-     * @param \Doctrine\Common\EventArgs $eventArgs
+     * @param LifecycleEventArgs $eventArgs
      */
-    public function postLoad(EventArgs $eventArgs)
+    public function postLoad(LifecycleEventArgs $eventArgs)
     {
         $this->loadTranslation(
-            $this->getEventObjectManager($eventArgs),
-            $this->getEventObject($eventArgs),
+            $eventArgs->getEntityManager(),
+            $eventArgs->getEntity(),
             $this->getLocale()
         );
     }
@@ -134,9 +129,9 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * After loading the entity copy the current translation fields into non-persistent translatable properties
      *
-     * @param \Doctrine\Common\EventArgs $eventArgs
+     * @param LifecycleEventArgs $eventArgs
      */
-    public function postHydrate(EventArgs $eventArgs)
+    public function postHydrate(LifecycleEventArgs $eventArgs)
     {
         $this->postLoad($eventArgs);
     }
@@ -144,7 +139,7 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * This event handler will update, insert or remove translation entities if main object's translatable properties change.
      *
-     * @param \Doctrine\ORM\Event\PreFlushEventArgs $eventArgs
+     * @param PreFlushEventArgs $eventArgs
      * @return void
      */
     public function preFlush(PreFlushEventArgs $eventArgs)
@@ -166,19 +161,19 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * Load translations fields into object properties
      *
-     * @param ObjectManager $objectManager
+     * @param EntityManagerInterface $entityManager
      * @param object $object
      * @param string $locale
      */
-    public function loadTranslation(ObjectManager $objectManager, $object, $locale)
+    public function loadTranslation(EntityManagerInterface $entityManager, $object, $locale)
     {
-        $translatableMeta = $this->getTranslatableMetadata($objectManager, $object);
+        $translatableMeta = $this->getTranslatableMetadata($entityManager, $object);
         if (!$translatableMeta->hasTranslatableProperties()) {
             return;
         }
 
         foreach ($translatableMeta->getTranslationAssociationMetadatas() as $associationMeta) {
-            $context = $this->getTranslationContext($objectManager, $associationMeta, $object);
+            $context = $this->getTranslationContext($entityManager, $associationMeta, $object);
             $associationName = $associationMeta->getAssociationName();
             $repository = $context->getTranslatableRepository();
             $translation = $repository->findTranslation($object, $locale, $associationName);
@@ -211,7 +206,7 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * @return \Symfony\Component\PropertyAccess\PropertyAccessor
+     * @return PropertyAccessor
      */
     private function getPropertyAccessor()
     {
@@ -225,7 +220,7 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * @param ClassMetadata $baseClassMetadata
      * @param TranslatableClassMetadata $translatableClassMetadata
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\MappingException
+     * @throws MappingException
      */
     private function validateTranslatableLocaleProperty(
         ClassMetadata $baseClassMetadata,
@@ -252,7 +247,7 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * @param ClassMetadata $baseClassMetadata
      * @param TranslatableClassMetadata $translatableClassMetadata
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\MappingException
+     * @throws MappingException
      */
     private function validateTranslatableProperties(
         ClassMetadata $baseClassMetadata,
@@ -275,7 +270,7 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * @param ClassMetadata $baseClassMetadata
      * @param TranslatableClassMetadata $translatableClassMetadata
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\MappingException
+     * @throws MappingException
      */
     private function validateTranslationLocaleProperty(
         ClassMetadata $baseClassMetadata,
@@ -295,18 +290,18 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * Helper method to insert, remove or update translations entities associated with specified object
      *
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param EntityManagerInterface $entityManager
      * @param object $object
      */
-    private function updateObjectTranslations(ObjectManager $objectManager, $object)
+    private function updateObjectTranslations(EntityManagerInterface $entityManager, $object)
     {
-        $translatableMeta = $this->getTranslatableMetadata($objectManager, $object);
+        $translatableMeta = $this->getTranslatableMetadata($entityManager, $object);
         if (!$translatableMeta->hasTranslatableProperties()) {
             return;
         }
 
         foreach ($translatableMeta->getTranslationAssociationMetadatas() as $associationMeta) {
-            $context = $this->getTranslationContext($objectManager, $associationMeta, $object);
+            $context = $this->getTranslationContext($entityManager, $associationMeta, $object);
             $locale = $this->translationHelper->getObjectLocale($context, $object);
             if (is_null($locale) || $locale === '') {
                 $locale = $this->getLocale();
@@ -335,22 +330,22 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param ObjectManager $objectManager
+     * @param EntityManagerInterface $entityManager
      * @param TranslationAssociationMetadata $associationMeta
-     * @param $object
+     * @param object $object
      * @return ClassTranslationContext
      */
     private function getTranslationContext(
-        ObjectManager $objectManager,
+        EntityManagerInterface $entityManager,
         TranslationAssociationMetadata $associationMeta,
         $object
     ) {
-        $classMeta = $this->getObjectClassMetadata($objectManager, $object);
+        $classMeta = $this->getObjectClassMetadata($entityManager, $object);
         $className = $classMeta->getName();
         $associationName = $associationMeta->getAssociationName();
 
         if (empty($this->classTranslationContexts[$className][$associationName])) {
-            $context = new ClassTranslationContext($objectManager, $classMeta, $associationMeta);
+            $context = new ClassTranslationContext($entityManager, $classMeta, $associationMeta);
             $this->classTranslationContexts[$className][$associationName] = $context;
         }
 
@@ -358,23 +353,23 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param ObjectManager $objectManager
+     * @param EntityManagerInterface $entityManager
      * @param object $object
      * @return ClassMetadata
      */
-    private function getObjectClassMetadata(ObjectManager $objectManager, $object)
+    private function getObjectClassMetadata(EntityManagerInterface $entityManager, $object)
     {
-        return $objectManager->getClassMetadata(get_class($object));
+        return $entityManager->getClassMetadata(get_class($object));
     }
 
     /**
-     * @param ObjectManager $objectManager
+     * @param EntityManagerInterface $entityManager
      * @param object $object
      * @return TranslatableClassMetadata
      */
-    private function getTranslatableMetadata(ObjectManager $objectManager, $object)
+    private function getTranslatableMetadata(EntityManagerInterface $entityManager, $object)
     {
-        $meta = $this->getObjectClassMetadata($objectManager, $object);
-        return $this->getExtendedMetadata($objectManager, $meta->getName());
+        $meta = $this->getObjectClassMetadata($entityManager, $object);
+        return $this->getExtendedMetadata($entityManager, $meta->getName());
     }
 }
