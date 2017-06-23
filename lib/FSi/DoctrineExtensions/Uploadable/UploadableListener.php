@@ -14,7 +14,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use FSi\DoctrineExtensions\Mapping\Event\AdapterInterface;
+use FSi\DoctrineExtensions\Mapping\Event\Adapter;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
@@ -166,6 +166,7 @@ class UploadableListener extends MappedEventSubscriber
         if (!$this->hasDefaultFilesystem()) {
             throw new RuntimeException('There\'s no default filesystem set.');
         }
+
         return $this->defaultFilesystem;
     }
 
@@ -188,6 +189,7 @@ class UploadableListener extends MappedEventSubscriber
         if (!$this->hasFilesystem($id)) {
             throw new RuntimeException(sprintf('There is no filesystem for id "%s".', $id));
         }
+
         return $this->filesystems[$id];
     }
 
@@ -371,10 +373,10 @@ class UploadableListener extends MappedEventSubscriber
      * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
      * @param \FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata $uploadableMeta
      * @param object $object
-     * @param \FSi\DoctrineExtensions\Mapping\Event\AdapterInterface $eventAdapter
+     * @param \FSi\DoctrineExtensions\Mapping\Event\Adapter\ORM $eventAdapter
      * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
      */
-    protected function updateFiles(ObjectManager $objectManager, $uploadableMeta, $object, AdapterInterface $eventAdapter)
+    protected function updateFiles(ObjectManager $objectManager, $uploadableMeta, $object, Adapter\ORM $eventAdapter)
     {
         $propertyObserver = $this->getPropertyObserver($objectManager);
 
@@ -395,8 +397,9 @@ class UploadableListener extends MappedEventSubscriber
                 $filesystem = $this->computeFilesystem($config);
 
                 // Since file has changed, the old one should be removed.
-                if ($oldKey = $accessor->getValue($object, $property)) {
-                    if ($oldFile = $propertyObserver->getSavedValue($object, $config['targetField'])) {
+                if ($accessor->getValue($object, $property)) {
+                    $oldFile = $propertyObserver->getSavedValue($object, $config['targetField']);
+                    if ($oldFile) {
                         $this->addToDelete($oldFile);
                     }
                 }

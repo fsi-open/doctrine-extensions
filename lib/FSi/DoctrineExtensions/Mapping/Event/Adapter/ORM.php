@@ -9,7 +9,6 @@
 
 namespace FSi\DoctrineExtensions\Mapping\Event\Adapter;
 
-use FSi\DoctrineExtensions\Mapping\Event\AdapterInterface;
 use Doctrine\Common\EventArgs;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\UnitOfWork;
@@ -19,7 +18,7 @@ use Doctrine\ORM\Proxy\Proxy;
 /**
  * Doctrine event adapter for ORM specific event arguments.
  */
-class ORM implements AdapterInterface
+class ORM
 {
     /**
      * @var EventArgs;

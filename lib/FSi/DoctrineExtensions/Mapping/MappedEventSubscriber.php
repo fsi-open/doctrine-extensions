@@ -15,7 +15,7 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\EventArgs;
-use FSi\DoctrineExtensions\Mapping\Exception;
+use FSi\DoctrineExtensions\Mapping\Event\Adapter;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
 /**
@@ -42,9 +42,9 @@ abstract class MappedEventSubscriber implements EventSubscriber
     /**
      * List of event adapters used for this listener.
      *
-     * @var array
+     * @var Adapter\ORM
      */
-    private $adapters = [];
+    private $adapter;
 
     /**
      * Custom annotation reader.
@@ -110,25 +110,16 @@ abstract class MappedEventSubscriber implements EventSubscriber
      * Get an event adapter to handle event specific methods.
      *
      * @param \Doctrine\Common\EventArgs $args
-     * @throws \FSi\DoctrineExtensions\Mapping\Exception\RuntimeException - if event is not recognized
-     * @return \FSi\DoctrineExtensions\Mapping\Event\AdapterInterface
+     * @return \FSi\DoctrineExtensions\Mapping\Event\Adapter\ORM
      */
     protected function getEventAdapter(EventArgs $args)
     {
-        $class = get_class($args);
-        if (preg_match('@Doctrine\\\([^\\\]+)@', $class, $m) && in_array($m[1], ['ODM', 'ORM'])) {
-            if (!isset($this->adapters[$m[1]])) {
-                $adapterClass = $this->getNamespace() . '\\Mapping\\Event\\Adapter\\' . $m[1];
-                if (!class_exists($adapterClass)) {
-                    $adapterClass = 'FSi\\DoctrineExtensions\\Mapping\\Event\\Adapter\\'.$m[1];
-                }
-                $this->adapters[$m[1]] = new $adapterClass;
-            }
-            $this->adapters[$m[1]]->setEventArgs($args);
-            return $this->adapters[$m[1]];
-        } else {
-            throw new Exception\RuntimeException('Event mapper does not support event arg class: '.$class);
+        if (!$this->adapter) {
+            $this->adapter = new Adapter\ORM();
         }
+        $this->adapter->setEventArgs($args);
+
+        return $this->adapter;
     }
 
     /**
