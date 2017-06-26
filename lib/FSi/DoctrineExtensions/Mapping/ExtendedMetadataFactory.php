@@ -11,6 +11,7 @@ namespace FSi\DoctrineExtensions\Mapping;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\EntityManagerInterface;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractAnnotationDriver;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractFileDriver;
@@ -75,7 +76,11 @@ final class ExtendedMetadataFactory
         $this->objectManager = $objectManager;
         $this->annotationReader = $annotationReader;
         $this->extensionNamespace = $extensionNamespace;
-        $this->driver = $this->getDriver($objectManager->getConfiguration()->getMetadataDriverImpl());
+        $metadataDriver = $objectManager->getConfiguration()->getMetadataDriverImpl();
+        if (is_null($metadataDriver)) {
+            throw new RuntimeException('The entity manager did not return a metadata driver!');
+        }
+        $this->driver = $this->getDriver($metadataDriver);
         $this->driver->setBaseMetadataFactory($objectManager->getMetadataFactory());
 
         $cache = $this->objectManager->getMetadataFactory()->getCacheDriver();
@@ -157,11 +162,11 @@ final class ExtendedMetadataFactory
      * Get the extended driver instance which will
      * read the metadata required by extension.
      *
-     * @param object $omDriver
+     * @param MappingDriver $omDriver
      * @throws RuntimeException if driver was not found in extension or it is not compatible
      * @return DriverInterface
      */
-    private function getDriver($omDriver)
+    private function getDriver(MappingDriver $omDriver)
     {
         $className = get_class($omDriver);
         $driverName = substr($className, strrpos($className, '\\') + 1);

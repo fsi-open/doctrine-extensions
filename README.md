@@ -14,6 +14,6 @@ Add this line to composer.json:
 
 ```json
     "require": {
-        "fsi/doctrine-extensions": "~1.1"
+        "fsi/doctrine-extensions": "^2.0@dev"
     }
 ```

@@ -9,13 +9,13 @@
 
 namespace FSi\DoctrineExtensions\Mapping;
 
-use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Annotations\Reader;
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventSubscriber;
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use Doctrine\Common\EventArgs;
-use FSi\DoctrineExtensions\Mapping\Exception;
+use Doctrine\ORM\EntityManagerInterface;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
 /**
@@ -32,38 +32,25 @@ use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 abstract class MappedEventSubscriber implements EventSubscriber
 {
     /**
-     * ExtensionMetadataFactory used to read the extension
+     * ExtendedMetadataFactory used to read the extension
      * metadata through the extension drivers.
      *
-     * @var \FSi\DoctrineExtensions\Mapping\ExtensionMetadataFactory[]
+     * @var ExtendedMetadataFactory[]
      */
-    private $extensionMetadataFactory = [];
+    private $extendedMetadataFactory = [];
 
     /**
-     * List of event adapters used for this listener.
-     *
-     * @var array
-     */
-    private $adapters = [];
-
-    /**
-     * Custom annotation reader.
-     *
      * @var Reader
      */
     private $annotationReader;
 
     /**
-     * Default annotation reader.
-     *
      * @var Reader
      */
     private $defaultAnnotationReader;
 
     /**
-     * Sets the annotation reader which is passed further to the annotation driver.
-     *
-     * @param \Doctrine\Common\Annotations\Reader $reader
+     * @param Reader $reader
      */
     public function setAnnotationReader(Reader $reader)
     {
@@ -74,15 +61,15 @@ abstract class MappedEventSubscriber implements EventSubscriber
      * Scans the objects for extended annotations
      * event subscribers must subscribe to loadClassMetadata event.
      *
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
+     * @param EntityManagerInterface $entityManager
      * @param string $class
-     * @return \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface
+     * @return ClassMetadataInterface
      */
-    public function getExtendedMetadata(ObjectManager $objectManager, $class)
+    public function getExtendedMetadata(EntityManagerInterface $entityManager, $class)
     {
-        $factory = $this->getExtendedMetadataFactory($objectManager);
+        $factory = $this->getExtendedMetadataFactory($entityManager);
         $extendedMetadata = $factory->getClassMetadata($class);
-        $metadata = $objectManager->getClassMetadata($class);
+        $metadata = $entityManager->getClassMetadata($class);
         if (!$metadata->isMappedSuperclass) {
             $this->validateExtendedMetadata($metadata, $extendedMetadata);
         }
@@ -92,8 +79,8 @@ abstract class MappedEventSubscriber implements EventSubscriber
     /**
      * Validate complete metadata for final class (i.e. that is not mapped-superclass).
      *
-     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
-     * @param \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface $extendedClassMetadata
+     * @param ClassMetadata $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
      */
     abstract protected function validateExtendedMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
 
@@ -107,93 +94,48 @@ abstract class MappedEventSubscriber implements EventSubscriber
     abstract protected function getNamespace();
 
     /**
-     * Get an event adapter to handle event specific methods.
-     *
-     * @param \Doctrine\Common\EventArgs $args
-     * @throws \FSi\DoctrineExtensions\Mapping\Exception\RuntimeException - if event is not recognized
-     * @return \FSi\DoctrineExtensions\Mapping\Event\AdapterInterface
-     */
-    protected function getEventAdapter(EventArgs $args)
-    {
-        $class = get_class($args);
-        if (preg_match('@Doctrine\\\([^\\\]+)@', $class, $m) && in_array($m[1], ['ODM', 'ORM'])) {
-            if (!isset($this->adapters[$m[1]])) {
-                $adapterClass = $this->getNamespace() . '\\Mapping\\Event\\Adapter\\' . $m[1];
-                if (!class_exists($adapterClass)) {
-                    $adapterClass = 'FSi\\DoctrineExtensions\\Mapping\\Event\\Adapter\\'.$m[1];
-                }
-                $this->adapters[$m[1]] = new $adapterClass;
-            }
-            $this->adapters[$m[1]]->setEventArgs($args);
-            return $this->adapters[$m[1]];
-        } else {
-            throw new Exception\RuntimeException('Event mapper does not support event arg class: '.$class);
-        }
-    }
-
-    /**
-     * @param \Doctrine\Common\EventArgs $args
-     * @return \Doctrine\Common\Persistence\ObjectManager
-     */
-    protected function getEventObjectManager(EventArgs $args)
-    {
-        return $this->getEventAdapter($args)->getObjectManager();
-    }
-
-    /**
-     * @param \Doctrine\Common\EventArgs $args
-     * @return \Doctrine\Common\Persistence\ObjectManager
-     */
-    protected function getEventObject(EventArgs $args)
-    {
-        return $this->getEventAdapter($args)->getObject();
-    }
-
-    /**
      * Get extended metadata mapping reader.
      *
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @return \FSi\DoctrineExtensions\Metadata\MetadataFactory
+     * @param EntityManagerInterface $entityManager
+     * @return ExtendedMetadataFactory
      */
-    protected function getExtendedMetadataFactory(ObjectManager $objectManager)
+    protected function getExtendedMetadataFactory(EntityManagerInterface $entityManager)
     {
-        $oid = spl_object_hash($objectManager);
-        if (!isset($this->extensionMetadataFactory[$oid])) {
+        $oid = spl_object_hash($entityManager);
+        if (!isset($this->extendedMetadataFactory[$oid])) {
             if (is_null($this->annotationReader)) {
                 $this->annotationReader = $this->getDefaultAnnotationReader();
             }
-            $this->extensionMetadataFactory[$oid] = new ExtendedMetadataFactory(
-                $objectManager,
+            $this->extendedMetadataFactory[$oid] = new ExtendedMetadataFactory(
+                $entityManager,
                 $this->getNamespace(),
                 $this->annotationReader
             );
         }
-        return $this->extensionMetadataFactory[$oid];
+
+        return $this->extendedMetadataFactory[$oid];
     }
 
     /**
-     * @param \Doctrine\Common\Persistence\ObjectManager $objectManager
-     * @param $object
-     * @return \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface
+     * @param EntityManagerInterface $entityManager
+     * @param object $object
+     * @return ClassMetadataInterface
      */
-    protected function getObjectExtendedMetadata(ObjectManager $objectManager, $object)
+    protected function getObjectExtendedMetadata(EntityManagerInterface $entityManager, $object)
     {
-        $meta = $objectManager->getMetadataFactory()->getMetadataFor(get_class($object));
-        return $this->getExtendedMetadata($objectManager, $meta->getName());
+        $meta = $entityManager->getMetadataFactory()->getMetadataFor(get_class($object));
+        return $this->getExtendedMetadata($entityManager, $meta->getName());
     }
 
     /**
-     * Create default annotation reader for extensions.
-     *
-     * @return \Doctrine\Common\Annotations\AnnotationReader
+     * @return AnnotationReader
      */
     private function getDefaultAnnotationReader()
     {
         if (null === $this->defaultAnnotationReader) {
-            $reader = new \Doctrine\Common\Annotations\AnnotationReader();
-            $reader = new \Doctrine\Common\Annotations\CachedReader($reader, new ArrayCache());
-            $this->defaultAnnotationReader = $reader;
+            $this->defaultAnnotationReader = new CachedReader(new AnnotationReader(), new ArrayCache());
         }
+
         return $this->defaultAnnotationReader;
     }
 }
