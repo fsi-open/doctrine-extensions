@@ -9,9 +9,9 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\Mapping\Driver;
 
-use FSi\DoctrineExtensions\Mapping\Driver\AbstractYamlDriver;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use FSi\Component\Metadata\ClassMetadataInterface;
+use FSi\DoctrineExtensions\Mapping\Driver\AbstractYamlDriver;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 
 class Yaml extends AbstractYamlDriver
@@ -49,6 +49,7 @@ class Yaml extends AbstractYamlDriver
 
     /**
      * @param array $array
+     * @param string $key
      * @return mixed
      */
     private function getValue(array $array, $key)

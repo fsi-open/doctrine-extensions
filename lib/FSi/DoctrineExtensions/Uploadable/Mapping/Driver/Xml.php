@@ -9,9 +9,9 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\Mapping\Driver;
 
-use FSi\DoctrineExtensions\Mapping\Driver\AbstractXmlDriver;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
-use FSi\Component\Metadata\ClassMetadataInterface;
+use FSi\DoctrineExtensions\Mapping\Driver\AbstractXmlDriver;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
 class Xml extends AbstractXmlDriver
 {

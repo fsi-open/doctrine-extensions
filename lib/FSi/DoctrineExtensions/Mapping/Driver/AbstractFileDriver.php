@@ -11,11 +11,12 @@ namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
-use FSi\Component\Metadata\ClassMetadataInterface;
-use FSi\Component\Metadata\Driver\AbstractFileDriver as BaseFileDriver;
-use FSi\DoctrineExtensions\Mapping\Exception;
+use Doctrine\Common\Persistence\Mapping\Driver\FileLocator;
+use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
+use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
-abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterface
+abstract class AbstractFileDriver implements DriverInterface
 {
     /**
      * @var ClassMetadataFactory
@@ -23,12 +24,16 @@ abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterf
     private $baseMetadataFactory;
 
     /**
+     * @var FileLocator
+     */
+    private $locator;
+
+    /**
      * {@inheritdoc}
      */
     public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory)
     {
         $this->baseMetadataFactory = $metadataFactory;
-        return $this;
     }
 
     /**
@@ -37,7 +42,7 @@ abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterf
     public function getBaseMetadataFactory()
     {
         if (!isset($this->baseMetadataFactory)) {
-            throw new Exception\RuntimeException('Required base metadata factory has not been set on the file driver.');
+            throw new RuntimeException('Required base metadata factory has not been set on the file driver.');
         }
         return $this->baseMetadataFactory;
     }
@@ -54,11 +59,45 @@ abstract class AbstractFileDriver extends BaseFileDriver implements DriverInterf
     }
 
     /**
+     * @param FileLocator $locator
+     */
+    public function setFileLocator(FileLocator $locator)
+    {
+        $this->locator = $locator;
+    }
+
+    /**
+     * @throws RuntimeException
+     * @return FileLocator
+     */
+    public function getFileLocator()
+    {
+        if (!isset($this->locator)) {
+            throw new RuntimeException('Required file locator has not been set on the file driver.');
+        }
+
+        return $this->locator;
+    }
+
+    /**
      * Load extended class metadata based on class metadata coming from underlying
      * ORM or ODM and this driver abilities to read extended metadata.
      *
-     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
-     * @param \FSi\Component\Metadata\ClassMetadataInterface $extendedClassMetadata
+     * @param ClassMetadata $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
      */
     abstract protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
+
+    /**
+     * Returns path of the file containing class matadata.
+     *
+     * This method shout be used in loadClassMetadata to reach metadata file.
+     *
+     * @param ClassMetadataInterface $metadata
+     * @return FileLocator
+     */
+    protected function findMappingFile(ClassMetadataInterface $metadata)
+    {
+        return $this->getFileLocator()->findMappingFile($metadata->getClassName());
+    }
 }

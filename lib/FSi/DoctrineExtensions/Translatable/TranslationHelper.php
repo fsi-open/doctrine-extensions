@@ -12,7 +12,6 @@ namespace FSi\DoctrineExtensions\Translatable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
-use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
@@ -36,9 +35,9 @@ class TranslationHelper
 
     /**
      * @param ClassTranslationContext $context
-     * @param $object
-     * @param $translation
-     * @param $locale
+     * @param object $object
+     * @param object $translation
+     * @param string $locale
      */
     public function copyTranslationProperties(ClassTranslationContext $context, $object, $translation, $locale)
     {
@@ -52,7 +51,6 @@ class TranslationHelper
     }
 
     /**
-     * @param TranslatableRepositoryInterface $translatableRepository
      * @param ClassTranslationContext $context
      * @param object $object
      * @param string $defaultLocale
@@ -132,7 +130,7 @@ class TranslationHelper
 
         foreach ($context->getAssociationMetadata()->getProperties() as $property => $translationField) {
             if ($translationMeta->isCollectionValuedAssociation($translationField)) {
-                $propertyAccessor->setValue($object, $property, []);
+                $propertyAccessor->setValue($object, $property, new ArrayCollection());
             } else {
                 $propertyAccessor->setValue($object, $property, null);
             }
@@ -143,7 +141,7 @@ class TranslationHelper
 
     /**
      * @param ClassTranslationContext $context
-     * @param $object
+     * @param object $object
      * @return bool
      */
     public function hasTranslatedProperties(ClassTranslationContext $context, $object)

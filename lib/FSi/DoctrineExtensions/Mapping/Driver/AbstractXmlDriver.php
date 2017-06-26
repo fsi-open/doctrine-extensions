@@ -9,7 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
-use FSi\Component\Metadata\ClassMetadataInterface;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 use SimpleXmlElement;
 use DOMDocument;
@@ -22,7 +22,7 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
     const FSI_NAMESPACE_URI = 'http://fsi.pl/schemas/orm/doctrine-extensions-mapping';
 
     /**
-     * @param \FSi\Component\Metadata\ClassMetadataInterface $extendedClassMetadata
+     * @param \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface $extendedClassMetadata
      * @return \SimpleXmlElement|null
      */
     protected function getFileMapping(ClassMetadataInterface $extendedClassMetadata)

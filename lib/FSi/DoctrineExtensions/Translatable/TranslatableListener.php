@@ -13,8 +13,8 @@ use Doctrine\Common\EventArgs;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Translatable\Exception;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 use FSi\DoctrineExtensions\Translatable\Mapping\TranslationAssociationMetadata;
@@ -94,7 +94,7 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * Specifies the list of events to listen
      *
-     * @return array
+     * @return string[]
      */
     public function getSubscribedEvents()
     {

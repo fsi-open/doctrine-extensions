@@ -14,9 +14,9 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use FSi\Component\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Mapping\Event\AdapterInterface;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
@@ -584,7 +584,7 @@ class UploadableListener extends MappedEventSubscriber
      * @param \FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface $keymaker
      * @param object $object
      * @param string $property
-     * @param mixed $id
+     * @param string $id
      * @param string $fileName
      * @param integer $keyLength
      * @param string $keyPattern

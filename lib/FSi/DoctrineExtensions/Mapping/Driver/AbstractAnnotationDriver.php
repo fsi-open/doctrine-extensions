@@ -9,13 +9,14 @@
 
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
+use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
-use FSi\Component\Metadata\ClassMetadataInterface;
-use FSi\Component\Metadata\Driver\AbstractAnnotationDriver as BaseAnnotationDriver;
-use FSi\DoctrineExtensions\Mapping\Exception;
+use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
+use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
+use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
-abstract class AbstractAnnotationDriver extends BaseAnnotationDriver implements DriverInterface
+abstract class AbstractAnnotationDriver implements DriverInterface
 {
     /**
      * @var ClassMetadataFactory
@@ -23,12 +24,16 @@ abstract class AbstractAnnotationDriver extends BaseAnnotationDriver implements 
     private $baseMetadataFactory;
 
     /**
+     * @var Reader
+     */
+    private $reader;
+
+    /**
      * {@inheritdoc}
      */
     public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory)
     {
         $this->baseMetadataFactory = $metadataFactory;
-        return $this;
     }
 
     /**
@@ -37,8 +42,9 @@ abstract class AbstractAnnotationDriver extends BaseAnnotationDriver implements 
     public function getBaseMetadataFactory()
     {
         if (!isset($this->baseMetadataFactory)) {
-            throw new Exception\RuntimeException('Required base metadata factory has not been set on the annotation driver.');
+            throw new RuntimeException('Required base metadata factory has not been set on the annotation driver.');
         }
+
         return $this->baseMetadataFactory;
     }
 
@@ -54,11 +60,32 @@ abstract class AbstractAnnotationDriver extends BaseAnnotationDriver implements 
     }
 
     /**
+     * @param Reader $reader
+     */
+    public function setAnnotationReader(Reader $reader)
+    {
+        $this->reader = $reader;
+    }
+
+    /**
+     * @throws RuntimeException
+     * @return Reader
+     */
+    public function getAnnotationReader()
+    {
+        if (!isset($this->reader)) {
+            throw new RuntimeException('Required annotation reader has not been set on the annotation driver.');
+        }
+
+        return $this->reader;
+    }
+
+    /**
      * Load extended class metadata based on class metadata coming from underlying
-     * ORM or ODM and this driver abilities to read extended metadata.
+     * ORM and this driver abilities to read extended metadata.
      *
-     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadata $baseClassMetadata
-     * @param \FSi\Component\Metadata\ClassMetadataInterface $extendedClassMetadata
+     * @param ClassMetadata $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
      */
     abstract protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
 }
