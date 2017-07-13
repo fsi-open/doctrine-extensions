@@ -11,7 +11,9 @@ namespace FSi\DoctrineExtensions\Mapping;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Persistence\Mapping\Driver\FileDriver;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\ORM\EntityManagerInterface;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractAnnotationDriver;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractFileDriver;
@@ -170,10 +172,7 @@ final class ExtendedMetadataFactory
     {
         $className = get_class($omDriver);
         $driverName = substr($className, strrpos($className, '\\') + 1);
-        if ($omDriver instanceof DriverChain
-            || $driverName == 'DriverChain'
-            || $driverName == 'MappingDriverChain'
-        ) {
+        if ($omDriver instanceof MappingDriverChain) {
             $driver = new DriverChain();
             foreach ($omDriver->getDrivers() as $namespace => $nestedOmDriver) {
                 $driver->addDriver($this->getDriver($nestedOmDriver), $namespace);
@@ -197,7 +196,7 @@ final class ExtendedMetadataFactory
                     get_class($driver)
                 ));
             }
-            if ($driver instanceof AbstractFileDriver) {
+            if ($driver instanceof AbstractFileDriver && $omDriver instanceof FileDriver) {
                 /** @var $driver FileDriver */
                 $driver->setFileLocator($omDriver->getLocator());
             }

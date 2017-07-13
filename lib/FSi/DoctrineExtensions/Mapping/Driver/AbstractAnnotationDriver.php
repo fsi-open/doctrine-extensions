@@ -10,8 +10,8 @@
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use Doctrine\Common\Annotations\Reader;
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
@@ -84,8 +84,8 @@ abstract class AbstractAnnotationDriver implements DriverInterface
      * Load extended class metadata based on class metadata coming from underlying
      * ORM and this driver abilities to read extended metadata.
      *
-     * @param ClassMetadata $baseClassMetadata
+     * @param ClassMetadataInfo $baseClassMetadata
      * @param ClassMetadataInterface $extendedClassMetadata
      */
-    abstract protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
+    abstract protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
 }

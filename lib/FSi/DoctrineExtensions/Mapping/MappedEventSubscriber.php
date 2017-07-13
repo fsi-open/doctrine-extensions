@@ -16,7 +16,9 @@ use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
+use RuntimeException;
 
 /**
  * This is extension of event subscriber class and is
@@ -70,6 +72,13 @@ abstract class MappedEventSubscriber implements EventSubscriber
         $factory = $this->getExtendedMetadataFactory($entityManager);
         $extendedMetadata = $factory->getClassMetadata($class);
         $metadata = $entityManager->getClassMetadata($class);
+        if (!$metadata instanceof ClassMetadataInfo) {
+            throw new RuntimeException(sprintf(
+                'Expected object of class "%s", got "%s"',
+                '\Doctrine\ORM\Mapping\ClassMetadataInfo',
+                get_class($metadata)
+            ));
+        }
         if (!$metadata->isMappedSuperclass) {
             $this->validateExtendedMetadata($metadata, $extendedMetadata);
         }

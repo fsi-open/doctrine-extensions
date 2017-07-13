@@ -9,9 +9,9 @@
 
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
 use Doctrine\Common\Persistence\Mapping\Driver\FileLocator;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
@@ -83,10 +83,10 @@ abstract class AbstractFileDriver implements DriverInterface
      * Load extended class metadata based on class metadata coming from underlying
      * ORM or ODM and this driver abilities to read extended metadata.
      *
-     * @param ClassMetadata $baseClassMetadata
+     * @param ClassMetadataInfo $baseClassMetadata
      * @param ClassMetadataInterface $extendedClassMetadata
      */
-    abstract protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
+    abstract protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
 
     /**
      * Returns path of the file containing class matadata.
