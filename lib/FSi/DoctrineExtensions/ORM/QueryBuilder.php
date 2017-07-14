@@ -17,10 +17,8 @@ class QueryBuilder extends BaseQueryBuilder
     public function getQuery()
     {
         $query = parent::getQuery();
-        if (\Doctrine\ORM\Version::compare('2.5.0-DEV') > 0) {
-            $query->setHydrationMode(Query::HYDRATE_OBJECT);
-            $query->setHint(BaseQuery::HINT_INCLUDE_META_COLUMNS, true);
-        }
+        $query->setHint(BaseQuery::HINT_INCLUDE_META_COLUMNS, true);
+
         return $query;
     }
 }
