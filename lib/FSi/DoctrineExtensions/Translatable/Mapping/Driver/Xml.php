@@ -9,9 +9,11 @@
 
 namespace FSi\DoctrineExtensions\Translatable\Mapping\Driver;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractXmlDriver;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
+use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata;
+use RuntimeException;
 
 class Xml extends AbstractXmlDriver
 {
@@ -21,8 +23,16 @@ class Xml extends AbstractXmlDriver
     /**
      * {@inheritdoc}
      */
-    protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
+    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
+        if (!($extendedClassMetadata instanceof ClassMetadata)) {
+            throw new RuntimeException(sprintf(
+                'Expected metadata of class "%s", got "%s"',
+                '\FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata',
+                get_class($extendedClassMetadata)
+            ));
+        }
+
         $mapping = $this->getFileMapping($extendedClassMetadata);
         // First iterate over nodes of translated entities, which are not part
         // of the Doctrine fields group

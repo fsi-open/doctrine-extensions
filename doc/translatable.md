@@ -440,16 +440,6 @@ $qb = $repository->createTranslatableQueryBuilder('a', 't', 'dt');
 $qb->where('t.Title LIKE ?', '%article%');
 ```
 
-**Heads Up!!** ``QueryBuilder`` object returned by ``createTranslatableQueryBuilder()``
-extends ``\Doctrine\ORM\QueryBuilder`` and it's ``getQuery()`` method returns
-query which has already set custom hydration mode. This custom hydration mode is
-necessary in order to hydrate objects along with their translations and
-substitute translated values into the main objects during single query execution.
-However this hydration mode will not be used during ``$query->getResult()`` (with
-no arguments). In order to gain this speedup you must get results through
-``$query->execute()`` which respects the custom hydration mode set on ``$query``
-object.
-
 ### Finding entities by translatable fields
 
 ``TranslatableRepository`` has two additional methods that can be used to find translatable

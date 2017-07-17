@@ -109,15 +109,6 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
         ;
 
         $config->expects($this->any())
-            ->method('getCustomHydrationMode')
-            ->will($this->returnCallback(function ($hydrationMode) {
-                if ($hydrationMode == \FSi\DoctrineExtensions\ORM\Query::HYDRATE_OBJECT) {
-                    return 'FSi\DoctrineExtensions\ORM\Hydration\ObjectHydrator';
-                }
-            }))
-        ;
-
-        $config->expects($this->any())
             ->method('getDefaultQueryHints')
             ->will($this->returnValue([]));
 

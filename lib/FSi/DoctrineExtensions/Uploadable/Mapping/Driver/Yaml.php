@@ -9,18 +9,28 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\Mapping\Driver;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractYamlDriver;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
+use FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata;
+use RuntimeException;
 
 class Yaml extends AbstractYamlDriver
 {
     /**
      * {@inheritdoc}
      */
-    protected function loadExtendedClassMetadata(ClassMetadata $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
+    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
     {
+        if (!($extendedClassMetadata instanceof ClassMetadata)) {
+            throw new RuntimeException(sprintf(
+                'Expected metadata of class "%s", got "%s"',
+                '\FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata',
+                get_class($extendedClassMetadata)
+            ));
+        }
+
         $mapping = $this->getFileMapping($extendedClassMetadata);
 
         if (isset($mapping['type']) && isset($mapping['fields']) && is_array($mapping['fields'])) {
