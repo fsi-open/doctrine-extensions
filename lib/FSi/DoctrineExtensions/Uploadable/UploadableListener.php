@@ -203,7 +203,7 @@ class UploadableListener extends MappedEventSubscriber
      */
     public function postLoad(LifecycleEventArgs $eventArgs)
     {
-        $entityManager = $eventArgs->getObjectManager();
+        $entityManager = $eventArgs->getEntityManager();
         $object = $eventArgs->getEntity();
         $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
 
@@ -217,10 +217,17 @@ class UploadableListener extends MappedEventSubscriber
      */
     public function postPersist(LifecycleEventArgs $eventArgs)
     {
-        $entityManager = $eventArgs->getObjectManager();
+        $entityManager = $eventArgs->getEntityManager();
         $object = $eventArgs->getEntity();
         $meta = $entityManager->getClassMetadata(get_class($object));
         $uploadableMeta = $this->getExtendedMetadata($entityManager, $meta->name);
+        if (!($uploadableMeta instanceof UploadableClassMetadata)) {
+            throw new InvalidArgumentException(sprintf(
+                'Expected class metadata "%s" got "%s"',
+                'FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata',
+                get_class($uploadableMeta)
+            ));
+        }
 
         if ($uploadableMeta->hasUploadableProperties()) {
             $this->updateFiles($entityManager, $uploadableMeta, $object);
@@ -372,6 +379,12 @@ class UploadableListener extends MappedEventSubscriber
      */
     protected function updateFiles(EntityManagerInterface $entityManager, UploadableClassMetadata $uploadableMeta, $object)
     {
+        if (!is_object($object)) {
+            throw new InvalidArgumentException(sprintf(
+                'Expected an object, got "%s"',
+                gettype($object)
+            ));
+        }
         if ($object instanceof Proxy) {
             $object->__load();
         }
