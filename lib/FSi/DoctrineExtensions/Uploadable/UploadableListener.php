@@ -51,9 +51,9 @@ class UploadableListener extends MappedEventSubscriber
     protected $fileHandler;
 
     /**
-     * @var PropertyObserver
+     * @var PropertyObserver[]
      */
-    protected $propertyObserver;
+    protected $propertyObservers = [];
 
     /**
      * @var integer
@@ -438,6 +438,7 @@ class UploadableListener extends MappedEventSubscriber
             }
         }
     }
+
     /**
      * Returns PropertyObserver for specified ObjectManager
      *
@@ -596,6 +597,7 @@ class UploadableListener extends MappedEventSubscriber
     private function generateNewKey(KeymakerInterface $keymaker, $object, $property, $id, $fileName, $keyLength, $keyPattern, Filesystem $filesystem)
     {
         while ($filesystem->has($newKey = $keymaker->createKey($object, $property, $id, $fileName, $keyPattern))) {
+            $matches = [];
             $match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches);
             if ($match) {
                 $fileName = sprintf(
