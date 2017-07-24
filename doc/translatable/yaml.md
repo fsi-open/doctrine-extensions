@@ -39,8 +39,7 @@ Acme\DemoBundle\Entity\User:
                 strategy: AUTO
     fsi:
         translatable:
-            locale: 
-                field: locale # required, since there is no field to assign to
+            locale: locale # provide the field name mapped to locale
             fields:
                 name:
                     mappedBy: translations
