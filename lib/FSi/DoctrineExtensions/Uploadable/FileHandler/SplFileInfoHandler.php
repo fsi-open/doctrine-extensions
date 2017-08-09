@@ -14,6 +14,19 @@ use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 class SplFileInfoHandler extends AbstractHandler
 {
     /**
+     * @var string
+     */
+    private $tempFilename;
+
+    /**
+     * @param string $tempFilename
+     */
+    public function __construct($tempFilename = 'temp')
+    {
+        $this->tempFilename = $tempFilename;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getContent($file)
@@ -50,7 +63,13 @@ class SplFileInfoHandler extends AbstractHandler
             throw $this->generateNotSupportedException($file);
         }
 
-        return basename($file->getRealpath());
+        $filename = basename($file->getRealpath());
+
+        if (!empty($filename)) {
+            return $filename;
+        }
+
+        return $this->tempFilename;
     }
 
     /**
