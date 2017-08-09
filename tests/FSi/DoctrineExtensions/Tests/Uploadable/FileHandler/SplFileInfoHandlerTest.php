@@ -16,10 +16,11 @@ use Gaufrette\Filesystem;
 class SplFileInfoHandlerTest extends BaseHandlerTest
 {
     const KEY = '/someKey';
+    const TEMP_FILENAME = 'tempfile';
 
     protected function setUp()
     {
-        $this->handler = new SplFileInfoHandler();
+        $this->handler = new SplFileInfoHandler(self::TEMP_FILENAME);
     }
 
     public function testSupports()
@@ -60,6 +61,15 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
 
         $name = $this->handler->getName($input);
         $this->assertEquals(basename(FILESYSTEM1 . self::KEY), $name);
+    }
+
+    public function testGetNameOnTempFile()
+    {
+        $input = new \SplTempFileObject();
+        $input->fwrite(self::CONTENT);
+
+        $name = $this->handler->getName($input);
+        $this->assertEquals(self::TEMP_FILENAME, $name);
     }
 
     public function testException()
