@@ -35,6 +35,25 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
         $this->assertEquals(self::CONTENT, $content);
     }
 
+    public function testGetContentOnTempFile()
+    {
+        $input = new \SplTempFileObject();
+        $input->fwrite(self::CONTENT);
+        $position = $input->ftell();
+
+        $content = $this->handler->getContent($input);
+        $this->assertEquals(self::CONTENT, $content);
+        $this->assertEquals($position, $input->ftell());
+    }
+
+    public function testGetContentOnOpenFile()
+    {
+        $input = $this->getInput()->openFile();
+
+        $content = $this->handler->getContent($input);
+        $this->assertEquals(self::CONTENT, $content);
+    }
+
     public function testGetName()
     {
         $input = $this->getInput();
