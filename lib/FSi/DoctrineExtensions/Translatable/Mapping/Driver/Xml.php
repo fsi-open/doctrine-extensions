@@ -34,6 +34,11 @@ class Xml extends AbstractXmlDriver
         }
 
         $mapping = $this->getFileMapping($extendedClassMetadata);
+        if (is_null($mapping)) {
+            // Not an entity (ie. embeddable)
+            return;
+        }
+
         // First iterate over nodes of translated entities, which are not part
         // of the Doctrine fields group
         $fsiMapping = $mapping->children(self::FSI_NAMESPACE_URI);
