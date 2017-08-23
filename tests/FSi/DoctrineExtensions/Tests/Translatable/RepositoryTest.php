@@ -221,7 +221,7 @@ class RepositoryTest extends BaseTranslatableTest
         }
 
         $this->assertEquals(
-            2,
+            1,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );

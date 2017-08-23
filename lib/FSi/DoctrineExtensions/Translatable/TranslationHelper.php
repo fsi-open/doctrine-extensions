@@ -10,29 +10,14 @@
 namespace FSi\DoctrineExtensions\Translatable;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use FSi\DoctrineExtensions\Reflection\ObjectReflection;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
  * @internal
  */
 class TranslationHelper
 {
-    /**
-     * @var PropertyAccessor
-     */
-    private $propertyAccessor;
-
-    /**
-     * @param PropertyAccessor|null $propertyAccessor
-     */
-    public function __construct(PropertyAccessor $propertyAccessor = null)
-    {
-        $this->propertyAccessor = $propertyAccessor;
-    }
-
     /**
      * @param ClassTranslationContext $context
      * @param object $object
@@ -44,8 +29,7 @@ class TranslationHelper
         $this->copyProperties(
             $translation,
             $object,
-            array_flip($context->getAssociationMetadata()->getProperties()),
-            $context->getTranslationMetadata()
+            array_flip($context->getAssociationMetadata()->getProperties())
         );
         $this->setObjectLocale($context->getTranslatableMetadata(), $object, $locale);
     }
@@ -82,8 +66,7 @@ class TranslationHelper
         $this->copyProperties(
             $object,
             $translation,
-            $translationAssociationMeta->getProperties(),
-            $context->getTranslationMetadata()
+            $translationAssociationMeta->getProperties()
         );
     }
 
@@ -125,14 +108,14 @@ class TranslationHelper
      */
     public function clearTranslatableProperties(ClassTranslationContext $context, $object)
     {
+        $reflection = $this->getReflection($object);
         $translationMeta = $context->getTranslationMetadata();
-        $propertyAccessor = $this->getPropertyAccessor();
 
         foreach ($context->getAssociationMetadata()->getProperties() as $property => $translationField) {
             if ($translationMeta->isCollectionValuedAssociation($translationField)) {
-                $propertyAccessor->setValue($object, $property, new ArrayCollection());
+                $reflection->setPropertyValue($property, new ArrayCollection());
             } else {
-                $propertyAccessor->setValue($object, $property, null);
+                $reflection->setPropertyValue($property, null);
             }
         }
 
@@ -146,12 +129,12 @@ class TranslationHelper
      */
     public function hasTranslatedProperties(ClassTranslationContext $context, $object)
     {
+        $reflection = $this->getReflection($object);
         $translationMeta = $context->getTranslationMetadata();
         $properties = $context->getAssociationMetadata()->getProperties();
-        $propertyAccessor = $this->getPropertyAccessor();
 
         foreach ($properties as $property => $translationField) {
-            $value = $propertyAccessor->getValue($object, $property);
+            $value = $reflection->getPropertyValue($property);
             if ($translationMeta->isCollectionValuedAssociation($translationField)
                 && count($value)
                 || !$translationMeta->isCollectionValuedAssociation($translationField)
@@ -171,8 +154,9 @@ class TranslationHelper
      */
     public function getObjectLocale(ClassTranslationContext $context, $object)
     {
-        $localeProperty = $context->getTranslatableMetadata()->localeProperty;
-        return $this->getPropertyAccessor()->getValue($object, $localeProperty);
+        return $this->getReflection($object)->getPropertyValue(
+            $context->getTranslatableMetadata()->localeProperty
+        );
     }
 
     /**
@@ -182,8 +166,7 @@ class TranslationHelper
      */
     private function setObjectLocale(TranslatableClassMetadata $classMetadata, $object, $locale)
     {
-        $localeProperty = $classMetadata->localeProperty;
-        $this->getPropertyAccessor()->setValue($object, $localeProperty, $locale);
+        $this->getReflection($object)->setPropertyValue($classMetadata->localeProperty, $locale);
     }
 
     /**
@@ -191,34 +174,24 @@ class TranslationHelper
      * @param object $target
      * @param array $properties
      */
-    private function copyProperties($source, $target, $properties, ClassMetadata $classMetadata)
+    private function copyProperties($source, $target, $properties)
     {
-        $propertyAccessor = $this->getPropertyAccessor();
+        $sourceReflection = $this->getReflection($source);
+        $targetReflection = $this->getReflection($target);
         foreach ($properties as $sourceField => $targetField) {
-            if ($classMetadata->isCollectionValuedAssociation($targetField)
-                && $propertyAccessor->getValue($target, $targetField) === null
-            ) {
-                $reflection = new \ReflectionClass($target);
-                $property = $reflection->getProperty($targetField);
-                $property->setAccessible(true);
-                $property->setValue($target, new ArrayCollection());
-                $property->setAccessible(false);
-            }
-
-            $value = $propertyAccessor->getValue($source, $sourceField);
-            $propertyAccessor->setValue($target, $targetField, $value);
+            $targetReflection->setPropertyValue(
+                $targetField,
+                $sourceReflection->getPropertyValue($sourceField)
+            );
         }
     }
 
     /**
-     * @return \Symfony\Component\PropertyAccess\PropertyAccessor
+     * @param object $object
+     * @return ObjectReflection
      */
-    private function getPropertyAccessor()
+    private function getReflection($object)
     {
-        if (!isset($this->propertyAccessor)) {
-            $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        }
-
-        return $this->propertyAccessor;
+        return new ObjectReflection($object);
     }
 }
