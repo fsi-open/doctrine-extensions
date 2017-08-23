@@ -83,13 +83,26 @@ class ObjectReflection
             $reflection = $reflection->getParentClass();
         }
 
+        if (!$property) {
+            throw new RuntimeException(sprintf(
+                'Property "%s" does not exist in class "%s" or any of it\'s parents.',
+                $name,
+                get_class($this->object)
+            ));
+        }
+
         return $property;
+    }
+
+    public function getObject()
+    {
+        return $this->object;
     }
 
     /**
      * @param ReflectionClass $reflection
      * @param string $name
-     * @return ReflectionProperty
+     * @return ReflectionProperty|bool
      * @throws RuntimeException
      */
     private function attemptToExtractProperty(ReflectionClass $reflection, $name)
@@ -105,10 +118,6 @@ class ObjectReflection
             }
         }
 
-        throw new RuntimeException(sprintf(
-            'Property "%s" does not exist in class "%s" or any of it\'s parents.',
-            $name,
-            get_class($this->object)
-        ));
+        return false;
     }
 }

@@ -9,10 +9,9 @@
 
 namespace FSi\DoctrineExtensions\Uploadable\PropertyObserver;
 
+use FSi\DoctrineExtensions\Reflection\ObjectReflection;
 use FSi\DoctrineExtensions\Uploadable\PropertyObserver\Exception\BadMethodCallException;
 use Symfony\Component\PropertyAccess\Exception\InvalidArgumentException;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 class PropertyObserver
 {
@@ -24,39 +23,27 @@ class PropertyObserver
     private $savedValues = [];
 
     /**
-     * @var PropertyAccessor
-     */
-    private $propertyAccessor;
-
-    public function __construct()
-    {
-        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-    }
-
-    /**
-     * @param object $object
+     * @param ObjectReflection $reflection
      * @param string $propertyPath
      * @param mixed $value
      */
-    public function setValue($object, $propertyPath, $value)
+    public function setValue(ObjectReflection $reflection, $propertyPath, $value)
     {
-        $this->validateObject($object);
-        $this->propertyAccessor->setValue($object, $propertyPath, $value);
-        $this->saveValue($object, $propertyPath);
+        $reflection->setPropertyValue($propertyPath, $value);
+        $this->saveValue($reflection, $propertyPath);
     }
 
     /**
-     * @param object $object
+     * @param ObjectReflection $reflection
      * @param string $propertyPath
      */
-    public function saveValue($object, $propertyPath)
+    public function saveValue(ObjectReflection $reflection, $propertyPath)
     {
-        $this->validateObject($object);
-        $oid = spl_object_hash($object);
+        $oid = spl_object_hash($reflection->getObject());
         if (!isset($this->savedValues[$oid])) {
             $this->savedValues[$oid] = [];
         }
-        $this->savedValues[$oid][$propertyPath] = $this->propertyAccessor->getValue($object, $propertyPath);
+        $this->savedValues[$oid][$propertyPath] = $reflection->getPropertyValue($propertyPath);
     }
 
     /**
@@ -95,45 +82,33 @@ class PropertyObserver
     }
 
     /**
-     * @param object $object
+     * @param ObjectReflection $reflection
      * @param string $propertyPath
      */
-    public function resetValue($object, $propertyPath)
+    public function resetValue(ObjectReflection $reflection, $propertyPath)
     {
-        $this->propertyAccessor->setValue(
-            $object,
+        $reflection->setPropertyValue(
             $propertyPath,
-            $this->getSavedValue($object, $propertyPath)
+            $this->getSavedValue($reflection->getObject(), $propertyPath)
         );
     }
 
     /**
-     * @param object $object
+     * @param ObjectReflection $reflection
      * @param string $propertyPath
      * @param boolean $notSavedAsNull
      * @return boolean
      */
-    public function hasChangedValue($object, $propertyPath, $notSavedAsNull = false)
+    public function hasChangedValue(ObjectReflection $reflection, $propertyPath, $notSavedAsNull = false)
     {
-        $this->validateObject($object);
-
-        $currentValue = $this->propertyAccessor->getValue($object, $propertyPath);
+        $object = $reflection->getObject();
+        $currentValue = $reflection->getPropertyValue($propertyPath);
 
         if ($notSavedAsNull && !$this->hasSavedValue($object, $propertyPath)) {
             return isset($currentValue);
         }
 
         return $this->getSavedValue($object, $propertyPath) !== $currentValue;
-    }
-
-    /**
-     * @param object $object
-     * @param string $propertyPath
-     * @return boolean
-     */
-    public function hasValueChanged($object, $propertyPath)
-    {
-        return $this->hasChangedValue($object, $propertyPath);
     }
 
     /**

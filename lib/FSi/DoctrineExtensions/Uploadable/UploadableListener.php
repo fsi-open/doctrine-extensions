@@ -17,6 +17,7 @@ use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Proxy\Proxy;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
+use FSi\DoctrineExtensions\Reflection\ObjectReflection;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
@@ -359,14 +360,15 @@ class UploadableListener extends MappedEventSubscriber
      */
     protected function loadFiles($object, UploadableClassMetadata $uploadableMeta, EntityManagerInterface $entityManager)
     {
+        $reflection = new ObjectReflection($object);
         $propertyObserver = $this->getPropertyObserver($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            $key = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
+            $key = $reflection->getPropertyValue($property);
 
             if (!empty($key)) {
                 $filesystem = $this->computeFilesystem($config);
                 $file = new File($key, $filesystem);
-                $propertyObserver->setValue($object, $config['targetField'], $file);
+                $propertyObserver->setValue($reflection, $config['targetField'], $file);
             }
         }
     }
@@ -391,16 +393,16 @@ class UploadableListener extends MappedEventSubscriber
 
         $id = implode('-', $this->extractIdentifier($entityManager, $object));
         $propertyObserver = $this->getPropertyObserver($entityManager);
+        $reflection = new ObjectReflection($object);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             if (!$propertyObserver->hasSavedValue($object, $config['targetField'])
-                || $propertyObserver->hasValueChanged($object, $config['targetField'])
+                || $propertyObserver->hasChangedValue($reflection, $config['targetField'])
             ) {
-                $accessor = PropertyAccess::createPropertyAccessor();
-                $file = $accessor->getValue($object, $config['targetField']);
+                $file = $reflection->getPropertyValue($config['targetField']);
                 $filesystem = $this->computeFilesystem($config);
 
                 // Since file has changed, the old one should be removed.
-                if ($accessor->getValue($object, $property)) {
+                if ($reflection->getPropertyValue($property)) {
                     $oldFile = $propertyObserver->getSavedValue($object, $config['targetField']);
                     if ($oldFile) {
                         $this->addToDelete($oldFile);
@@ -408,8 +410,8 @@ class UploadableListener extends MappedEventSubscriber
                 }
 
                 if (empty($file)) {
-                    $accessor->setValue($object, $property, null);
-                    $propertyObserver->saveValue($object, $config['targetField']);
+                    $reflection->setPropertyValue($property, null);
+                    $propertyObserver->saveValue($reflection, $config['targetField']);
                     continue;
                 }
 
@@ -430,9 +432,9 @@ class UploadableListener extends MappedEventSubscriber
 
                 $newFile = new File($newKey, $filesystem);
                 $newFile->setContent($this->getFileHandler()->getContent($file));
-                $accessor->setValue($object, $property, $newFile->getKey());
+                $reflection->setPropertyValue($property, $newFile->getKey());
                 // Save its current value, so if another update will be called, there won't be another saving.
-                $propertyObserver->setValue($object, $config['targetField'], $newFile);
+                $propertyObserver->setValue($reflection, $config['targetField'], $newFile);
             }
         }
     }
