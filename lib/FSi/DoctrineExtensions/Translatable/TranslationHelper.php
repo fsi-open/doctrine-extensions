@@ -10,7 +10,7 @@
 namespace FSi\DoctrineExtensions\Translatable;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use FSi\DoctrineExtensions\Reflection\ObjectReflection;
+use FSi\DoctrineExtensions\PropertyManipulator;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 
 /**
@@ -18,6 +18,16 @@ use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableCla
  */
 class TranslationHelper
 {
+    /**
+     * @var PropertyManipulator
+     */
+    private $propertyManipulator;
+
+    public function __construct()
+    {
+        $this->propertyManipulator = new PropertyManipulator();
+    }
+
     /**
      * @param ClassTranslationContext $context
      * @param object $object
@@ -108,15 +118,14 @@ class TranslationHelper
      */
     public function clearTranslatableProperties(ClassTranslationContext $context, $object)
     {
-        $reflection = $this->getReflection($object);
         $translationMeta = $context->getTranslationMetadata();
-
         foreach ($context->getAssociationMetadata()->getProperties() as $property => $translationField) {
+            $clearValue = null;
             if ($translationMeta->isCollectionValuedAssociation($translationField)) {
-                $reflection->setPropertyValue($property, new ArrayCollection());
-            } else {
-                $reflection->setPropertyValue($property, null);
+                $clearValue = new ArrayCollection();
             }
+
+            $this->propertyManipulator->setPropertyValue($object, $property, $clearValue);
         }
 
         $this->setObjectLocale($context->getTranslatableMetadata(), $object, null);
@@ -129,12 +138,11 @@ class TranslationHelper
      */
     public function hasTranslatedProperties(ClassTranslationContext $context, $object)
     {
-        $reflection = $this->getReflection($object);
         $translationMeta = $context->getTranslationMetadata();
         $properties = $context->getAssociationMetadata()->getProperties();
 
         foreach ($properties as $property => $translationField) {
-            $value = $reflection->getPropertyValue($property);
+            $value = $this->propertyManipulator->getPropertyValue($object, $property);
             if ($translationMeta->isCollectionValuedAssociation($translationField)
                 && count($value)
                 || !$translationMeta->isCollectionValuedAssociation($translationField)
@@ -154,7 +162,8 @@ class TranslationHelper
      */
     public function getObjectLocale(ClassTranslationContext $context, $object)
     {
-        return $this->getReflection($object)->getPropertyValue(
+        return $this->propertyManipulator->getPropertyValue(
+            $object,
             $context->getTranslatableMetadata()->localeProperty
         );
     }
@@ -166,7 +175,7 @@ class TranslationHelper
      */
     private function setObjectLocale(TranslatableClassMetadata $classMetadata, $object, $locale)
     {
-        $this->getReflection($object)->setPropertyValue($classMetadata->localeProperty, $locale);
+        $this->propertyManipulator->setPropertyValue($object, $classMetadata->localeProperty, $locale);
     }
 
     /**
@@ -176,22 +185,12 @@ class TranslationHelper
      */
     private function copyProperties($source, $target, $properties)
     {
-        $sourceReflection = $this->getReflection($source);
-        $targetReflection = $this->getReflection($target);
         foreach ($properties as $sourceField => $targetField) {
-            $targetReflection->setPropertyValue(
+            $this->propertyManipulator->setPropertyValue(
+                $target,
                 $targetField,
-                $sourceReflection->getPropertyValue($sourceField)
+                $this->propertyManipulator->getPropertyValue($source, $sourceField)
             );
         }
-    }
-
-    /**
-     * @param object $object
-     * @return ObjectReflection
-     */
-    private function getReflection($object)
-    {
-        return new ObjectReflection($object);
     }
 }
