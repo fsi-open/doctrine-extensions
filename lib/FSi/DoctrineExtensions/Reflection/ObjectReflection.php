@@ -9,9 +9,8 @@
 
 namespace FSi\DoctrineExtensions\Reflection;
 
+use Closure;
 use InvalidArgumentException;
-use ReflectionClass;
-use ReflectionProperty;
 use RuntimeException;
 
 /**
@@ -19,11 +18,6 @@ use RuntimeException;
  */
 class ObjectReflection
 {
-    /**
-     * @var ReflectionClass
-     */
-    private $reflection;
-
     /**
      * @var object
      */
@@ -42,7 +36,6 @@ class ObjectReflection
         }
 
         $this->object = $object;
-        $this->reflection = new ReflectionClass($object);
     }
 
     /**
@@ -51,12 +44,9 @@ class ObjectReflection
      */
     public function getPropertyValue($name)
     {
-        $property = $this->getProperty($name);
-        $property->setAccessible(true);
-        $value = $property->getValue($this->object);
-        $property->setAccessible(false);
-
-        return $value;
+        return Closure::bind(function () use ($name) {
+            return $this->$name;
+        }, $this->object, $this->getSourceObjectForProperty($name))->__invoke();
     }
 
 
@@ -66,24 +56,23 @@ class ObjectReflection
      */
     public function setPropertyValue($name, $value)
     {
-        $property = $this->getProperty($name);
-        $property->setAccessible(true);
-        $property->setValue($this->object, $value);
-        $property->setAccessible(false);
+        return Closure::bind(function () use ($name, $value) {
+            return $this->$name = $value;
+        }, $this->object, $this->getSourceObjectForProperty($name))->__invoke();
     }
 
     /**
      * @param string $name
-     * @return ReflectionProperty
+     * @return object|string
      */
-    public function getProperty($name)
+    public function getSourceObjectForProperty($name)
     {
-        $reflection = $this->reflection;
-        while (!($property = $this->attemptToExtractProperty($reflection, $name))) {
-            $reflection = $reflection->getParentClass();
+        $source = $this->object;
+        while (!property_exists($source, $name) && get_parent_class($source) !== false) {
+            $source = get_parent_class($source);
         }
 
-        if (!$property) {
+        if (!property_exists($source, $name)) {
             throw new RuntimeException(sprintf(
                 'Property "%s" does not exist in class "%s" or any of it\'s parents.',
                 $name,
@@ -91,33 +80,11 @@ class ObjectReflection
             ));
         }
 
-        return $property;
+        return $source;
     }
 
     public function getObject()
     {
         return $this->object;
-    }
-
-    /**
-     * @param ReflectionClass $reflection
-     * @param string $name
-     * @return ReflectionProperty|bool
-     * @throws RuntimeException
-     */
-    private function attemptToExtractProperty(ReflectionClass $reflection, $name)
-    {
-        if ($reflection->hasProperty($name)) {
-            return $reflection->getProperty($name);
-        }
-
-        /* @var $traitReflection ReflectionClass */
-        foreach ($reflection->getTraits() as $traitReflection) {
-            if ($traitReflection->hasProperty($name)) {
-                return $traitReflection->getProperty($name);
-            }
-        }
-
-        return false;
     }
 }

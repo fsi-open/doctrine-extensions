@@ -15,6 +15,8 @@ class ListenerTest extends BaseTranslatableTest
 {
     const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
+    const POLISH_SUBTITLE = 'Podtytuł';
+    const ENGLISH_SUBTITLE = 'A subtitle';
 
     /**
      * Test simple entity creation with translation its state after $em->flush()
@@ -24,6 +26,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = new Article();
         $article->setDate(new \DateTime());
         $article->setTitle(self::POLISH_TITLE_1);
+        $article->setSubtitle(self::POLISH_SUBTITLE);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_logger->enabled = true;
@@ -39,6 +42,12 @@ class ListenerTest extends BaseTranslatableTest
         $this->assertAttributeEquals(
             self::POLISH_TITLE_1,
             'title',
+            $article->getTranslations()->get($this->_languagePl)
+        );
+
+        $this->assertAttributeEquals(
+            self::POLISH_SUBTITLE,
+            'subtitle',
             $article->getTranslations()->get($this->_languagePl)
         );
 
@@ -60,6 +69,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_em->flush();
 
         $article->setTitle(self::POLISH_TITLE_1);
+        $article->setSubtitle(self::POLISH_SUBTITLE);
         $article->setContents(self::POLISH_CONTENTS_1);
         $article->setLocale($this->_languagePl);
         $this->_logger->enabled = true;
@@ -80,6 +90,12 @@ class ListenerTest extends BaseTranslatableTest
         $this->assertAttributeEquals(
             self::POLISH_TITLE_1,
             'title',
+            $article->getTranslations()->get($this->_languagePl)
+        );
+
+        $this->assertAttributeEquals(
+            self::POLISH_SUBTITLE,
+            'subtitle',
             $article->getTranslations()->get($this->_languagePl)
         );
 
@@ -121,12 +137,14 @@ class ListenerTest extends BaseTranslatableTest
         $article->setDate(new \DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
+        $article->setSubtitle(self::POLISH_SUBTITLE);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
 
         $article->setLocale($this->_languageEn);
         $article->setTitle(self::ENGLISH_TITLE_1);
+        $article->setSubtitle(self::ENGLISH_SUBTITLE);
         $article->setContents(self::ENGLISH_CONTENTS_1);
         $this->_logger->enabled = true;
         $this->_em->flush();
@@ -150,6 +168,12 @@ class ListenerTest extends BaseTranslatableTest
         );
 
         $this->assertAttributeEquals(
+            self::ENGLISH_SUBTITLE,
+            'subtitle',
+            $article->getTranslations()->get($this->_languageEn)
+        );
+
+        $this->assertAttributeEquals(
             self::ENGLISH_CONTENTS_1,
             'contents',
             $article->getTranslations()->get($this->_languageEn)
@@ -165,12 +189,14 @@ class ListenerTest extends BaseTranslatableTest
         $article->setDate(new \DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
+        $article->setSubtitle(self::POLISH_SUBTITLE);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
 
         $article->setLocale($this->_languageEn);
         $article->setTitle(self::ENGLISH_TITLE_1);
+        $article->setSubtitle(self::ENGLISH_SUBTITLE);
         $article->setContents(self::ENGLISH_CONTENTS_1);
         $this->_em->flush();
 
@@ -198,6 +224,12 @@ class ListenerTest extends BaseTranslatableTest
         );
 
         $this->assertAttributeEquals(
+            self::POLISH_SUBTITLE,
+            'subtitle',
+            $article
+        );
+
+        $this->assertAttributeEquals(
             self::POLISH_CONTENTS_1,
             'contents',
             $article
@@ -206,6 +238,12 @@ class ListenerTest extends BaseTranslatableTest
         $this->assertAttributeEquals(
             self::POLISH_TITLE_1,
             'title',
+            $article->getTranslations()->get($this->_languagePl)
+        );
+
+        $this->assertAttributeEquals(
+            self::POLISH_SUBTITLE,
+            'subtitle',
             $article->getTranslations()->get($this->_languagePl)
         );
 
@@ -489,6 +527,7 @@ class ListenerTest extends BaseTranslatableTest
         $article->setDate(new \DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
+        $article->setSubtitle(self::POLISH_SUBTITLE);
         $article->setContents(self::POLISH_CONTENTS_1);
         $this->_em->persist($article);
         $this->_em->flush();
@@ -514,6 +553,12 @@ class ListenerTest extends BaseTranslatableTest
         $this->assertAttributeEquals(
             self::POLISH_TITLE_1,
             'title',
+            $article
+        );
+
+        $this->assertAttributeEquals(
+            self::POLISH_SUBTITLE,
+            'subtitle',
             $article
         );
 

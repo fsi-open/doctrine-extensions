@@ -11,14 +11,19 @@ namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Traits\SubtitleTranslationTrait;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
+use FSi\DoctrineExtensions\Uploadable\File;
 use FSi\DoctrineExtensions\Uploadable\Mapping\Annotation as Uploadable;
+use SplFileInfo;
 
 /**
  * @ORM\Entity
  */
 class ArticleTranslation
 {
+    use SubtitleTranslationTrait;
+
     /**
      * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
@@ -61,7 +66,7 @@ class ArticleTranslation
     protected $introImagePath;
 
     /**
-     * @var \SplFileInfo|\FSi\DoctrineExtensions\Uploadable\File
+     * @var SplFileInfo|File
      */
     protected $introImage;
 
@@ -75,7 +80,7 @@ class ArticleTranslation
     /**
      * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
      * @ORM\JoinColumn(name="article", referencedColumnName="id")
-     * @var \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article
+     * @var Article
      */
     private $article;
 

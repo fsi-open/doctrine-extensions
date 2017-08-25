@@ -9,16 +9,21 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Traits\SubtitleTrait;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
+use FSi\DoctrineExtensions\Uploadable\File;
+use SplFileInfo;
 
 /**
- * @ORM\HasLifecycleCallbacks()
  * @ORM\Entity(repositoryClass="\FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
  */
 class Article
 {
+    use SubtitleTrait;
+
     /**
      * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
@@ -59,7 +64,7 @@ class Article
 
     /**
      * @Translatable\Translatable(mappedBy="translations")
-     * @var \SplFileInfo|\FSi\DoctrineExtensions\Uploadable\File
+     * @var SplFileInfo|File
      */
     private $introImage;
 
@@ -78,7 +83,7 @@ class Article
 
     /**
      * @ORM\OneToMany(targetEntity="ArticleTranslation", mappedBy="article", indexBy="locale")
-     * @var \Doctrine\Common\Collections\ArrayCollection
+     * @var ArrayCollection
      */
     private $translations;
 
@@ -122,7 +127,7 @@ class Article
         $this->teaser = $teaser;
     }
 
-    public function setDate(\DateTime $date)
+    public function setDate(DateTime $date)
     {
         $this->date = $date;
         return $this;
