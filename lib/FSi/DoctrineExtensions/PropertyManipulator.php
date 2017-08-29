@@ -19,13 +19,6 @@ use RuntimeException;
 class PropertyManipulator
 {
     /**
-     * An array containing closures for property read.
-     *
-     * @var Closure[]
-     */
-    private $bindings = [];
-
-    /**
      * Internal value storage
      *
      * @var array
@@ -52,16 +45,9 @@ class PropertyManipulator
     {
         $this->assertIsObject($object);
 
-        $oid = spl_object_hash($object);
-        if (!isset($this->bindings[$oid][$name])) {
-            $closure = Closure::bind(function () use ($name) {
-                return $this->$name;
-            }, $object, $this->getSourceObjectForProperty($object, $name));
-
-            $this->bindings[$oid][$name] = $closure;
-        }
-
-        return $this->bindings[$oid][$name]->__invoke();
+        return Closure::bind(function () use ($name) {
+            return $this->$name;
+        }, $object, $this->getSourceObjectForProperty($object, $name))->__invoke();
     }
 
     /**
