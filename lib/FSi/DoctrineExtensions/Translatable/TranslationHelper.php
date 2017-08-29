@@ -10,6 +10,7 @@
 namespace FSi\DoctrineExtensions\Translatable;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\PersistentCollection;
 use FSi\DoctrineExtensions\PropertyManipulator;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 
@@ -186,10 +187,15 @@ class TranslationHelper
     private function copyProperties($source, $target, $properties)
     {
         foreach ($properties as $sourceField => $targetField) {
+            $sourceProperty = $this->propertyManipulator->getPropertyValue($source, $sourceField);
+            if ($sourceProperty instanceof PersistentCollection) {
+                $sourceProperty->initialize();
+            }
+
             $this->propertyManipulator->setPropertyValue(
                 $target,
                 $targetField,
-                $this->propertyManipulator->getPropertyValue($source, $sourceField)
+                $sourceProperty
             );
         }
     }
