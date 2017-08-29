@@ -27,128 +27,126 @@ class PropertyManipulator
 
     /**
      * @param object $object
-     * @param string $name
+     * @param string $property
      * @param mixed $value
      */
-    public function setAndSaveValue($object, $name, $value)
+    public function setAndSaveValue($object, $property, $value)
     {
-        $this->setPropertyValue($object, $name, $value);
-        $this->saveValue($object, $name);
+        $this->setPropertyValue($object, $property, $value);
+        $this->saveValue($object, $property);
     }
 
     /**
      * @param object $object
-     * @param string $name
+     * @param string $property
      * @return mixed
      */
-    public function getPropertyValue($object, $name)
+    public function getPropertyValue($object, $property)
     {
         $this->assertIsObject($object);
 
-        return Closure::bind(function () use ($name) {
-            return $this->$name;
-        }, $object, $this->getSourceObjectForProperty($object, $name))->__invoke();
+        return Closure::bind(function () use ($property) {
+            return $this->$property;
+        }, $object, $this->getSourceObjectForProperty($object, $property))->__invoke();
     }
 
     /**
      * @param object $object
-     * @param string $name
+     * @param string $property
      * @param mixed $value
      */
-    public function setPropertyValue($object, $name, $value)
+    public function setPropertyValue($object, $property, $value)
     {
         $this->assertIsObject($object);
 
-        Closure::bind(function () use ($name, $value) {
-            return $this->$name = $value;
-        }, $object, $this->getSourceObjectForProperty($object, $name))->__invoke();
+        Closure::bind(function () use ($property, $value) {
+            return $this->$property = $value;
+        }, $object, $this->getSourceObjectForProperty($object, $property))->__invoke();
     }
 
     /**
      * @param object $object
-     * @param string $name
+     * @param string $property
      * @return boolean
      */
-    public function hasSavedValue($object, $name)
+    public function hasSavedValue($object, $property)
     {
         $this->assertIsObject($object);
 
         $oid = spl_object_hash($object);
 
         return isset($this->savedValues[$oid])
-            && array_key_exists($name, $this->savedValues[$oid])
+            && array_key_exists($property, $this->savedValues[$oid])
         ;
     }
 
     /**
      * @param object $object
-     * @param string $name
+     * @param string $property
      * @param boolean $notSavedAsNull
      * @return boolean
      */
-    public function hasChangedValue($object, $name, $notSavedAsNull = false)
+    public function hasChangedValue($object, $property, $notSavedAsNull = false)
     {
-        $currentValue = $this->getPropertyValue($object, $name);
+        $currentValue = $this->getPropertyValue($object, $property);
 
-        if ($notSavedAsNull && !$this->hasSavedValue($object, $name)) {
+        if ($notSavedAsNull && !$this->hasSavedValue($object, $property)) {
             return isset($currentValue);
         }
 
-        return $this->getSavedValue($object, $name) !== $currentValue;
+        return $this->getSavedValue($object, $property) !== $currentValue;
     }
 
     /**
      * @param object $object
-     * @param string $name
+     * @param string $property
      * @return mixed
      * @throws BadMethodCallException
      */
-    public function getSavedValue($object, $name)
+    public function getSavedValue($object, $property)
     {
         $this->assertIsObject($object);
 
         $oid = spl_object_hash($object);
-        if (!isset($this->savedValues[$oid])
-            || !array_key_exists($name, $this->savedValues[$oid])
-        ) {
+        if (!isset($this->savedValues[$oid]) || !array_key_exists($property, $this->savedValues[$oid])) {
             throw new RuntimeException(sprintf(
                 'Value of property "%s" from specified object was not previously saved',
-                $name
+                $property
             ));
         }
 
-        return $this->savedValues[$oid][$name];
+        return $this->savedValues[$oid][$property];
     }
 
     /**
      * @param object $object
-     * @param string $name
+     * @param string $property
      */
-    public function saveValue($object, $name)
+    public function saveValue($object, $property)
     {
         $oid = spl_object_hash($object);
         if (!isset($this->savedValues[$oid])) {
             $this->savedValues[$oid] = [];
         }
 
-        $this->savedValues[$oid][$name] = $this->getPropertyValue($object, $name);
+        $this->savedValues[$oid][$property] = $this->getPropertyValue($object, $property);
     }
 
     /**
-     * @param string $name
+     * @param string $property
      * @return object|string
      */
-    private function getSourceObjectForProperty($object, $name)
+    private function getSourceObjectForProperty($object, $property)
     {
         $source = $object;
-        while (!property_exists($source, $name) && get_parent_class($source) !== false) {
+        while (!property_exists($source, $property) && get_parent_class($source) !== false) {
             $source = get_parent_class($source);
         }
 
-        if (!property_exists($source, $name)) {
+        if (!property_exists($source, $property)) {
             throw new RuntimeException(sprintf(
                 'Property "%s" does not exist in class "%s" or any of it\'s parents.',
-                $name,
+                $property,
                 get_class($object)
             ));
         }
