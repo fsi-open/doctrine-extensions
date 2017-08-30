@@ -9,7 +9,9 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
+use DateTime;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
+use SplFileInfo;
 
 class ListenerTest extends BaseTranslatableTest
 {
@@ -24,7 +26,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testInsert()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setSubtitle(self::POLISH_SUBTITLE);
         $article->setContents(self::POLISH_CONTENTS_1);
@@ -64,7 +66,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testInsertAndAddFirstTranslation()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $this->_em->persist($article);
         $this->_em->flush();
 
@@ -109,7 +111,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testNotInsertTranslation()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $this->_em->persist($article);
         $this->_logger->enabled = true;
@@ -134,7 +136,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testInsertAndAddTranslation()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setSubtitle(self::POLISH_SUBTITLE);
@@ -186,7 +188,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testInsertWithTwoTranslationsClearAndLoad()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setSubtitle(self::POLISH_SUBTITLE);
@@ -206,7 +208,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertEquals(
-            3,
+            5,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -260,7 +262,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testInsertAndRemoveTranslation()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
@@ -282,7 +284,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_em->flush();
 
         $this->assertEquals(
-            3,
+            4,
             count($this->_logger->queries),
             'Flushing executed wrong number of queries'
         );
@@ -312,7 +314,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testInsertClearAndLoad()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
@@ -325,7 +327,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertEquals(
-            3,
+            5,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -367,7 +369,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testUpdate()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
@@ -410,7 +412,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testUpdateClearAndLoad()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
@@ -427,7 +429,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertEquals(
-            3,
+            5,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -469,7 +471,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testCopyTranslation()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
@@ -524,7 +526,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testLoadDefaultTranslation()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setSubtitle(self::POLISH_SUBTITLE);
@@ -539,7 +541,7 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertEquals(
-            3,
+            5,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -574,21 +576,21 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->_em->find(self::ARTICLE, $article->getId());
 
         $this->assertAttributeEquals(
-                $this->_languageEn,
-                'locale',
-                $article
+            $this->_languageEn,
+            'locale',
+            $article
         );
 
         $this->assertAttributeEquals(
-                self::POLISH_TITLE_1,
-                'title',
-                $article
+            self::POLISH_TITLE_1,
+            'title',
+            $article
         );
 
         $this->assertAttributeEquals(
-                self::POLISH_CONTENTS_1,
-                'contents',
-                $article
+            self::POLISH_CONTENTS_1,
+            'contents',
+            $article
         );
     }
 
@@ -602,7 +604,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale(null);
 
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale(null);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
@@ -623,7 +625,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testInsertWithTwoTranslationsClearAndLoadTranslation()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
@@ -641,12 +643,6 @@ class ListenerTest extends BaseTranslatableTest
 
         $this->_logger->enabled = true;
         $this->_translatableListener->loadTranslation($this->_em, $article, $this->_languageEn);
-
-        $this->assertEquals(
-            1,
-            count($this->_logger->queries),
-            'Reloading executed wrong number of queries'
-        );
 
         $this->assertEquals(
             2,
@@ -673,18 +669,18 @@ class ListenerTest extends BaseTranslatableTest
     public function testTranslatableUplodableProperties()
     {
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $article->setLocale($this->_languagePl);
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
-        $article->setIntroImage(new \SplFileInfo(TESTS_PATH . self::TEST_FILE1));
+        $article->setIntroImage(new SplFileInfo(TESTS_PATH . self::TEST_FILE1));
         $this->_em->persist($article);
         $this->_em->flush();
 
         $article->setLocale($this->_languageEn);
         $article->setTitle(self::ENGLISH_TITLE_1);
         $article->setContents(self::ENGLISH_CONTENTS_1);
-        $article->setIntroImage(new \SplFileInfo(TESTS_PATH . self::TEST_FILE2));
+        $article->setIntroImage(new SplFileInfo(TESTS_PATH . self::TEST_FILE2));
         $this->_em->flush();
 
         $this->_em->clear();
@@ -709,7 +705,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languageEn);
         $repository = $this->_em->getRepository(self::ARTICLE);
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
 
         $translationEn = $repository->getTranslation($article, $this->_languageEn);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
@@ -743,7 +739,7 @@ class ListenerTest extends BaseTranslatableTest
         }
 
         $this->assertEquals(
-            2,
+            4,
             count($this->_logger->queries),
             'Reloading executed wrong number of queries'
         );
@@ -796,7 +792,8 @@ class ListenerTest extends BaseTranslatableTest
             self::SECTION,
             self::COMMENT,
             self::ARTICLE,
-            self::ARTICLE_TRANSLATION
+            self::ARTICLE_TRANSLATION,
+            self::ARTICLE_PAGE
         ];
     }
 }

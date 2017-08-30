@@ -10,9 +10,11 @@
 namespace FSi\DoctrineExtensions\Translatable;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use FSi\DoctrineExtensions\PropertyManipulator;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
+use InvalidArgumentException;
 
 /**
  * @internal
@@ -37,11 +39,20 @@ class TranslationHelper
      */
     public function copyTranslationProperties(ClassTranslationContext $context, $object, $translation, $locale)
     {
-        $this->copyProperties(
-            $translation,
-            $object,
-            array_flip($context->getAssociationMetadata()->getProperties())
-        );
+        $properties = array_flip($context->getAssociationMetadata()->getProperties());
+        foreach ($properties as $sourceField => $targetField) {
+            $sourceProperty = $this->propertyManipulator->getPropertyValue($translation, $sourceField);
+            if ($sourceProperty instanceof Collection) {
+                // We do not want the translation and translated object to share
+                // the same Collection instance
+                $sourceProperty = new ArrayCollection($sourceProperty->toArray());
+            }
+            $this->propertyManipulator->setPropertyValue(
+                $object,
+                $targetField,
+                $sourceProperty
+            );
+        }
         $this->setObjectLocale($context->getTranslatableMetadata(), $object, $locale);
     }
 
@@ -74,11 +85,23 @@ class TranslationHelper
             $objectManager->persist($translation);
         }
 
-        $this->copyProperties(
-            $object,
-            $translation,
-            $translationAssociationMeta->getProperties()
-        );
+        foreach ($translationAssociationMeta->getProperties() as $sourceField => $targetField) {
+            $sourceProperty = $this->propertyManipulator->getPropertyValue($object, $sourceField);
+            if ($context->getTranslationMetadata()->isCollectionValuedAssociation($targetField)) {
+                $this->handleTranslationsCollection(
+                    $context->getTranslationMetadata(),
+                    $translation,
+                    $targetField,
+                    $sourceProperty
+                );
+            } else {
+                $this->propertyManipulator->setPropertyValue(
+                    $translation,
+                    $targetField,
+                    $sourceProperty
+                );
+            }
+        }
     }
 
     /**
@@ -170,6 +193,136 @@ class TranslationHelper
     }
 
     /**
+     * @param ClassMetadata $metadata
+     * @param object $translation
+     * @param string $collectionField
+     * @param Collection|array $newCollection
+     */
+    private function handleTranslationsCollection(
+        ClassMetadata $metadata,
+        $translation,
+        $collectionField,
+        $newCollection
+    ) {
+        $newCollection = $this->transformArrayToCollection($newCollection);
+
+        /* @var $currentCollection Collection */
+        $currentCollection = $this->propertyManipulator->getPropertyValue(
+            $translation,
+            $collectionField
+        );
+
+        $relationType = $metadata->getAssociationMapping($collectionField)['type'];
+        $targetRelationField = $metadata->getAssociationMappedByTargetField($collectionField);
+        // Remove elements from collection which are not in the new set
+        foreach ($currentCollection as $currentElement) {
+            if ($newCollection->contains($currentElement)) {
+                continue;
+            }
+
+            $this->removeFromRelation(
+                $relationType,
+                $translation,
+                $currentElement,
+                $targetRelationField
+            );
+            $currentCollection->removeElement($currentElement);
+        }
+
+        // Add new elements to current collection
+        foreach ($newCollection as $newElement) {
+            if ($currentCollection->contains($newElement)) {
+                continue;
+            }
+
+            $this->addToRelation(
+                $relationType,
+                $translation,
+                $newElement,
+                $targetRelationField
+            );
+            $currentCollection->add($newElement);
+        }
+    }
+
+    /**
+     * @param string $relationType
+     * @param object $collectionElement
+     * @param string|boolean $targetField
+     */
+    private function removeFromRelation($relationType, $translation, $collectionElement, $targetField)
+    {
+        if (!$targetField) {
+            // one-sided relation, no property to set relation on
+            return;
+        }
+
+        if ($relationType === ClassMetadata::MANY_TO_MANY) {
+            /* @var $inversedCollection Collection */
+            $inversedCollection = $this->propertyManipulator->getPropertyValue(
+                $collectionElement,
+                $targetField
+            );
+            $inversedCollection->removeElement($translation);
+        } else {
+            $this->propertyManipulator->setPropertyValue(
+                $collectionElement,
+                $targetField,
+                null
+            );
+        }
+    }
+
+    /**
+     * @param string $relationType
+     * @param object $translation
+     * @param object $collectionElement
+     * @param string|boolean $targetField
+     */
+    private function addToRelation($relationType, $translation, $collectionElement, $targetField)
+    {
+        if (!$targetField) {
+            // one-sided relation, no property to set relation on
+            return;
+        }
+
+        if ($relationType === ClassMetadata::MANY_TO_MANY) {
+            /* @var $inversedCollection Collection */
+            $inversedCollection = $this->propertyManipulator->getPropertyValue(
+                $collectionElement,
+                $targetField
+            );
+            $inversedCollection->add($translation);
+        } else {
+            $this->propertyManipulator->setPropertyValue(
+                $collectionElement,
+                $targetField,
+                $translation
+            );
+        }
+    }
+
+    /**
+     * @param Collection|array $collection
+     * @throws InvalidArgumentException
+     */
+    private function transformArrayToCollection($collection)
+    {
+        if ($collection instanceof Collection) {
+            return $collection;
+        }
+
+        if (is_array($collection)) {
+            return new ArrayCollection($collection);
+        }
+
+        throw new InvalidArgumentException(sprintf(
+            'Expected an array or Collection, got "%s" instead',
+            is_object($collection) ? get_class($collection) : gettype(($collection))
+        ));
+    }
+
+    /**
      * @param TranslatableClassMetadata $classMetadata
      * @param object $object
      * @param string $locale
@@ -177,26 +330,5 @@ class TranslationHelper
     private function setObjectLocale(TranslatableClassMetadata $classMetadata, $object, $locale)
     {
         $this->propertyManipulator->setPropertyValue($object, $classMetadata->localeProperty, $locale);
-    }
-
-    /**
-     * @param object $source
-     * @param object $target
-     * @param array $properties
-     */
-    private function copyProperties($source, $target, $properties)
-    {
-        foreach ($properties as $sourceField => $targetField) {
-            $sourceProperty = $this->propertyManipulator->getPropertyValue($source, $sourceField);
-            if ($sourceProperty instanceof PersistentCollection) {
-                $sourceProperty->initialize();
-            }
-
-            $this->propertyManipulator->setPropertyValue(
-                $target,
-                $targetField,
-                $sourceProperty
-            );
-        }
     }
 }

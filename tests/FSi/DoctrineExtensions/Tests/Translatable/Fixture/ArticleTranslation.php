@@ -73,9 +73,32 @@ class ArticleTranslation
     /**
      * @var ArrayCollection|Comment[]
      *
-     * @ORM\OneToMany(targetEntity="Comment", mappedBy="articleTranslation")
+     * @ORM\OneToMany(
+     *      targetEntity="Comment",
+     *      mappedBy="articleTranslation",
+     *      cascade={"persist", "remove"},
+     *      orphanRemoval=true
+     * )
      */
     private $comments;
+
+    /**
+     * @var Collection|Comment[]
+     *
+     * @ORM\ManyToMany(targetEntity="Comment", cascade={"persist"})
+     */
+    private $specialComments;
+
+    /**
+     * @var Collection|ArticlePage[]
+     *
+     * @ORM\ManyToMany(
+     *      targetEntity="ArticlePage",
+     *      mappedBy="articles",
+     *      cascade={"persist"}
+     * )
+     */
+    private $pages;
 
     /**
      * @ORM\ManyToOne(targetEntity="Article", inversedBy="translations")
@@ -87,6 +110,8 @@ class ArticleTranslation
     public function __construct()
     {
         $this->comments = new ArrayCollection();
+        $this->specialComments = new ArrayCollection();
+        $this->pages = new ArrayCollection();
     }
 
     public function setTitle($title)
@@ -191,6 +216,30 @@ class ArticleTranslation
     }
 
     /**
+     * @return ArrayCollection|Comment[]
+     */
+    public function getSpecialComments()
+    {
+        return $this->specialComments;
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function addSpecialComment(Comment $comment)
+    {
+        $this->specialComments->add($comment);
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function removeSpecialComment(Comment $comment)
+    {
+        $this->specialComments->removeElement($comment);
+    }
+
+    /**
      * @return Article
      */
     public function getArticle()
@@ -204,5 +253,31 @@ class ArticleTranslation
     public function setArticle($article)
     {
         $this->article = $article;
+    }
+
+    /**
+     * @return Collection|ArticlePage[]
+     */
+    public function getPages()
+    {
+        return $this->pages;
+    }
+
+    /**
+     * @param ArticlePage $page
+     */
+    public function addPage(ArticlePage $page)
+    {
+        if (!$this->pages->contains($page)) {
+            $this->pages->add($page);
+        }
+    }
+
+    /**
+     * @param ArticlePage $page
+     */
+    public function removePage(ArticlePage $page)
+    {
+        $this->pages->removeElement($page);
     }
 }

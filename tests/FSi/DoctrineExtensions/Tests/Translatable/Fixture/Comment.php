@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -17,15 +18,16 @@ use Doctrine\ORM\Mapping as ORM;
 class Comment
 {
     /**
-     * @ORM\Column(name="id", type="bigint")
+     * @var integer
+     *
+     * @ORM\Column(type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @var integer $id
      */
     private $id;
 
     /**
-     * @var \DateTime
+     * @var DateTime
      *
      * @ORM\Column(type="datetime")
      */
@@ -45,8 +47,32 @@ class Comment
      */
     private $articleTranslation;
 
+    public function __construct($content = null)
+    {
+        $this->date = new DateTime();
+        if ($content) {
+            $this->content = $content;
+        }
+    }
+
     /**
-     * @param \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article $articleTranslation
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param int $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    /**
+     * @param ArticleTranslation $articleTranslation
      */
     public function setArticleTranslation($articleTranslation)
     {
@@ -54,7 +80,7 @@ class Comment
     }
 
     /**
-     * @return \FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article
+     * @return ArticleTranslation
      */
     public function getArticleTranslation()
     {
@@ -78,15 +104,7 @@ class Comment
     }
 
     /**
-     * @param \DateTime $date
-     */
-    public function setDate($date)
-    {
-        $this->date = $date;
-    }
-
-    /**
-     * @return \DateTime
+     * @return DateTime
      */
     public function getDate()
     {
@@ -94,18 +112,10 @@ class Comment
     }
 
     /**
-     * @param int $id
+     * @param DateTime $date
      */
-    public function setId($id)
+    public function setDate(DateTime $date)
     {
-        $this->id = $id;
-    }
-
-    /**
-     * @return int
-     */
-    public function getId()
-    {
-        return $this->id;
+        $this->date = $date;
     }
 }

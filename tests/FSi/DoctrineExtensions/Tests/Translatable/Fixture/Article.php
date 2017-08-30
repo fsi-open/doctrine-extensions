@@ -82,6 +82,12 @@ class Article
     private $comments;
 
     /**
+     * @var ArrayCollection|Comment[]
+     * @Translatable\Translatable(mappedBy="translations")
+     */
+    private $specialComments;
+
+    /**
      * @ORM\OneToMany(targetEntity="ArticleTranslation", mappedBy="article", indexBy="locale")
      * @var ArrayCollection
      */
@@ -97,9 +103,17 @@ class Article
      */
     private $categories;
 
+    /**
+     * @var Collection|ArticlePage[]
+     * @Translatable\Translatable(mappedBy="translations")
+     */
+    private $pages;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
+        $this->pages = new ArrayCollection();
+        $this->specialComments = new ArrayCollection();
         $this->translations = new ArrayCollection();
     }
 
@@ -235,5 +249,53 @@ class Article
     public function removeComment(Comment $comment)
     {
         $this->comments->removeElement($comment);
+    }
+
+    /**
+     * @return ArrayCollection|Comment[]
+     */
+    public function getSpecialComments()
+    {
+        return $this->specialComments;
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function addSpecialComment(Comment $comment)
+    {
+        $this->specialComments->add($comment);
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function removeSpecialComment(Comment $comment)
+    {
+        $this->specialComments->removeElement($comment);
+    }
+
+    /**
+     * @return Collection|ArticlePage[]
+     */
+    public function getPages()
+    {
+        return $this->pages;
+    }
+
+    /**
+     * @param ArticlePage $page
+     */
+    public function addPage(ArticlePage $page)
+    {
+        $this->pages->add($page);
+    }
+
+    /**
+     * @param ArticlePage $page
+     */
+    public function removePage(ArticlePage $page)
+    {
+        $this->pages->removeElement($page);
     }
 }
