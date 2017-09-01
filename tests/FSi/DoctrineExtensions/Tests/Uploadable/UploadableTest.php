@@ -63,10 +63,7 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
 
     public function testAllowsToCheckAndGetFilesystem()
     {
-        $filesystems = [
-            'one' => $this->getFilesystemMock(),
-            'two' => $this->getFilesystemMock(),
-        ];
+        $filesystems = ['one' => $this->getFilesystemMock(), 'two' => $this->getFilesystemMock(),];
 
         $listener = new UploadableListener($filesystems, $this->getFileHandlerMock());
         $this->assertTrue($listener->hasFilesystem('one'));

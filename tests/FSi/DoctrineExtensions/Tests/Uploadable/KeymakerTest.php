@@ -33,7 +33,10 @@ class KeymakerTest extends \PHPUnit_Framework_TestCase
         $keyMaker = new Entity();
         $user = new User();
 
-        $this->assertEquals($expected, $keyMaker->createKey($user, self::PROPERTY, self::ID, self::ORIGINAL_NAME, $pattern));
+        $this->assertEquals(
+            $expected,
+            $keyMaker->createKey($user, self::PROPERTY, self::ID, self::ORIGINAL_NAME, $pattern)
+        );
     }
 
     /**

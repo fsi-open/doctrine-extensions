@@ -16,29 +16,14 @@ use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder;
 
 class QueryBuilderTest extends BaseTranslatableTest
 {
-    protected function getUsedEntityFixtures()
-    {
-        return [
-            self::CATEGORY,
-            self::SECTION,
-            self::COMMENT,
-            self::ARTICLE,
-            self::ARTICLE_TRANSLATION,
-            self::ARTICLE_PAGE
-        ];
-    }
-
     public function testJoinTranslationWithWrongJoinType()
     {
-        $qb = new QueryBuilder($this->_em);
-        $qb->from(self::ARTICLE, 'a');
-
         $this->setExpectedException(
             'FSi\DoctrineExtensions\Exception\InvalidArgumentException',
             'Unknown join type "RIGHT"'
         );
 
-        $qb->joinTranslations('a.translations', 'RIGHT');
+        (new QueryBuilder($this->_em))->from(self::ARTICLE, 'a')->joinTranslations('a.translations', 'RIGHT');
     }
 
     public function testJoinTranslationWithAllDefaultArguments()
@@ -819,6 +804,18 @@ class QueryBuilderTest extends BaseTranslatableTest
         );
 
         $qb->getQuery()->execute();
+    }
+
+    protected function getUsedEntityFixtures()
+    {
+        return [
+            self::CATEGORY,
+            self::SECTION,
+            self::COMMENT,
+            self::ARTICLE,
+            self::ARTICLE_TRANSLATION,
+            self::ARTICLE_PAGE
+        ];
     }
 
     private function normalizeDql($dql)

@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
+use DateTime;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
@@ -25,36 +26,19 @@ class RepositoryTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languagePl);
         $repository = $this->_em->getRepository(self::ARTICLE);
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $this->_em->persist($article);
         $this->_em->flush();
 
         $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $this->assertTrue($article->getTranslations()->contains($translationEn));
 
         $translationPl = $repository->getTranslation($article, $this->_languagePl);
+        $this->assertTrue($article->getTranslations()->contains($translationPl));
 
-        $this->assertTrue(
-            $article->getTranslations()->contains($translationEn)
-        );
-
-        $this->assertTrue(
-            $article->getTranslations()->contains($translationPl)
-        );
-
-        $this->assertSame(
-            $translationEn,
-            $article->getTranslations()->get($this->_languageEn)
-        );
-
-        $this->assertSame(
-            $translationPl,
-            $article->getTranslations()->get($this->_languagePl)
-        );
-
-        $this->assertSame(
-            $translationPl,
-            $repository->getTranslation($article, $this->_languagePl)
-        );
+        $this->assertSame($translationEn, $article->getTranslations()->get($this->_languageEn));
+        $this->assertSame($translationPl, $article->getTranslations()->get($this->_languagePl));
+        $this->assertSame($translationPl, $repository->getTranslation($article, $this->_languagePl));
     }
 
     /**
@@ -66,7 +50,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languagePl);
         $repository = $this->_em->getRepository(self::ARTICLE);
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
         $translationEn = $repository->getTranslation($article, $this->_languageEn);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
         $translationEn->setContents(self::ENGLISH_CONTENTS_1);
@@ -76,14 +60,8 @@ class RepositoryTest extends BaseTranslatableTest
         $this->_em->clear();
 
         $article = $repository->find($article->getId());
-
-        $this->assertTrue(
-            $repository->hasTranslation($article, $this->_languageEn)
-        );
-
-        $this->assertFalse(
-            $repository->hasTranslation($article, $this->_languagePl)
-        );
+        $this->assertTrue($repository->hasTranslation($article, $this->_languageEn));
+        $this->assertFalse($repository->hasTranslation($article, $this->_languagePl));
     }
 
     public function testNotOverwritingTranslationForNewObject()
@@ -91,7 +69,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languageEn);
         $repository = $this->_em->getRepository(self::ARTICLE);
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
 
         $translationEn = $repository->getTranslation($article, $this->_languageEn);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
@@ -113,17 +91,8 @@ class RepositoryTest extends BaseTranslatableTest
             'Number of translations is not valid'
         );
 
-        $this->assertAttributeEquals(
-            self::ENGLISH_TITLE_1,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::ENGLISH_CONTENTS_1,
-            'contents',
-            $article
-        );
+        $this->assertAttributeEquals(self::ENGLISH_TITLE_1, 'title', $article);
+        $this->assertAttributeEquals(self::ENGLISH_CONTENTS_1, 'contents', $article);
     }
 
     /**
@@ -134,12 +103,14 @@ class RepositoryTest extends BaseTranslatableTest
     {
         $this->_translatableListener->setLocale($this->_languagePl);
         $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(self::ARTICLE);
 
-        $qb = $repository->createTranslatableQueryBuilder('a', 't');
-
+        $qb = $this->_em->getRepository(self::ARTICLE)->createTranslatableQueryBuilder('a', 't');
         $this->assertEquals(
-            sprintf('SELECT a, t, dt FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale LEFT JOIN a.translations dt WITH dt.locale = :deflocale', self::ARTICLE),
+            sprintf(
+                'SELECT a, t, dt FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale'
+                . ' LEFT JOIN a.translations dt WITH dt.locale = :deflocale',
+                self::ARTICLE
+            ),
             $qb->getQuery()->getDql(),
             'Wrong DQL returned from QueryBuilder'
         );
@@ -165,12 +136,13 @@ class RepositoryTest extends BaseTranslatableTest
     {
         $this->_translatableListener->setLocale($this->_languageEn);
         $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(self::ARTICLE);
 
-        $qb = $repository->createTranslatableQueryBuilder('a', 't');
-
+        $qb = $this->_em->getRepository(self::ARTICLE)->createTranslatableQueryBuilder('a', 't');
         $this->assertEquals(
-            sprintf('SELECT a, t FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale', self::ARTICLE),
+            sprintf(
+                'SELECT a, t FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale',
+                self::ARTICLE
+            ),
             $qb->getQuery()->getDql(),
             'Wrong DQL returned from QueryBuilder'
         );
@@ -187,7 +159,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languageEn);
         $repository = $this->_em->getRepository(self::ARTICLE);
         $article = new Article();
-        $article->setDate(new \DateTime());
+        $article->setDate(new DateTime());
 
         $translationEn = $repository->getTranslation($article, $this->_languageEn);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
@@ -207,17 +179,8 @@ class RepositoryTest extends BaseTranslatableTest
 
         $articles = $query->execute();
         foreach ($articles as $article) {
-            $this->assertAttributeEquals(
-                self::ENGLISH_TITLE_1,
-                'title',
-                $article
-            );
-
-            $this->assertAttributeEquals(
-                self::ENGLISH_CONTENTS_1,
-                'contents',
-                $article
-            );
+            $this->assertAttributeEquals(self::ENGLISH_TITLE_1, 'title', $article);
+            $this->assertAttributeEquals(self::ENGLISH_CONTENTS_1, 'contents', $article);
         }
 
         $this->assertEquals(
@@ -246,7 +209,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->_logger->enabled = true;
         /** @var Article $article */
         $articles = $repository->findTranslatableBy([
-            'date' => '2014-02-02 00:00:00', //fiend in Article, not translated
+            'date' => '2014-02-02 00:00:00', //field in Article, not translated
             'title' => self::POLISH_TITLE_1, //field in ArticleTranslation with same name
             'teaser' => self::POLISH_TEASER, //field in ArticleTranslation with different name
             'section' => $section, //field in Article - single value association
@@ -276,9 +239,7 @@ class RepositoryTest extends BaseTranslatableTest
         $repository = $this->_em->getRepository(self::ARTICLE);
 
         /** @var Article $article */
-        $articles = $repository->findTranslatableBy([
-            'date' => '2014-01-01 00:00:00',
-        ]);
+        $articles = $repository->findTranslatableBy(['date' => '2014-01-01 00:00:00']);
 
         $this->assertEquals(self::ENGLISH_TITLE_1, $articles[0]->getTitle());
         $this->assertEquals(self::ENGLISH_TEASER, $articles[0]->getTeaser());
@@ -331,7 +292,7 @@ class RepositoryTest extends BaseTranslatableTest
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy([
-            'date' => '2014-02-02 00:00:00', //fiend in Article, not translated
+            'date' => '2014-02-02 00:00:00', //field in Article, not translated
             'title' => self::POLISH_TITLE_1, //field in ArticleTranslation with same name
             'teaser' => self::POLISH_TEASER, //field in ArticleTranslation with different name
             'section' => $section, //field in Article - single value association
@@ -346,9 +307,8 @@ class RepositoryTest extends BaseTranslatableTest
 
         $this->setExpectedException('\Doctrine\ORM\NoResultException');
 
-        $repository->findTranslatableOneBy([
-            'date' => '2014-01-01 00:00:01', //value that not exists
-        ]);
+        //value that not exists
+        $repository->findTranslatableOneBy(['date' => '2014-01-01 00:00:01']);
     }
 
     /**
@@ -366,10 +326,7 @@ class RepositoryTest extends BaseTranslatableTest
         $repository = $this->_em->getRepository(self::ARTICLE);
 
         /** @var Article $article */
-        $article = $repository->findTranslatableOneBy([
-            'date' => '2014-01-01 00:00:00',
-        ]);
-
+        $article = $repository->findTranslatableOneBy(['date' => '2014-01-01 00:00:00']);
         $this->assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
         $this->assertEquals(self::ENGLISH_TEASER, $article->getTeaser());
         $this->assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
@@ -414,12 +371,12 @@ class RepositoryTest extends BaseTranslatableTest
 
     private function fillDataForFindTranslatable()
     {
-        /** @var \FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository $repository */
+        /** @var TranslatableRepository $repository */
         $repository = $this->_em->getRepository(self::ARTICLE);
 
         $article1 = new Article();
         $this->_em->persist($article1);
-        $article1->setDate(new \DateTime('2014-01-01 00:00:00'));
+        $article1->setDate(new DateTime('2014-01-01 00:00:00'));
         $translationEn = $repository->getTranslation($article1, $this->_languageEn);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
         $translationEn->setIntroduction(self::ENGLISH_TEASER);
@@ -428,7 +385,7 @@ class RepositoryTest extends BaseTranslatableTest
 
         $article2 = new Article();
         $this->_em->persist($article2);
-        $article2->setDate(new \DateTime('2014-02-02 00:00:00'));
+        $article2->setDate(new DateTime('2014-02-02 00:00:00'));
         $translationPl = $repository->getTranslation($article2, $this->_languagePl);
         $translationPl->setTitle(self::POLISH_TITLE_1);
         $translationPl->setIntroduction(self::POLISH_TEASER);
@@ -446,18 +403,8 @@ class RepositoryTest extends BaseTranslatableTest
         $article1->setSection($section);
         $article2->setSection($section);
         $this->_em->persist($section);
-
-        $comment = new Comment();
-        $comment->setContent('Lorem');
-        $comment->setDate(new \DateTime());
-        $comment->setArticleTranslation($translationPl);
-        $this->_em->persist($comment);
-
-        $comment = new Comment();
-        $comment->setContent('Ipsum');
-        $comment->setDate(new \DateTime());
-        $comment->setArticleTranslation($translationPl);
-        $this->_em->persist($comment);
+        $translationPl->addComment(new Comment('Lorem'));
+        $translationPl->addComment(new Comment('Ipsum'));
 
         $this->_em->flush();
         $this->_em->refresh($article1);
