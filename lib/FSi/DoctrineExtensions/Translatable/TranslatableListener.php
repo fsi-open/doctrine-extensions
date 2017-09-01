@@ -20,16 +20,9 @@ use FSi\DoctrineExtensions\Translatable\Exception\MappingException;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 use FSi\DoctrineExtensions\Translatable\Mapping\TranslationAssociationMetadata;
 use InvalidArgumentException;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 class TranslatableListener extends MappedEventSubscriber
 {
-    /**
-     * @var PropertyAccessor
-     */
-    private $propertyAccessor;
-
     /**
      * @var string|null
      */
@@ -52,7 +45,7 @@ class TranslatableListener extends MappedEventSubscriber
 
     public function __construct()
     {
-        $this->translationHelper = new TranslationHelper($this->getPropertyAccessor());
+        $this->translationHelper = new TranslationHelper();
     }
 
     /**
@@ -367,17 +360,5 @@ class TranslatableListener extends MappedEventSubscriber
     {
         $meta = $this->getObjectClassMetadata($entityManager, $object);
         return $this->getExtendedMetadata($entityManager, $meta->getName());
-    }
-
-    /**
-     * @return PropertyAccessor
-     */
-    private function getPropertyAccessor()
-    {
-        if (!isset($this->propertyAccessor)) {
-            $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-        }
-
-        return $this->propertyAccessor;
     }
 }

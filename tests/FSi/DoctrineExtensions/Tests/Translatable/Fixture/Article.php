@@ -9,16 +9,21 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Traits\SubtitleTrait;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
+use FSi\DoctrineExtensions\Uploadable\File;
+use SplFileInfo;
 
 /**
- * @ORM\HasLifecycleCallbacks()
  * @ORM\Entity(repositoryClass="\FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
  */
 class Article
 {
+    use SubtitleTrait;
+
     /**
      * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
@@ -59,7 +64,7 @@ class Article
 
     /**
      * @Translatable\Translatable(mappedBy="translations")
-     * @var \SplFileInfo|\FSi\DoctrineExtensions\Uploadable\File
+     * @var SplFileInfo|File
      */
     private $introImage;
 
@@ -77,8 +82,14 @@ class Article
     private $comments;
 
     /**
+     * @var ArrayCollection|Comment[]
+     * @Translatable\Translatable(mappedBy="translations")
+     */
+    private $specialComments;
+
+    /**
      * @ORM\OneToMany(targetEntity="ArticleTranslation", mappedBy="article", indexBy="locale")
-     * @var \Doctrine\Common\Collections\ArrayCollection
+     * @var ArrayCollection
      */
     private $translations;
 
@@ -92,9 +103,17 @@ class Article
      */
     private $categories;
 
+    /**
+     * @var Collection|ArticlePage[]
+     * @Translatable\Translatable(mappedBy="translations")
+     */
+    private $pages;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
+        $this->pages = new ArrayCollection();
+        $this->specialComments = new ArrayCollection();
         $this->translations = new ArrayCollection();
     }
 
@@ -122,7 +141,7 @@ class Article
         $this->teaser = $teaser;
     }
 
-    public function setDate(\DateTime $date)
+    public function setDate(DateTime $date)
     {
         $this->date = $date;
         return $this;
@@ -230,5 +249,53 @@ class Article
     public function removeComment(Comment $comment)
     {
         $this->comments->removeElement($comment);
+    }
+
+    /**
+     * @return ArrayCollection|Comment[]
+     */
+    public function getSpecialComments()
+    {
+        return $this->specialComments;
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function addSpecialComment(Comment $comment)
+    {
+        $this->specialComments->add($comment);
+    }
+
+    /**
+     * @param Comment $comment
+     */
+    public function removeSpecialComment(Comment $comment)
+    {
+        $this->specialComments->removeElement($comment);
+    }
+
+    /**
+     * @return Collection|ArticlePage[]
+     */
+    public function getPages()
+    {
+        return $this->pages;
+    }
+
+    /**
+     * @param ArticlePage $page
+     */
+    public function addPage(ArticlePage $page)
+    {
+        $this->pages->add($page);
+    }
+
+    /**
+     * @param ArticlePage $page
+     */
+    public function removePage(ArticlePage $page)
+    {
+        $this->pages->removeElement($page);
     }
 }

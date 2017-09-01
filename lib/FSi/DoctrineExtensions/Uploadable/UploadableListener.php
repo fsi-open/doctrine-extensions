@@ -17,16 +17,15 @@ use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Proxy\Proxy;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
+use FSi\DoctrineExtensions\PropertyManipulator;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata as UploadableClassMetadata;
-use FSi\DoctrineExtensions\Uploadable\PropertyObserver\PropertyObserver;
 use Gaufrette\Filesystem;
 use Gaufrette\FilesystemMap;
 use InvalidArgumentException;
-use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class UploadableListener extends MappedEventSubscriber
 {
@@ -51,9 +50,9 @@ class UploadableListener extends MappedEventSubscriber
     protected $fileHandler;
 
     /**
-     * @var PropertyObserver[]
+     * @var PropertyManipulator[]
      */
-    protected $propertyObservers = [];
+    protected $propertyManipulators = [];
 
     /**
      * @var integer
@@ -208,7 +207,7 @@ class UploadableListener extends MappedEventSubscriber
         $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
 
         if ($uploadableMeta->hasUploadableProperties()) {
-            $this->loadFiles($object, $uploadableMeta, $entityManager);
+            $this->loadFiles($entityManager, $object, $uploadableMeta);
         }
     }
 
@@ -230,7 +229,7 @@ class UploadableListener extends MappedEventSubscriber
         }
 
         if ($uploadableMeta->hasUploadableProperties()) {
-            $this->updateFiles($entityManager, $uploadableMeta, $object);
+            $this->updateFiles($entityManager, $object, $uploadableMeta);
             $uow = $entityManager->getUnitOfWork();
             $uow->computeChangeSet($meta, $object);
         }
@@ -252,7 +251,7 @@ class UploadableListener extends MappedEventSubscriber
                 if (!$uploadableMeta->hasUploadableProperties()) {
                     continue;
                 }
-                $this->updateFiles($entityManager, $uploadableMeta, $object);
+                $this->updateFiles($entityManager, $object, $uploadableMeta);
             }
         }
     }
@@ -279,7 +278,7 @@ class UploadableListener extends MappedEventSubscriber
         $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
 
         if ($uploadableMeta->hasUploadableProperties()) {
-            $this->deleteFiles($uploadableMeta, $object);
+            $this->deleteFiles($entityManager, $object, $uploadableMeta);
         }
     }
 
@@ -335,7 +334,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param \FSi\DoctrineExtensions\Uploadable\Filehandler\FileHandlerInterface $fileHandler
+     * @param Filehandler\FileHandlerInterface $fileHandler
      */
     public function setFileHandler(Filehandler\FileHandlerInterface $fileHandler)
     {
@@ -353,63 +352,65 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * Load object files and attach observers for key fields.
      *
+     * @param EntityManagerInterface $entityManager
      * @param object $object
      * @param UploadableClassMetadata $uploadableMeta
-     * @param EntityManagerInterface $entityManager
      */
-    protected function loadFiles($object, UploadableClassMetadata $uploadableMeta, EntityManagerInterface $entityManager)
-    {
-        $propertyObserver = $this->getPropertyObserver($entityManager);
+    protected function loadFiles(
+        EntityManagerInterface $entityManager,
+        $object,
+        UploadableClassMetadata $uploadableMeta
+    ) {
+        $this->assertIsObject($object);
+        $propertyManipulator = $this->getPropertyManipulator($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            $key = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
+            $key = $propertyManipulator->getPropertyValue($object, $property);
 
             if (!empty($key)) {
-                $filesystem = $this->computeFilesystem($config);
-                $file = new File($key, $filesystem);
-                $propertyObserver->setValue($object, $config['targetField'], $file);
+                $propertyManipulator->setAndSaveValue(
+                    $object,
+                    $config['targetField'],
+                    new File($key, $this->computeFilesystem($config))
+                );
             }
         }
     }
 
     /**
      * @param EntityManagerInterface $entityManager
-     * @param UploadableClassMetadata $uploadableMeta
      * @param object $object
+     * @param UploadableClassMetadata $uploadableMeta
      * @throws RuntimeException
      */
-    protected function updateFiles(EntityManagerInterface $entityManager, UploadableClassMetadata $uploadableMeta, $object)
-    {
-        if (!is_object($object)) {
-            throw new InvalidArgumentException(sprintf(
-                'Expected an object, got "%s"',
-                gettype($object)
-            ));
-        }
+    protected function updateFiles(
+        EntityManagerInterface $entityManager,
+        $object,
+        UploadableClassMetadata $uploadableMeta
+    ) {
+        $this->assertIsObject($object);
         if ($object instanceof Proxy) {
             $object->__load();
         }
 
         $id = implode('-', $this->extractIdentifier($entityManager, $object));
-        $propertyObserver = $this->getPropertyObserver($entityManager);
+        $propertyManipulator = $this->getPropertyManipulator($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            if (!$propertyObserver->hasSavedValue($object, $config['targetField'])
-                || $propertyObserver->hasValueChanged($object, $config['targetField'])
+            if (!$propertyManipulator->hasSavedValue($object, $config['targetField'])
+                || $propertyManipulator->hasChangedValue($object, $config['targetField'])
             ) {
-                $accessor = PropertyAccess::createPropertyAccessor();
-                $file = $accessor->getValue($object, $config['targetField']);
+                $file = $propertyManipulator->getPropertyValue($object, $config['targetField']);
                 $filesystem = $this->computeFilesystem($config);
 
                 // Since file has changed, the old one should be removed.
-                if ($accessor->getValue($object, $property)) {
-                    $oldFile = $propertyObserver->getSavedValue($object, $config['targetField']);
+                if ($propertyManipulator->getPropertyValue($object, $property)) {
+                    $oldFile = $propertyManipulator->getSavedValue($object, $config['targetField']);
                     if ($oldFile) {
                         $this->addToDelete($oldFile);
                     }
                 }
 
                 if (empty($file)) {
-                    $accessor->setValue($object, $property, null);
-                    $propertyObserver->saveValue($object, $config['targetField']);
+                    $propertyManipulator->setAndSaveValue($object, $config['targetField'], null);
                     continue;
                 }
 
@@ -430,42 +431,31 @@ class UploadableListener extends MappedEventSubscriber
 
                 $newFile = new File($newKey, $filesystem);
                 $newFile->setContent($this->getFileHandler()->getContent($file));
-                $accessor->setValue($object, $property, $newFile->getKey());
+                $propertyManipulator->setPropertyValue($object, $property, $newFile->getKey());
                 // Save its current value, so if another update will be called, there won't be another saving.
-                $propertyObserver->setValue($object, $config['targetField'], $newFile);
+                $propertyManipulator->setAndSaveValue($object, $config['targetField'], $newFile);
             }
         }
     }
 
     /**
-     * @param UploadableClassMetadata $uploadableMeta
+     * @param EntityManagerInterface $entityManager
      * @param object $object
+     * @param UploadableClassMetadata $uploadableMeta
      * @throws RuntimeException
      */
-    protected function deleteFiles(UploadableClassMetadata $uploadableMeta, $object)
-    {
+    protected function deleteFiles(
+        EntityManagerInterface $entityManager,
+        $object,
+        UploadableClassMetadata $uploadableMeta
+    ) {
+        $propertyManipulator = $this->getPropertyManipulator($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            $oldKey = PropertyAccess::createPropertyAccessor()->getValue($object, $property);
+            $oldKey = $propertyManipulator->getPropertyValue($object, $property);
             if ($oldKey) {
                 $this->addToDelete(new File($oldKey, $this->computeFilesystem($config)));
             }
         }
-    }
-
-    /**
-     * Returns PropertyObserver for specified ObjectManager
-     *
-     * @param EntityManagerInterface $entityManager
-     * @return PropertyObserver
-     */
-    protected function getPropertyObserver(EntityManagerInterface $entityManager)
-    {
-        $oid = spl_object_hash($entityManager);
-        if (!isset($this->propertyObservers[$oid])) {
-            $this->propertyObservers[$oid] = new PropertyObserver();
-        }
-
-        return $this->propertyObservers[$oid];
     }
 
     /**
@@ -673,5 +663,37 @@ class UploadableListener extends MappedEventSubscriber
         }
 
         return false;
+    }
+
+    /**
+     * Returns PropertyManipulator for specified ObjectManager
+     *
+     * @param EntityManagerInterface $entityManager
+     * @return PropertyManipulator
+     */
+    private function getPropertyManipulator(EntityManagerInterface $entityManager)
+    {
+        $oid = spl_object_hash($entityManager);
+        if (!isset($this->propertyManipulators[$oid])) {
+            $this->propertyManipulators[$oid] = new PropertyManipulator();
+        }
+
+        return $this->propertyManipulators[$oid];
+    }
+
+    /**
+     * @param object $object
+     * @throws InvalidArgumentException
+     */
+    private function assertIsObject($object)
+    {
+        if (is_object($object)) {
+            return;
+        }
+
+        throw new InvalidArgumentException(sprintf(
+            'Expected an object, got "%s"',
+            gettype($object)
+        ));
     }
 }

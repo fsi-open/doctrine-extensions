@@ -18,13 +18,14 @@ abstract class BaseTranslatableTest extends BaseORMTest
     const COMMENT = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Comment";
     const ARTICLE = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Article";
     const ARTICLE_TRANSLATION = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\ArticleTranslation";
+    const ARTICLE_PAGE = 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticlePage';
 
     const SECTION_1 = 'Section 1';
     const CATEGORY_1 = 'Category 1';
     const CATEGORY_2 = 'Category 2';
     const POLISH_TITLE_1 = 'Tytuł polski 1';
     const POLISH_TITLE_2 = 'Tytuł polski 2';
-    const POLISH_TEASER = 'Wstep polski';
+    const POLISH_TEASER = 'Wstęp polski';
     const POLISH_CONTENTS_1 = 'Treść artukułu po polsku 1';
     const POLISH_CONTENTS_2 = 'Treść artukułu po polsku 2';
     const ENGLISH_TITLE_1 = 'English title 1';
@@ -32,6 +33,8 @@ abstract class BaseTranslatableTest extends BaseORMTest
     const ENGLISH_TEASER = 'English teaser';
     const ENGLISH_CONTENTS_1 = 'English contents of article 1';
     const ENGLISH_CONTENTS_2 = 'English contents of article 2';
+    const POLISH_COMMENT_1 = 'Treść komentarza 1';
+    const POLISH_COMMENT_2 = 'Treść komentarza 2';
 
     protected $_languagePl = 'pl';
     protected $_languageEn = 'en';

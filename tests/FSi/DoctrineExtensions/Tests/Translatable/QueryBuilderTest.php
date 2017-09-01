@@ -23,7 +23,8 @@ class QueryBuilderTest extends BaseTranslatableTest
             self::SECTION,
             self::COMMENT,
             self::ARTICLE,
-            self::ARTICLE_TRANSLATION
+            self::ARTICLE_TRANSLATION,
+            self::ARTICLE_PAGE
         ];
     }
 
