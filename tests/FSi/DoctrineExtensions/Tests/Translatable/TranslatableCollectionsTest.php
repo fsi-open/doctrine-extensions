@@ -267,28 +267,4 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
             self::ARTICLE_PAGE
         ];
     }
-
-    /**
-     * @return Article
-     */
-    private function createArticle()
-    {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setContents(self::POLISH_CONTENTS_1);
-
-        return $article;
-    }
-
-    /**
-     * @param object $object
-     */
-    private function persistAndFlush($object)
-    {
-        $this->_em->persist($object);
-        $this->_em->flush();
-        $this->_em->clear();
-    }
 }

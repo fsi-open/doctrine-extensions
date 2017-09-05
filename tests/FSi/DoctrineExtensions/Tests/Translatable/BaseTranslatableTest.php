@@ -9,7 +9,9 @@
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
+use DateTime;
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
 
 abstract class BaseTranslatableTest extends BaseORMTest
 {
@@ -25,6 +27,8 @@ abstract class BaseTranslatableTest extends BaseORMTest
     const CATEGORY_2 = 'Category 2';
     const POLISH_TITLE_1 = 'Tytuł polski 1';
     const POLISH_TITLE_2 = 'Tytuł polski 2';
+    const POLISH_SUBTITLE = 'Podtytuł';
+    const ENGLISH_SUBTITLE = 'A subtitle';
     const POLISH_TEASER = 'Wstęp polski';
     const POLISH_CONTENTS_1 = 'Treść artukułu po polsku 1';
     const POLISH_CONTENTS_2 = 'Treść artukułu po polsku 2';
@@ -44,5 +48,34 @@ abstract class BaseTranslatableTest extends BaseORMTest
     {
         parent::setUp();
         $this->_em = $this->getEntityManager();
+    }
+
+    /**
+     * @return Article
+     */
+    protected function createArticle(
+        $title = self::POLISH_TITLE_1,
+        $subtitle = self::POLISH_SUBTITLE,
+        $contents = self::POLISH_CONTENTS_1,
+        $locale = null
+    ) {
+        $article = new Article();
+        $article->setDate(new DateTime());
+        $article->setLocale($locale ? $locale : $this->_languagePl);
+        $article->setTitle($title);
+        $article->setSubtitle($subtitle);
+        $article->setContents($contents);
+
+        return $article;
+    }
+
+    /**
+     * @param object $object
+     */
+    protected function persistAndFlush($object)
+    {
+        $this->_em->persist($object);
+        $this->_em->flush();
+        $this->_em->clear();
     }
 }

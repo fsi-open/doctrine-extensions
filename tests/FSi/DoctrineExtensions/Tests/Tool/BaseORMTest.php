@@ -11,49 +11,55 @@ namespace FSi\DoctrineExtensions\Tests\Tool;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Logging\DebugStack;
+use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
+use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\SchemaTool;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
+use FSi\DoctrineExtensions\Uploadable\FileHandler;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 use FSi\DoctrineExtensions\Uploadable\UploadableListener;
-use FSi\DoctrineExtensions\Uploadable\FileHandler;
 use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
+use PHPUnit_Framework_TestCase;
 
 /**
  * This is the base test class for other Doctrine related tests.
  */
-abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
+abstract class BaseORMTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var EntityManagerInterface
      */
     protected $_em;
 
     /**
-     * @var \FSi\DoctrineExtensions\Translatable\TranslatableListener
+     * @var TranslatableListener
      */
     protected $_translatableListener;
 
     /**
-     * @var \FSi\DoctrineExtensions\Uploadable\UploadableListener
+     * @var UploadableListener
      */
     protected $_uploadableListener;
 
     /**
-     * @var \Doctrine\DBAL\Logging\DebugStack
+     * @var DebugStack
      */
     protected $_logger;
 
     /**
-     * @var \Gaufrette\Filesystem
+     * @var Filesystem
      */
     protected $_filesystem1;
 
     /**
-     * @var \Gaufrette\Filesystem
+     * @var Filesystem
      */
     protected $_filesystem2;
 
@@ -69,11 +75,11 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
      */
     protected function getMetadataDriverImplementation()
     {
-        return new AnnotationDriver($_ENV['annotation_reader'], __DIR__.'/../LoStorage/Fixture');
+        return new AnnotationDriver($_ENV['annotation_reader']);
     }
 
     /**
-     * @return \Doctrine\ORM\Configuration
+     * @return Configuration
      */
     protected function getMockAnnotatedConfig()
     {
@@ -105,7 +111,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
 
         $config->expects($this->any())
             ->method('getQuoteStrategy')
-            ->will($this->returnValue(new \Doctrine\ORM\Mapping\DefaultQuoteStrategy()))
+            ->will($this->returnValue(new DefaultQuoteStrategy()))
         ;
 
         $config->expects($this->any())
@@ -129,7 +135,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('Doctrine\\ORM\\EntityRepository'))
         ;
 
-        $this->_logger = new \Doctrine\DBAL\Logging\DebugStack();
+        $this->_logger = new DebugStack();
         $this->_logger->enabled = false;
 
         $config->expects($this->any())
@@ -141,7 +147,7 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return \Doctrine\Common\EventManager
+     * @return EntityManagerInterface
      */
     protected function getEntityManager()
     {
@@ -158,18 +164,20 @@ abstract class BaseORMTest extends \PHPUnit_Framework_TestCase
             new FileHandler\SplFileInfoHandler(),
         ]);
         $keymaker = new Entity();
-        $this->_uploadableListener = new UploadableListener(['one' => $this->_filesystem1, 'two' => $this->_filesystem2], $handler);
+        $this->_uploadableListener = new UploadableListener(
+            ['one' => $this->_filesystem1, 'two' => $this->_filesystem2],
+            $handler
+        );
         $this->_uploadableListener->setDefaultFilesystem($this->_filesystem1);
         $this->_uploadableListener->setDefaultKeymaker($keymaker);
         $evm->addEventSubscriber($this->_uploadableListener);
 
-        $connectionParams = [
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
-        ];
-
         $config = $this->getMockAnnotatedConfig();
-        $conn = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config, $evm);
+        $conn = DriverManager::getConnection(
+            ['driver' => 'pdo_sqlite', 'memory' => true],
+            $config,
+            $evm
+        );
         $em = EntityManager::create($conn, $config, $evm);
 
         $schema = array_map(function($class) use ($em) {

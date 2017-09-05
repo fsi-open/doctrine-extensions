@@ -17,19 +17,13 @@ class ListenerTest extends BaseTranslatableTest
 {
     const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
-    const POLISH_SUBTITLE = 'Podtytuł';
-    const ENGLISH_SUBTITLE = 'A subtitle';
 
     /**
      * Test simple entity creation with translation its state after $em->flush()
      */
     public function testInsert()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setSubtitle(self::POLISH_SUBTITLE);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $this->_em->persist($article);
         $this->_logger->enabled = true;
         $this->_translatableListener->setLocale($this->_languagePl);
@@ -124,10 +118,7 @@ class ListenerTest extends BaseTranslatableTest
             'Flushing executed wrong number of queries'
         );
 
-        $this->assertEquals(
-            0,
-            $article->getTranslations()->count()
-        );
+        $this->assertEquals(0, $article->getTranslations()->count());
     }
 
     /**
@@ -135,12 +126,7 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testInsertAndAddTranslation()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setSubtitle(self::POLISH_SUBTITLE);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $this->_em->persist($article);
         $this->_em->flush();
 
@@ -187,12 +173,7 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testInsertWithTwoTranslationsClearAndLoad()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setSubtitle(self::POLISH_SUBTITLE);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $this->_em->persist($article);
         $this->_em->flush();
 
@@ -219,23 +200,9 @@ class ListenerTest extends BaseTranslatableTest
             'Number of translations is not valid'
         );
 
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_SUBTITLE,
-            'subtitle',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article
-        );
+        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
+        $this->assertAttributeEquals(self::POLISH_SUBTITLE, 'subtitle', $article);
+        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
 
         $this->assertAttributeEquals(
             self::POLISH_TITLE_1,
@@ -313,14 +280,8 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testInsertClearAndLoad()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setContents(self::POLISH_CONTENTS_1);
-        $this->_em->persist($article);
-        $this->_em->flush();
-        $this->_em->clear();
+        $article = $this->createArticle();
+        $this->persistAndFlush($article);
 
         $this->_logger->enabled = true;
         $this->_translatableListener->setLocale($this->_languagePl);
@@ -338,17 +299,8 @@ class ListenerTest extends BaseTranslatableTest
             'Number of translations is not valid'
         );
 
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article
-        );
+        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
+        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
 
         $this->assertAttributeEquals(
             self::POLISH_TITLE_1,
@@ -368,11 +320,7 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testUpdate()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $this->_em->persist($article);
         $this->_em->flush();
 
@@ -411,11 +359,7 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testUpdateClearAndLoad()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $this->_em->persist($article);
         $this->_em->flush();
 
@@ -440,17 +384,8 @@ class ListenerTest extends BaseTranslatableTest
             'Number of translations is not valid'
         );
 
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_2,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_2,
-            'contents',
-            $article
-        );
+        $this->assertAttributeEquals(self::POLISH_TITLE_2, 'title', $article);
+        $this->assertAttributeEquals(self::POLISH_CONTENTS_2, 'contents', $article);
 
         $this->assertAttributeEquals(
             self::POLISH_TITLE_2,
@@ -470,11 +405,7 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testCopyTranslation()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $this->_em->persist($article);
         $this->_em->flush();
 
@@ -494,17 +425,8 @@ class ListenerTest extends BaseTranslatableTest
             'Number of translations is not valid'
         );
 
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article
-        );
+        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
+        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
 
         $this->assertAttributeEquals(
             self::POLISH_TITLE_1,
@@ -525,12 +447,7 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testLoadDefaultTranslation()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setSubtitle(self::POLISH_SUBTITLE);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $this->_em->persist($article);
         $this->_em->flush();
         $this->_em->clear();
@@ -546,52 +463,19 @@ class ListenerTest extends BaseTranslatableTest
             'Reloading executed wrong number of queries'
         );
 
-        $this->assertAttributeEquals(
-            $this->_languagePl,
-            'locale',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_SUBTITLE,
-            'subtitle',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article
-        );
+        $this->assertAttributeEquals($this->_languagePl, 'locale', $article);
+        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
+        $this->assertAttributeEquals(self::POLISH_SUBTITLE, 'subtitle', $article);
+        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
 
         $article->setLocale($this->_languageEn);
         $this->_em->flush();
         $this->_em->clear();
+
         $article = $this->_em->find(self::ARTICLE, $article->getId());
-
-        $this->assertAttributeEquals(
-            $this->_languageEn,
-            'locale',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article
-        );
+        $this->assertAttributeEquals($this->_languageEn, 'locale', $article);
+        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
+        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
     }
 
     /**
@@ -624,11 +508,7 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testInsertWithTwoTranslationsClearAndLoadTranslation()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $this->_em->persist($article);
         $this->_em->flush();
 
@@ -650,17 +530,8 @@ class ListenerTest extends BaseTranslatableTest
             'Number of translations is not valid'
         );
 
-        $this->assertAttributeEquals(
-            self::ENGLISH_TITLE_1,
-            'title',
-            $article
-        );
-
-        $this->assertAttributeEquals(
-            self::ENGLISH_CONTENTS_1,
-            'contents',
-            $article
-        );
+        $this->assertAttributeEquals(self::ENGLISH_TITLE_1, 'title', $article);
+        $this->assertAttributeEquals(self::ENGLISH_CONTENTS_1, 'contents', $article);
     }
 
     /**
@@ -668,11 +539,7 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testTranslatableUplodableProperties()
     {
-        $article = new Article();
-        $article->setDate(new DateTime());
-        $article->setLocale($this->_languagePl);
-        $article->setTitle(self::POLISH_TITLE_1);
-        $article->setContents(self::POLISH_CONTENTS_1);
+        $article = $this->createArticle();
         $article->setIntroImage(new SplFileInfo(TESTS_PATH . self::TEST_FILE1));
         $this->_em->persist($article);
         $this->_em->flush();
@@ -725,17 +592,8 @@ class ListenerTest extends BaseTranslatableTest
 
         $articles = $query->execute();
         foreach ($articles as $article) {
-            $this->assertAttributeEquals(
-                self::ENGLISH_TITLE_1,
-                'title',
-                $article
-            );
-
-            $this->assertAttributeEquals(
-                self::ENGLISH_CONTENTS_1,
-                'contents',
-                $article
-            );
+            $this->assertAttributeEquals(self::ENGLISH_TITLE_1, 'title', $article);
+            $this->assertAttributeEquals(self::ENGLISH_CONTENTS_1, 'contents', $article);
         }
 
         $this->assertEquals(
@@ -749,40 +607,57 @@ class ListenerTest extends BaseTranslatableTest
     {
         $this->setExpectedException(
             'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
-            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale\' has translatable properties so it must have property marked with @Translatable\Language annotation'
+            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale\''
+            . ' has translatable properties so it must have property marked with'
+            . ' @Translatable\Language annotation'
         );
 
-        $this->_translatableListener->getExtendedMetadata($this->_em, 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale');
+        $this->_translatableListener->getExtendedMetadata(
+            $this->_em,
+            'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale'
+        );
     }
 
     public function testTranslatableWithoutTranslations()
     {
         $this->setExpectedException(
             'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
-            'Field \'translations\' in entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutTranslations\' has to be a OneToMany association'
+            'Field \'translations\' in entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture'
+            . '\TranslatableWithoutTranslations\' has to be a OneToMany association'
         );
 
-        $this->_translatableListener->getExtendedMetadata($this->_em, 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutTranslations');
+        $this->_translatableListener->getExtendedMetadata(
+            $this->_em,
+            'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutTranslations'
+        );
     }
 
     public function testTranslatableWithPersistentLocale()
     {
         $this->setExpectedException(
             'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
-            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale\' seems to be a translatable entity so its \'locale\' field must not be persistent'
+            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale\''
+            . ' seems to be a translatable entity so its \'locale\' field must not be persistent'
         );
 
-        $this->_translatableListener->getExtendedMetadata($this->_em, 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale');
+        $this->_translatableListener->getExtendedMetadata(
+            $this->_em,
+            'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale'
+        );
     }
 
     public function testTranslationsWithoutPersistentLocale()
     {
         $this->setExpectedException(
             'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
-            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation\' seems to be a translation entity so its \'locale\' field must be persistent'
+            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation\''
+            . ' seems to be a translation entity so its \'locale\' field must be persistent'
         );
 
-        $this->_translatableListener->getExtendedMetadata($this->_em, 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation');
+        $this->_translatableListener->getExtendedMetadata(
+            $this->_em,
+            'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation'
+        );
     }
 
     protected function getUsedEntityFixtures()
