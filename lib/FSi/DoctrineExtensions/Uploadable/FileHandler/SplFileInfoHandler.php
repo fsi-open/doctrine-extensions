@@ -36,6 +36,7 @@ class SplFileInfoHandler extends AbstractHandler
         }
 
         $level = error_reporting(0);
+        $filePosition = null;
         if ($file instanceof \SplFileObject) {
             $fileObject = $file;
             $filePosition = $this->tryTellFile($fileObject);
