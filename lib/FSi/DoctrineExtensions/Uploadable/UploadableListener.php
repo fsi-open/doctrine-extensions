@@ -410,7 +410,8 @@ class UploadableListener extends MappedEventSubscriber
                 }
 
                 if (empty($file)) {
-                    $propertyManipulator->setAndSaveValue($object, $config['targetField'], null);
+                    $propertyManipulator->setPropertyValue($object, $property, null);
+                    $propertyManipulator->saveValue($object, $config['targetField']);
                     continue;
                 }
 
@@ -597,8 +598,16 @@ class UploadableListener extends MappedEventSubscriber
      * @param Filesystem $filesystem
      * @return string
      */
-    private function generateNewKey(KeymakerInterface $keymaker, $object, $property, $id, $fileName, $keyLength, $keyPattern, Filesystem $filesystem)
-    {
+    private function generateNewKey(
+        KeymakerInterface $keymaker,
+        $object,
+        $property,
+        $id,
+        $fileName,
+        $keyLength,
+        $keyPattern,
+        Filesystem $filesystem
+    ) {
         while ($filesystem->has($newKey = $keymaker->createKey($object, $property, $id, $fileName, $keyPattern))) {
             $matches = [];
             $match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches);
