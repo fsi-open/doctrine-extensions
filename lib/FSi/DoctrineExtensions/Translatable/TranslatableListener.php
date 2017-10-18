@@ -89,7 +89,6 @@ class TranslatableListener extends MappedEventSubscriber
     {
         return [
             'postLoad',
-            'postHydrate',
             'preFlush'
         ];
     }
@@ -118,16 +117,6 @@ class TranslatableListener extends MappedEventSubscriber
             $eventArgs->getEntity(),
             $this->getLocale()
         );
-    }
-
-    /**
-     * After loading the entity copy the current translation fields into non-persistent translatable properties
-     *
-     * @param LifecycleEventArgs $eventArgs
-     */
-    public function postHydrate(LifecycleEventArgs $eventArgs)
-    {
-        $this->postLoad($eventArgs);
     }
 
     /**
