@@ -32,6 +32,7 @@ abstract class GeneralTest extends BaseORMTest
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();
+        $this->_em->refresh($user);
 
         $path = FILESYSTEM1 . $user->getFileKey();
         $this->assertNotEquals($path, FILESYSTEM1);
@@ -49,6 +50,7 @@ abstract class GeneralTest extends BaseORMTest
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();
+        $this->_em->refresh($user);
 
         $path = FILESYSTEM1 . $user->getFileKey();
         $this->assertNotEquals($path, FILESYSTEM1);
@@ -70,7 +72,10 @@ abstract class GeneralTest extends BaseORMTest
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();
+        $this->_em->refresh($user);
 
+        $this->assertTrue($user->getFile() instanceof File);
+        $this->assertNotNull($user->getFileKey());
         $this->assertEquals(basename($user->getFile()->getKey()), 'lh_2.jpg');
     }
 
@@ -85,8 +90,10 @@ abstract class GeneralTest extends BaseORMTest
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();
+        $this->_em->refresh($user);
 
         $this->assertTrue($user->getFile() instanceof File);
+        $this->assertNotNull($user->getFileKey());
         $this->assertNotSame($file, $user->getFile());
     }
 
@@ -105,11 +112,14 @@ abstract class GeneralTest extends BaseORMTest
 
         $user->setFile($file2);
         $this->_em->flush();
+        $this->_em->refresh($user);
 
         // Old file must be deleted.
         $this->assertFalse(file_exists(FILESYSTEM1 . $key1));
 
         $key2 = $user->getFileKey();
+        $this->assertTrue($user->getFile() instanceof File);
+        $this->assertNotNull($user->getFileKey());
         $this->assertTrue(file_exists(FILESYSTEM1 . $key2));
     }
 
@@ -127,9 +137,13 @@ abstract class GeneralTest extends BaseORMTest
 
         $user->deleteFile();
         $this->_em->flush();
+        $this->_em->refresh($user);
 
         // Old file must be deleted.
         $this->assertFalse(file_exists(FILESYSTEM1 . $key1));
+        // Entity fields also need to be cleared
+        $this->assertNull($user->getFile());
+        $this->assertNull($user->getFileKey());
     }
 
     public function testDeleteWithFailure()
@@ -151,12 +165,16 @@ abstract class GeneralTest extends BaseORMTest
             // Setting name to null while it is not nullable should raise exception.
             $user->name = null;
             $this->_em->flush();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $exceptionThrown = true;
         }
 
         $this->assertTrue($exceptionThrown);
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
+        // Entity fields should be empty, but the file should still exist.
+        // The fields will be rehydrated post-load
+        $this->assertNull($user->getFile());
+        $this->assertNull($user->getFileKey());
     }
 
     public function testUpdateWithFailure()
@@ -179,7 +197,7 @@ abstract class GeneralTest extends BaseORMTest
             // Setting name to null while it is not nullable should raise exception.
             $user->name = null;
             $this->_em->flush();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $exceptionThrown = true;
         }
 
@@ -187,6 +205,8 @@ abstract class GeneralTest extends BaseORMTest
 
         // Old file must be preserved.
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
+        $this->assertTrue($user->getFile() instanceof File);
+        $this->assertNotNull($user->getFileKey());
     }
 
     public function testDeleteEntity()
@@ -225,9 +245,12 @@ abstract class GeneralTest extends BaseORMTest
         $user->setFile($file1);
         $this->_em->persist($user);
         $this->_em->flush();
+        $this->_em->refresh($user);
 
         $key2 = $user->getFileKey();
         $this->assertTrue(file_exists(FILESYSTEM1 . $key2));
+        $this->assertTrue($user->getFile() instanceof File);
+        $this->assertNotNull($user->getFileKey());
         $this->assertNotEquals($content, $user->getFile()->getContent());
     }
 
@@ -252,7 +275,7 @@ abstract class GeneralTest extends BaseORMTest
             $user->name = null;
             $user->setFile($file1);
             $this->_em->flush();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $exceptionThrown = true;
         }
 
@@ -260,6 +283,8 @@ abstract class GeneralTest extends BaseORMTest
 
         // Old file must be preserved.
         $this->assertTrue($oldFile->exists());
+        $this->assertTrue($user->getFile() instanceof File);
+        $this->assertNotNull($user->getFileKey());
         $this->assertNotEquals($content, $user->getFile()->getContent());
     }
 
@@ -306,6 +331,7 @@ abstract class GeneralTest extends BaseORMTest
         $this->assertNotEquals($path, FILESYSTEM1);
         $this->assertTrue(file_exists($path));
         $this->assertTrue($user->getFile() instanceof File);
+        $this->assertNotNull($user->getFileKey());
     }
 
     protected function tearDown()
