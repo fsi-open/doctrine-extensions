@@ -83,7 +83,7 @@ abstract class BaseORMTest extends PHPUnit_Framework_TestCase
      */
     protected function getMockAnnotatedConfig()
     {
-        $config = $this->getMock('Doctrine\ORM\Configuration');
+        $config = $this->createMock('Doctrine\ORM\Configuration');
         $config->expects($this->once())
             ->method('getProxyDir')
             ->will($this->returnValue(TESTS_TEMP_DIR))

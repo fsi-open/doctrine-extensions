@@ -127,6 +127,6 @@ class ChainHandlerTest extends BaseHandlerTest
 
     protected function getHandlerMock()
     {
-        return $this->getMock('FSi\\DoctrineExtensions\\Uploadable\\FileHandler\\FileHandlerInterface');
+        return $this->createMock('FSi\\DoctrineExtensions\\Uploadable\\FileHandler\\FileHandlerInterface');
     }
 }
