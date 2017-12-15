@@ -202,7 +202,7 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
      */
     private function getKeymakerMock()
     {
-        return $this->getMock('FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface');
+        return $this->createMock('FSi\\DoctrineExtensions\\Uploadable\\Keymaker\\KeymakerInterface');
     }
 
     /**
@@ -218,7 +218,7 @@ class UploadableTest extends \PHPUnit_Framework_TestCase
      */
     private function getFileHandlerMock()
     {
-        return $this->getMock('FSi\\DoctrineExtensions\\Uploadable\\FileHandler\\FileHandlerInterface');
+        return $this->createMock('FSi\\DoctrineExtensions\\Uploadable\\FileHandler\\FileHandlerInterface');
     }
 
     /**
