@@ -9,11 +9,13 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 
+use FSi\DoctrineExtensions\Tests\Uploadable\Utils;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
-use FSi\DoctrineExtensions\Tests\Uploadable\Utils;
+use PHPUnit\Framework\TestCase;
+use stdClass;
 
-abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
+abstract class BaseHandlerTest extends TestCase
 {
     const CONTENT = 'sampleContent';
 
@@ -32,7 +34,7 @@ abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetContentForWrongInputs($input)
     {
-        $this->setExpectedException(RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->assertNull($this->handler->getContent($input));
     }
 
@@ -41,7 +43,7 @@ abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetNameForWrongInput($input)
     {
-        $this->setExpectedException(RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->assertNull($this->handler->getName($input));
     }
 
@@ -64,7 +66,7 @@ abstract class BaseHandlerTest extends \PHPUnit_Framework_TestCase
         return [
             ['not file'],
             [[]],
-            [new \stdClass()],
+            [new stdClass()],
             [42],
         ];
     }

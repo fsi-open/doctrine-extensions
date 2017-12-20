@@ -194,7 +194,7 @@ abstract class GeneralTest extends BaseORMTest
 
         $user->setFile($file2);
 
-        $this->setExpectedException(Throwable::class);
+        $this->expectException(Throwable::class);
         // Setting name to null while it is not nullable should raise exception.
         $user->name = null;
         $this->_em->flush();
@@ -292,7 +292,7 @@ abstract class GeneralTest extends BaseORMTest
         $file = new File($key, $this->_filesystem1);
         $file->setContent('');
 
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        $this->expectException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();

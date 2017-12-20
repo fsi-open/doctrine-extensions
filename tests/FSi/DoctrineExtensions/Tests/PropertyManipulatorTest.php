@@ -12,11 +12,14 @@ namespace FSi\DoctrineExtensions\Tests\Uploadable\PropertyManipulator;
 use FSi\DoctrineExtensions\PropertyManipulator;
 use FSi\DoctrineExtensions\Tests\Uploadable\PropertyManipulator\TestObject;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class PropertyManipulatorTest extends TestCase
 {
     public function testValueChanged()
     {
+        $this->expectException(RuntimeException::class);
+
         $observer = new PropertyManipulator();
 
         $object = new TestObject();
@@ -36,12 +39,13 @@ class PropertyManipulatorTest extends TestCase
         $this->assertTrue($observer->hasChangedValue($object, 'property3'));
         $this->assertTrue($observer->hasSavedValue($object, 'property3'));
         $this->assertFalse($observer->hasSavedValue($object, 'property4'));
-        $this->setExpectedException('\RuntimeException');
         $observer->hasChangedValue($object, 'property4');
     }
 
     public function testChangedValue()
     {
+        $this->expectException(RuntimeException::class);
+
         $observer = new PropertyManipulator();
 
         $object = new TestObject();
@@ -61,12 +65,13 @@ class PropertyManipulatorTest extends TestCase
         $this->assertTrue($observer->hasChangedValue($object, 'property3'));
         $this->assertTrue($observer->hasSavedValue($object, 'property3'));
         $this->assertFalse($observer->hasSavedValue($object, 'property4'));
-        $this->setExpectedException('\RuntimeException');
         $observer->hasChangedValue($object, 'property4');
     }
 
     public function testSetValue()
     {
+        $this->expectException(RuntimeException::class);
+
         $observer = new PropertyManipulator();
 
         $object = new TestObject();
@@ -79,12 +84,13 @@ class PropertyManipulatorTest extends TestCase
         $this->assertTrue($observer->hasChangedValue($object, 'property1'));
         $this->assertFalse($observer->hasChangedValue($object, 'property2'));
         $this->assertTrue($observer->hasChangedValue($object, 'property3'));
-        $this->setExpectedException('\RuntimeException');
         $observer->hasChangedValue($object, 'property4');
     }
 
     public function testGetSavedValue()
     {
+        $this->expectException(RuntimeException::class);
+
         $observer = new PropertyManipulator();
 
         $object = new TestObject();
@@ -106,7 +112,6 @@ class PropertyManipulatorTest extends TestCase
             'original value 2'
         );
         $this->assertNull($observer->getSavedValue($object, 'property3'));
-        $this->setExpectedException('\RuntimeException');
         $observer->getSavedValue($object, 'property4');
     }
 

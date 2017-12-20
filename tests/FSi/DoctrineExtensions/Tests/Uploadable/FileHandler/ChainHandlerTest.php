@@ -28,19 +28,23 @@ class ChainHandlerTest extends BaseHandlerTest
 
     public function testInitializableWithoutHandlers()
     {
-        new ChainHandler();
-        new ChainHandler([]);
+        $handler = new ChainHandler();
+        $this->assertInstanceof(ChainHandler::class, $handler);
+        $handler = new ChainHandler([]);
+        $this->assertInstanceof(ChainHandler::class, $handler);
+
     }
 
     public function testIsNotInitializableWithWrongHandlers2()
     {
-        $this->setExpectedException(RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         new ChainHandler(['not a handler']);
     }
 
     public function testIsInitializableWithHandlers()
     {
-        new ChainHandler([$this->getHandlerMock()]);
+        $handler = new ChainHandler([$this->getHandlerMock()]);
+        $this->assertInstanceof(ChainHandler::class, $handler);
     }
 
     public function testPassesCallToHandlersInProperOrder()

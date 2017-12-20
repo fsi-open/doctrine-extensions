@@ -305,7 +305,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->assertEquals(self::POLISH_TEASER, $article->getTeaser());
         $this->assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
 
-        $this->setExpectedException('\Doctrine\ORM\NoResultException');
+        $this->expectException('\Doctrine\ORM\NoResultException');
 
         //value that not exists
         $repository->findTranslatableOneBy(['date' => '2014-01-01 00:00:01']);

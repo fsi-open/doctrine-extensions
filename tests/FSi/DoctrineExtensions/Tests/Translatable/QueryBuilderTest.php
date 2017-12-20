@@ -19,7 +19,7 @@ class QueryBuilderTest extends BaseTranslatableTest
 {
     public function testJoinTranslationWithWrongJoinType()
     {
-        $this->setExpectedException(InvalidArgumentException::class, 'Unknown join type "RIGHT"');
+        $this->expectException(InvalidArgumentException::class, 'Unknown join type "RIGHT"');
 
         $qb = new QueryBuilder($this->_em);
         $qb->from(self::ARTICLE, 'a')->joinTranslations('a.translations', 'RIGHT');

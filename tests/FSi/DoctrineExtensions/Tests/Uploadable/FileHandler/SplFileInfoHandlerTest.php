@@ -81,7 +81,7 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
         $input = new SplFileInfo(FILESYSTEM1 . self::KEY);
         $key = self::KEY;
 
-        $this->setExpectedException(RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->handler->getContent($input, $key, $filesystem);
     }
 

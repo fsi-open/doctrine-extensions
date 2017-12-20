@@ -501,7 +501,7 @@ class ListenerTest extends BaseTranslatableTest
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
 
-        $this->setExpectedException(
+        $this->expectException(
             RuntimeException::class,
             "Neither object's locale nor the current locale was set for translatable properties"
         );
@@ -614,7 +614,7 @@ class ListenerTest extends BaseTranslatableTest
 
     public function testTranslatableWithoutLocaleProperty()
     {
-        $this->setExpectedException(
+        $this->expectException(
             MappingException::class,
             sprintf(
                 "Entity '%s' has translatable properties so it must have property"
@@ -631,7 +631,7 @@ class ListenerTest extends BaseTranslatableTest
 
     public function testTranslatableWithoutTranslations()
     {
-        $this->setExpectedException(
+        $this->expectException(
             MappingException::class,
             sprintf(
                 "Field 'translations' in entity '%s' has to be a OneToMany association",
@@ -647,7 +647,7 @@ class ListenerTest extends BaseTranslatableTest
 
     public function testTranslatableWithPersistentLocale()
     {
-        $this->setExpectedException(
+        $this->expectException(
             MappingException::class,
             sprintf(
                 "Entity '%s' seems to be a translatable entity so its 'locale' field"
@@ -664,7 +664,7 @@ class ListenerTest extends BaseTranslatableTest
 
     public function testTranslationsWithoutPersistentLocale()
     {
-        $this->setExpectedException(
+        $this->expectException(
             MappingException::class,
             sprintf(
                 "Entity '%s' seems to be a translation entity so its 'locale' field must be persistent",
