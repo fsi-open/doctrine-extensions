@@ -7,25 +7,23 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
+use DOMDocument;
+use DOMXPath;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
-use SimpleXmlElement;
-use DOMDocument;
 use ReflectionClass;
-use DOMXPath;
+use SimpleXmlElement;
 
 abstract class AbstractXmlDriver extends AbstractFileDriver
 {
     const DOCTRINE_NAMESPACE_URI = 'http://doctrine-project.org/schemas/orm/doctrine-mapping';
     const FSI_NAMESPACE_URI = 'http://fsi.pl/schemas/orm/doctrine-extensions-mapping';
 
-    /**
-     * @param \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface $extendedClassMetadata
-     * @return \SimpleXmlElement|null
-     */
-    protected function getFileMapping(ClassMetadataInterface $extendedClassMetadata)
+    protected function getFileMapping(ClassMetadataInterface $extendedClassMetadata): ?SimpleXmlElement
     {
         $fileLocation = $this->findMappingFile($extendedClassMetadata);
         $dom = new DOMDocument();
@@ -55,29 +53,21 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
                 }
             }
         }
+
+        return null;
     }
 
-    /**
-     * @param \SimpleXmlElement $node
-     * @param string $name
-     * @return string
-     */
-    protected function getAttribute(SimpleXmlElement $node, $name)
+    protected function getAttribute(SimpleXmlElement $node, string $name): ?string
     {
         $attributes = $node->attributes();
         if (!isset($attributes[$name])) {
-            return;
+            return null;
         }
+
         return (string) $attributes[$name];
     }
 
-    /**
-     * Validating xml file.
-     *
-     * @param \DOMDocument $dom
-     * @return bool
-     */
-    private function validateFile(DOMDocument $dom)
+    private function validateFile(DOMDocument $dom): bool
     {
         // Schemas for validation.
         $schemaLocations = [
@@ -130,7 +120,7 @@ EOF
      *
      * @return string
      */
-    private function getDoctrineSchemePath()
+    private function getDoctrineSchemePath(): string
     {
         static $path;
 

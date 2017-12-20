@@ -7,78 +7,69 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Translatable\Model;
+
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\QueryBuilder;
 
 interface TranslatableRepositoryInterface
 {
-    /**
-     * @param array $criteria
-     * @param array $orderBy
-     * @param int $limit
-     * @param int $offset
-     * @param mixed $locale
-     * @return array
-     */
-    public function findTranslatableBy(array $criteria, array $orderBy = null, $limit = null, $offset = null, $locale = null);
+    public function findTranslatableBy(
+        array $criteria,
+        ?array $orderBy = null,
+        ?int $limit = null,
+        ?int $offset = null,
+        ?string $locale = null
+    );
 
-    /**
-     * @param array $criteria
-     * @param array $orderBy
-     * @param mixed $locale
-     * @return array
-     */
-    public function findTranslatableOneBy(array $criteria, array $orderBy = null, $locale = null);
+    public function findTranslatableOneBy(
+        array $criteria,
+        ?array $orderBy = null,
+        ?string $locale = null
+    );
 
     /**
      * Creates query builder for this entity joined with associated translation
      * entity and constrained to current locale of TranslatableListener if it
      * has been set. It also adds second join to translation entity constrained
      * to default locale of TranslatableListener if it has been set.
-     *
-     * @param string $alias
-     * @param string $translationAlias
-     * @param string $defaultTranslationAlias
-     * @return \Doctrine\ORM\QueryBuilder
      */
-    public function createTranslatableQueryBuilder($alias, $translationAlias = 't', $defaultTranslationAlias = 'dt');
+    public function createTranslatableQueryBuilder(
+        string $alias,
+        ?string $translationAlias = 't',
+        ?string $defaultTranslationAlias = 'dt'
+    ): QueryBuilder;
 
     /**
      * Returns true if a translation entity for specified base entity and locale exists
-     *
-     * @param object $object
-     * @param mixed $locale
-     * @param string $translationAssociation
-     * @return bool
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
      */
-    public function hasTranslation($object, $locale, $translationAssociation = 'translations');
+    public function hasTranslation(
+        $object,
+        string $locale,
+        ?string $translationAssociation = 'translations'
+    ): bool;
 
     /**
      * Returns existing or newly created translation entity for specified base
      * entity and locale
-     *
-     * @param object $object
-     * @param mixed $locale
-     * @param string $translationAssociation
      * @return object existing or new translation entity for specified locale
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
      */
-    public function getTranslation($object, $locale, $translationAssociation = 'translations');
+    public function getTranslation(
+        $object,
+        string $locale,
+        ?string $translationAssociation = 'translations'
+    );
 
-    /**
-     * @param $object
-     * @param string $translationAssociation
-     * @return \Doctrine\Common\Collections\Collection
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
-     */
-    public function getTranslations($object, $translationAssociation = 'translations');
+    public function getTranslations(
+        $object,
+        ?string $translationAssociation = 'translations'
+    ): Collection;
 
-    /**
-     * @param object $object
-     * @param mixed $locale
-     * @param string $translationAssociation
-     * @return object|null
-     * @throws \FSi\DoctrineExtensions\Translatable\Exception\RuntimeException
-     */
-    public function findTranslation($object, $locale, $translationAssociation = 'translations');
+    public function findTranslation(
+        $object,
+        string $locale,
+        ?string $translationAssociation = 'translations'
+    );
 }

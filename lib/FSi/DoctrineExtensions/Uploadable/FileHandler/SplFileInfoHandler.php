@@ -7,9 +7,13 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
+use SplFileInfo;
+use SplFileObject;
 
 class SplFileInfoHandler extends AbstractHandler
 {
@@ -18,10 +22,7 @@ class SplFileInfoHandler extends AbstractHandler
      */
     private $tempFilename;
 
-    /**
-     * @param string $tempFilename
-     */
-    public function __construct($tempFilename = 'temp')
+    public function __construct(string $tempFilename = 'temp')
     {
         $this->tempFilename = $tempFilename;
     }
@@ -29,7 +30,7 @@ class SplFileInfoHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function getContent($file)
+    public function getContent($file): string
     {
         if (!$this->supports($file)) {
             throw $this->generateNotSupportedException($file);
@@ -37,7 +38,7 @@ class SplFileInfoHandler extends AbstractHandler
 
         $level = error_reporting(0);
         $filePosition = null;
-        if ($file instanceof \SplFileObject) {
+        if ($file instanceof SplFileObject) {
             $fileObject = $file;
             $filePosition = $this->tryTellFile($fileObject);
         } else {
@@ -58,7 +59,7 @@ class SplFileInfoHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function getName($file)
+    public function getName($file): string
     {
         if (!$this->supports($file)) {
             throw $this->generateNotSupportedException($file);
@@ -76,22 +77,18 @@ class SplFileInfoHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function supports($file)
+    public function supports($file): bool
     {
-        return $file instanceof \SplFileInfo;
+        return $file instanceof SplFileInfo;
     }
 
-    private function throwException($defaultMessage = null)
+    private function throwException(string $defaultMessage = null): void
     {
         $error = error_get_last();
         throw new RuntimeException(($error !== null) ? $error['message'] : $defaultMessage);
     }
 
-    /**
-     * @param \SplFileInfo $file
-     * @return \SplFileObject
-     */
-    private function tryOpenFile(\SplFileInfo $file)
+    private function tryOpenFile(SplFileInfo $file): SplFileObject
     {
         try {
             $fileObject = $file->openFile();
@@ -103,46 +100,46 @@ class SplFileInfoHandler extends AbstractHandler
     }
 
     /**
-     * @param \SplFileObject $fileObject
+     * @param SplFileObject $fileObject
      * @param int $position
      * @param int $whence
      * @return int
      */
-    private function trySeekFile(\SplFileObject $fileObject, $position, $whence = SEEK_SET)
+    private function trySeekFile(SplFileObject $fileObject, $position, $whence = SEEK_SET): void
     {
         $seekResult = $fileObject->fseek($position, $whence);
 
         if ($seekResult === -1) {
-            $this->throwException(sprintf('Unable to set position on file "%s"', $fileObject->getPathname()));
+            $this->throwException(sprintf(
+                'Unable to set position on file "%s"',
+                $fileObject->getPathname()
+            ));
         }
     }
 
-    /**
-     * @param \SplFileObject $fileObject
-     * @return int
-     */
-    private function tryTellFile($fileObject)
+    private function tryTellFile($fileObject): int
     {
         $fileSize = $fileObject->ftell();
 
         if ($fileSize === false) {
-            $this->throwException(sprintf('Unable to get position of file "%s"', $fileObject->getPathname()));
+            $this->throwException(sprintf(
+                'Unable to get position of file "%s"',
+                $fileObject->getPathname()
+            ));
         }
 
         return $fileSize;
     }
 
-    /**
-     * @param \SplFileObject $fileObject
-     * @param int $length
-     * @return string
-     */
-    private function tryReadFile(\SplFileObject $fileObject, $length)
+    private function tryReadFile(SplFileObject $fileObject, int $length): string
     {
         $content = $fileObject->fread($length);
 
         if (false === $content) {
-            $this->throwException(sprintf('Unable to read contents of file "%s"', $fileObject->getPathname()));
+            $this->throwException(sprintf(
+                'Unable to read contents of file "%s"',
+                $fileObject->getPathname()
+            ));
         }
 
         return $content;

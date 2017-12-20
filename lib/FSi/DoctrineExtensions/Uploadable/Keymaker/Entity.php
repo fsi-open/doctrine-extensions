@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\Keymaker;
 
 use Doctrine\Common\Util\ClassUtils;
@@ -18,13 +20,16 @@ class Entity implements KeymakerInterface
     /**
      * {@inheritdoc}
      */
-    public function createKey($object, $property, $id, $originalName, $pattern = null)
-    {
+    public function createKey(
+        $object,
+        string $property,
+        string $id,
+        string $originalName,
+        ?string $pattern = null
+    ): string {
         if (is_null($pattern)) {
             $pattern = self::DEFAULT_PATTERN;
         }
-
-        $className = ClassUtils::getClass($object);
 
         return preg_replace(
             [
@@ -34,7 +39,7 @@ class Entity implements KeymakerInterface
                 '/\{original_name\}/',
             ],
             [
-                preg_replace('/\\\\/', '', $className),
+                preg_replace('/\\\\/', '', ClassUtils::getClass($object)),
                 $property,
                 $id,
                 $originalName,

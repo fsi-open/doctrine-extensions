@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
 use Gaufrette\File;
@@ -15,9 +17,8 @@ class GaufretteHandler extends AbstractHandler
 {
     /**
      * {@inheritdoc}
-     *
      */
-    public function getContent($file)
+    public function getContent($file): string
     {
         if (!$this->supports($file)) {
             throw $this->generateNotSupportedException($file);
@@ -29,7 +30,7 @@ class GaufretteHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function getName($file)
+    public function getName($file): string
     {
         if (!$this->supports($file)) {
             throw $this->generateNotSupportedException($file);
@@ -41,7 +42,7 @@ class GaufretteHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function supports($file)
+    public function supports($file): bool
     {
         return $file instanceof File;
     }

@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
@@ -42,24 +44,26 @@ class DriverChain implements DriverInterface
     /**
      * {@inheritdoc}
      */
-    public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory)
+    public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory): void
     {
         foreach ($this->drivers as $drivers) {
             foreach ($drivers as $driver) {
                 $driver->setBaseMetadataFactory($metadataFactory);
             }
         }
+
         $this->baseMetadataFactory = $metadataFactory;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getBaseMetadataFactory()
+    public function getBaseMetadataFactory(): ClassMetadataFactory
     {
         if (!isset($this->baseMetadataFactory)) {
             throw new RuntimeException('Required base metadata factory has not been set on this driver.');
         }
+
         return $this->baseMetadataFactory;
     }
 
@@ -81,7 +85,7 @@ class DriverChain implements DriverInterface
     /**
      * @param \FSi\DoctrineExtensions\Mapping\Driver\ClassMetadataInterface $metadata
      */
-    public function loadClassMetadata(ClassMetadataInterface $metadata)
+    public function loadClassMetadata(ClassMetadataInterface $metadata): void
     {
         $className = $metadata->getClassName();
         foreach ($this->drivers as $namespace => $drivers) {

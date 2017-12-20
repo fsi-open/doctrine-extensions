@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Mapping;
 
 use Doctrine\Common\Annotations\Reader;
@@ -68,13 +70,11 @@ final class ExtendedMetadataFactory
      */
     private $annotationReader;
 
-    /**
-     * @param EntityManagerInterface $objectManager
-     * @param string $extensionNamespace
-     * @param Reader $annotationReader
-     */
-    public function __construct(EntityManagerInterface $objectManager, $extensionNamespace, $annotationReader)
-    {
+    public function __construct(
+        EntityManagerInterface $objectManager,
+        string $extensionNamespace,
+        Reader $annotationReader
+    ) {
         $this->objectManager = $objectManager;
         $this->annotationReader = $annotationReader;
         $this->extensionNamespace = $extensionNamespace;
@@ -111,12 +111,10 @@ final class ExtendedMetadataFactory
     }
 
     /**
-     * Returns class metadata read by the driver. This method calls itself recursively for each ancestor class
-     *
-     * @param string $class
-     * @return ClassMetadataInterface
+     * Returns class metadata read by the driver. This method calls itself
+     * recursively for each ancestor class.
      */
-    public function getClassMetadata($class)
+    public function getClassMetadata(string $class): ClassMetadataInterface
     {
         $class = ltrim($class, '\\');
         $metadataIndex = $this->getCacheId($class);
@@ -152,23 +150,18 @@ final class ExtendedMetadataFactory
 
     /**
      * Returns identifier used to store class metadata in cache
-     *
-     * @param string $class
      */
-    private function getCacheId($class)
+    private function getCacheId(string $class): string
     {
         return $this->cachePrefix . $this->metadataClassName . $class;
     }
 
     /**
-     * Get the extended driver instance which will
-     * read the metadata required by extension.
+     * Get the extended driver instance which will read the metadata required by extension.
      *
-     * @param MappingDriver $omDriver
      * @throws RuntimeException if driver was not found in extension or it is not compatible
-     * @return DriverInterface
      */
-    private function getDriver(MappingDriver $omDriver)
+    private function getDriver(MappingDriver $omDriver): DriverInterface
     {
         $className = get_class($omDriver);
         $driverName = substr($className, strrpos($className, '\\') + 1);

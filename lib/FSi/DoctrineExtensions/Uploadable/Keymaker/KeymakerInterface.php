@@ -7,19 +7,22 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\Keymaker;
 
 interface KeymakerInterface
 {
     /**
-     * Creates key for files.
+     * Creates a key for a file.
      *
      * @param object $object
-     * @param string $property
-     * @param string $id
-     * @param string $originalName
-     * @param string $pattern
-     * @return string
      */
-    public function createKey($object, $property, $id, $originalName, $pattern = null);
+    public function createKey(
+        $object,
+        string $property,
+        string $id,
+        string $originalName,
+        ?string $pattern = null
+    ): string;
 }

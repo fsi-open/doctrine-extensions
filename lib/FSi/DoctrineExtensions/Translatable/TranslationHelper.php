@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Translatable;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -32,13 +34,15 @@ class TranslationHelper
     }
 
     /**
-     * @param ClassTranslationContext $context
      * @param object $object
      * @param object $translation
-     * @param string $locale
      */
-    public function copyTranslationProperties(ClassTranslationContext $context, $object, $translation, $locale)
-    {
+    public function copyTranslationProperties(
+        ClassTranslationContext $context,
+        $object,
+        $translation,
+        string $locale
+    ): void {
         $properties = array_flip($context->getAssociationMetadata()->getProperties());
         foreach ($properties as $sourceField => $targetField) {
             $sourceProperty = $this->propertyManipulator->getPropertyValue($translation, $sourceField);
@@ -57,15 +61,13 @@ class TranslationHelper
     }
 
     /**
-     * @param ClassTranslationContext $context
      * @param object $object
-     * @param string $defaultLocale
      */
     public function copyPropertiesToTranslation(
         ClassTranslationContext $context,
         $object,
-        $defaultLocale
-    ) {
+        string $defaultLocale
+    ): void {
         $translationAssociationMeta = $context->getAssociationMetadata();
 
         $locale = $this->getObjectLocale($context, $object);
@@ -105,10 +107,9 @@ class TranslationHelper
     }
 
     /**
-     * @param ClassTranslationContext $context
      * @param object $object
      */
-    public function removeEmptyTranslation(ClassTranslationContext $context, $object)
+    public function removeEmptyTranslation(ClassTranslationContext $context, $object): void
     {
         if ($this->hasTranslatedProperties($context, $object)) {
             return;
@@ -122,7 +123,11 @@ class TranslationHelper
         $translationAssociationMeta = $context->getAssociationMetadata();
         $associationName = $translationAssociationMeta->getAssociationName();
         $translatableRepository = $context->getTranslatableRepository();
-        $translation = $translatableRepository->findTranslation($object, $objectLocale, $associationName);
+        $translation = $translatableRepository->findTranslation(
+            $object,
+            $objectLocale,
+            $associationName
+        );
 
         if (!isset($translation)) {
             return;
@@ -137,10 +142,9 @@ class TranslationHelper
     }
 
     /**
-     * @param ClassTranslationContext $context
      * @param object $object
      */
-    public function clearTranslatableProperties(ClassTranslationContext $context, $object)
+    public function clearTranslatableProperties(ClassTranslationContext $context, $object): void
     {
         $translationMeta = $context->getTranslationMetadata();
         foreach ($context->getAssociationMetadata()->getProperties() as $property => $translationField) {
@@ -156,11 +160,9 @@ class TranslationHelper
     }
 
     /**
-     * @param ClassTranslationContext $context
      * @param object $object
-     * @return bool
      */
-    public function hasTranslatedProperties(ClassTranslationContext $context, $object)
+    public function hasTranslatedProperties(ClassTranslationContext $context, $object): bool
     {
         $translationMeta = $context->getTranslationMetadata();
         $properties = $context->getAssociationMetadata()->getProperties();
@@ -180,11 +182,9 @@ class TranslationHelper
     }
 
     /**
-     * @param ClassTranslationContext $context
      * @param $object
-     * @return string
      */
-    public function getObjectLocale(ClassTranslationContext $context, $object)
+    public function getObjectLocale(ClassTranslationContext $context, $object): ?string
     {
         return $this->propertyManipulator->getPropertyValue(
             $object,
@@ -193,9 +193,7 @@ class TranslationHelper
     }
 
     /**
-     * @param ClassMetadata $metadata
      * @param object $translation
-     * @param string $collectionField
      * @param Collection|array $newCollection
      */
     private function handleTranslationsCollection(
@@ -246,12 +244,15 @@ class TranslationHelper
     }
 
     /**
-     * @param string $relationType
      * @param object $collectionElement
      * @param string|boolean $targetField
      */
-    private function removeFromRelation($relationType, $translation, $collectionElement, $targetField)
-    {
+    private function removeFromRelation(
+        string $relationType,
+        $translation,
+        $collectionElement,
+        $targetField
+    ) {
         if (!$targetField) {
             // one-sided relation, no property to set relation on
             return;
@@ -274,13 +275,16 @@ class TranslationHelper
     }
 
     /**
-     * @param string $relationType
      * @param object $translation
      * @param object $collectionElement
      * @param string|boolean $targetField
      */
-    private function addToRelation($relationType, $translation, $collectionElement, $targetField)
-    {
+    private function addToRelation(
+        string $relationType,
+        $translation,
+        $collectionElement,
+        $targetField
+    ) {
         if (!$targetField) {
             // one-sided relation, no property to set relation on
             return;
@@ -306,7 +310,7 @@ class TranslationHelper
      * @param Collection|array $collection
      * @throws InvalidArgumentException
      */
-    private function transformArrayToCollection($collection)
+    private function transformArrayToCollection($collection): Collection
     {
         if ($collection instanceof Collection) {
             return $collection;
@@ -323,12 +327,13 @@ class TranslationHelper
     }
 
     /**
-     * @param TranslatableClassMetadata $classMetadata
      * @param object $object
-     * @param string $locale
      */
-    private function setObjectLocale(TranslatableClassMetadata $classMetadata, $object, $locale)
-    {
+    private function setObjectLocale(
+        TranslatableClassMetadata $classMetadata,
+        $object,
+        string $locale
+    ): void {
         $this->propertyManipulator->setPropertyValue($object, $classMetadata->localeProperty, $locale);
     }
 }

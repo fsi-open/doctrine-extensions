@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Translatable\Mapping\Driver;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -18,7 +20,7 @@ use RuntimeException;
 
 class Yaml extends AbstractYamlDriver
 {
-    const LOCALE = 'locale';
+    public const LOCALE = 'locale';
 
     /**
      * {@inheritdoc}

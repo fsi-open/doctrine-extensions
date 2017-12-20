@@ -7,36 +7,27 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
 interface FileHandlerInterface
 {
     /**
-     * Check if handler can handle given $file.
-     *
      * @param $file
      * @return bool
      */
-    public function supports($file);
+    public function supports($file): bool;
 
     /**
-     * Get name of resource, that will be a part of its key.
+     * Get name of resource, that will be a part of its key (for example base name of file path0.
      *
-     * This can be for example base name of file path.
-     *
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException when resource not supported
      * @param mixed $file
-     * @return string
      */
-    public function getName($file);
+    public function getName($file): string;
 
     /**
-     * Method must return instance of FSi\DoctrineExtensions\Uploadable\File or null,
-     * if can't handle given resource.
-     *
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException when resource not supported
      * @param mixed $file
-     * @return string
      */
-    public function getContent($file);
+    public function getContent($file): string;
 }

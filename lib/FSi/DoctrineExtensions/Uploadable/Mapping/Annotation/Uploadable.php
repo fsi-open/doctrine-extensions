@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\Mapping\Annotation;
 
 use Doctrine\Common\Annotations\Annotation;

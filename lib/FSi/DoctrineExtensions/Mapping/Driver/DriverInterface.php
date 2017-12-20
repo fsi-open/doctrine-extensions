@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
@@ -14,19 +16,9 @@ use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
 interface DriverInterface
 {
-    /**
-     * @param \Doctrine\Common\Persistence\Mapping\ClassMetadataFactory $metadataFactory
-     * @return null
-     */
-    public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory);
+    public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory): void;
 
-    /**
-     * @return \Doctrine\Common\Persistence\Mapping\ClassMetadataFactory
-     */
-    public function getBaseMetadataFactory();
+    public function getBaseMetadataFactory(): ClassMetadataFactory;
 
-    /**
-     * @param ClassMetadataInterface $metadata
-     */
-    public function loadClassMetadata(ClassMetadataInterface $metadata);
+    public function loadClassMetadata(ClassMetadataInterface $metadata): void;
 }

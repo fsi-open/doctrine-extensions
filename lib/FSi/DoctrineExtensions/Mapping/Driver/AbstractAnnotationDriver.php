@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use Doctrine\Common\Annotations\Reader;
@@ -31,7 +33,7 @@ abstract class AbstractAnnotationDriver implements DriverInterface
     /**
      * {@inheritdoc}
      */
-    public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory)
+    public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory): void
     {
         $this->baseMetadataFactory = $metadataFactory;
     }
@@ -39,7 +41,7 @@ abstract class AbstractAnnotationDriver implements DriverInterface
     /**
      * {@inheritdoc}
      */
-    public function getBaseMetadataFactory()
+    public function getBaseMetadataFactory(): ClassMetadataFactory
     {
         if (!isset($this->baseMetadataFactory)) {
             throw new RuntimeException('Required base metadata factory has not been set on the annotation driver.');
@@ -51,27 +53,27 @@ abstract class AbstractAnnotationDriver implements DriverInterface
     /**
      * {@inheritdoc}
      */
-    public function loadClassMetadata(ClassMetadataInterface $metadata)
+    public function loadClassMetadata(ClassMetadataInterface $metadata): void
     {
         if ($this->getBaseMetadataFactory()->isTransient($metadata->getClassName())) {
             return;
         }
+
         $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
     }
 
     /**
      * @param Reader $reader
      */
-    public function setAnnotationReader(Reader $reader)
+    public function setAnnotationReader(Reader $reader): void
     {
         $this->reader = $reader;
     }
 
     /**
      * @throws RuntimeException
-     * @return Reader
      */
-    public function getAnnotationReader()
+    public function getAnnotationReader(): Reader
     {
         if (!isset($this->reader)) {
             throw new RuntimeException('Required annotation reader has not been set on the annotation driver.');
@@ -87,5 +89,8 @@ abstract class AbstractAnnotationDriver implements DriverInterface
      * @param ClassMetadataInfo $baseClassMetadata
      * @param ClassMetadataInterface $extendedClassMetadata
      */
-    abstract protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata);
+    abstract protected function loadExtendedClassMetadata(
+        ClassMetadataInfo $baseClassMetadata,
+        ClassMetadataInterface $extendedClassMetadata
+    ): void;
 }

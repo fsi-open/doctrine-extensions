@@ -1,11 +1,13 @@
 <?php
 
 /**
- * (c) Fabryka Stron Internetowych sp. z o.o <info@fsi.pl>
+ * (c) FSi sp. z o.o. <info@fsi.pl>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Metadata;
 
@@ -26,154 +28,83 @@ class ClassMetadata extends AbstractClassMetadata
      */
     protected $methodMetadata = [];
 
-    /**
-     * @param string $index
-     * @param mixed $value
-     */
-    public function addClassMetadata($index, $value)
+    public function addClassMetadata(string $index, $value): void
     {
         $this->classMetadata[$index] = $value;
-        return $this;
     }
 
-    /**
-     * @param string $index
-     */
-    public function hasClassMetadata($index)
+    public function hasClassMetadata(string $index): bool
     {
         return isset($this->classMetadata[$index]);
     }
 
-    /**
-     * @param string $index
-     */
-    public function getClassMetadata($index)
+    public function getClassMetadata(string $index)
     {
-        if ($this->hasClassMetadata($index)) {
-            return $this->classMetadata[$index];
-        }
-
-        return false;
+        return $this->hasClassMetadata($index)
+            ? $this->classMetadata[$index]
+            : null
+        ;
     }
 
-    /**
-     * Return all class metadata.
-     *
-     * @return array
-     */
-    public function getAllClassMetadata()
+    public function getAllClassMetadata(): array
     {
         return $this->classMetadata;
     }
 
-    /**
-     * Add new value under $index for $property. If value already exists
-     * it will be overwritten.
-     *
-     * @param string $property
-     * @param string $index
-     * @param mixed $value
-     * @return ClassMetadata
-     */
-    public function addPropertyMetadata($property, $index, $value)
+    public function addPropertyMetadata(string $property, string $index, $value): void
     {
         if (!isset($this->propertyMetadata[$property])) {
             $this->propertyMetadata[$property] = [$index => $value];
         } else {
             $this->propertyMetadata[$property][$index] = $value;
         }
-
-        return $this;
     }
 
-    /**
-     * @param string $property
-     * @param string $index
-     * @return boolean
-     */
-    public function hasPropertyMetadata($property, $index)
+    public function hasPropertyMetadata(string $property, string $index): bool
     {
-        return isset($this->propertyMetadata[$property], $this->propertyMetadata[$property][$index]);
+        return isset(
+            $this->propertyMetadata[$property],
+            $this->propertyMetadata[$property][$index]
+        );
     }
 
-    /**
-     * Returns value from $index for $property
-     *
-     * @param string $property
-     * @param string $index
-     *
-     * @return boolean - return value or fase if there is nothing under $index for $property
-     */
-    public function getPropertyMetadata($property, $index)
+    public function getPropertyMetadata(string $property, string $index)
     {
-        if ($this->hasPropertyMetadata($property, $index)) {
-            return $this->propertyMetadata[$property][$index];
-        }
-
-        return false;
+        return $this->hasPropertyMetadata($property, $index)
+            ? $this->propertyMetadata[$property][$index]
+            : null
+        ;
     }
 
-    /**
-     * @return array
-     */
-    public function getAllPropertyMetadata()
+    public function getAllPropertyMetadata(): array
     {
         return $this->propertyMetadata;
     }
 
-    /**
-     * Add new value under $index for $method. If value already exists
-     * it will be overwritten.
-     *
-     * @param string $method
-     * @param string $index
-     * @param mixed $value
-     * @return ClassMetadata
-     */
-    public function addMethodMetadata($method, $index, $value)
+    public function addMethodMetadata(string $method, string $index, $value): void
     {
         if (!isset($this->methodMetadata[$method])) {
             $this->methodMetadata[$method] = [$index => $value];
         } else {
             $this->methodMetadata[$method][$index] = $value;
         }
-
-        return $this;
     }
 
-    /**
-     * Check if there is a value under $index for $property
-     *
-     * @param string $method
-     * @param string $index
-     * @return boolean
-     */
-    public function hasMethodMetadata($method, $index)
+    public function hasMethodMetadata(string $method, string $index): bool
     {
         return isset($this->methodMetadata[$method], $this->methodMetadata[$method][$index]);
     }
 
-    /**
-     * Returns value from $index for $method
-     *
-     * @param string $method
-     * @param string $index
-     *
-     * @return boolean - return value or fase if there is nothing under $index for $property
-     */
-    public function getMethodMetadata($method, $index)
+    public function getMethodMetadata(string $method, string $index)
     {
         if ($this->hasMethodMetadata($method, $index)) {
             return $this->methodMetadata[$method][$index];
         }
 
-        return false;
+        return null;
     }
 
-    /**
-     * @return array
-     */
-    public function getAllMethodMetadata()
+    public function getAllMethodMetadata(): array
     {
         return $this->methodMetadata;
     }

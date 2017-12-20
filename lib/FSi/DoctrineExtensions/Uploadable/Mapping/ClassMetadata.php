@@ -7,9 +7,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\Mapping;
 
 use FSi\DoctrineExtensions\Metadata\AbstractClassMetadata;
+use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 
 class ClassMetadata extends AbstractClassMetadata
 {
@@ -20,16 +23,15 @@ class ClassMetadata extends AbstractClassMetadata
 
     /**
      * Set specified property as uploadable.
-     *
-     * @param string $property
-     * @param string $targetField
-     * @param string $filesystem
-     * @param object $keymaker
-     * @param integer $keyLength
-     * @param null $keyPattern
      */
-    public function addUploadableProperty($property, $targetField, $filesystem = null, $keymaker = null, $keyLength = null, $keyPattern = null)
-    {
+    public function addUploadableProperty(
+        string $property,
+        string $targetField,
+        $filesystem = null,
+        KeymakerInterface $keymaker = null,
+        ?int $keyLength = null,
+        ?string $keyPattern = null
+    ) {
         $this->uploadableProperties[$property] = [
             'targetField' => $targetField,
             'filesystem' => $filesystem,
@@ -39,22 +41,15 @@ class ClassMetadata extends AbstractClassMetadata
         ];
     }
 
-    /**
-     * Returns true if associated class has any uploadable properties.
-     *
-     * @return boolean
-     */
-    public function hasUploadableProperties()
+    public function hasUploadableProperties(): bool
     {
         return !empty($this->uploadableProperties);
     }
 
     /**
      * Returns array of all uploadable properties indexed by property.
-     *
-     * @return array
      */
-    public function getUploadableProperties()
+    public function getUploadableProperties(): array
     {
         return $this->uploadableProperties;
     }

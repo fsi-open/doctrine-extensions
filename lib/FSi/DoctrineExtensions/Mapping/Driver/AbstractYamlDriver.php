@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
@@ -14,11 +16,7 @@ use Symfony\Component\Yaml\Yaml;
 
 abstract class AbstractYamlDriver extends AbstractFileDriver
 {
-    /**
-     * @param \FSi\DoctrineExtensions\Metadata\ClassMetadataInterface $extendedClassMetadata
-     * @return array
-     */
-    protected function getFileMapping(ClassMetadataInterface $extendedClassMetadata)
+    protected function getFileMapping(ClassMetadataInterface $extendedClassMetadata): array
     {
         $element = Yaml::parse(file_get_contents($this->findMappingFile($extendedClassMetadata)));
         if (isset($element[$extendedClassMetadata->getClassName()])) {
