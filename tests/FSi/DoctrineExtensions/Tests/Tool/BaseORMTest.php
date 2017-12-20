@@ -26,12 +26,12 @@ use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 use FSi\DoctrineExtensions\Uploadable\UploadableListener;
 use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * This is the base test class for other Doctrine related tests.
  */
-abstract class BaseORMTest extends PHPUnit_Framework_TestCase
+abstract class BaseORMTest extends TestCase
 {
     /**
      * @var EntityManagerInterface

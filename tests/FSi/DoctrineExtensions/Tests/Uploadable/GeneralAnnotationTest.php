@@ -10,47 +10,60 @@
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
+use TypeError;
 
 class GeneralAnnotationTest extends GeneralTest
 {
-    const USER = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\User';
-    const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Annotation\\';
+    public const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Annotation\\';
 
     /**
-     * @dataProvider wrongClasses
+     * @dataProvider wrongAnnotations()
      */
-    public function testWrongAnnotations($class)
+    public function testWrongAnnotations(string $class)
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\MappingException');
+        $this->setExpectedException(MappingException::class);
         $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
     }
 
-    public static function wrongClasses()
+    /**
+     * @dataProvider wrongTypes()
+     */
+    public function testWrongTypes(string $class)
     {
-        $classes = [];
-        for ($i = 1; $i < 11; $i++) {
-            $classes[] = [self::BASE . 'User' . $i];
-        }
-        return $classes;
+        $this->setExpectedException(TypeError::class);
+        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
     }
 
-    /**
-     * {@inheritdoc}
-     *
-     * @return \FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User
-     */
-    protected function getUser()
+    public function wrongAnnotations()
+    {
+        return [
+            [sprintf('%sUser2', self::BASE)],
+            [sprintf('%sUser3', self::BASE)],
+            [sprintf('%sUser4', self::BASE)],
+            [sprintf('%sUser6', self::BASE)],
+            [sprintf('%sUser7', self::BASE)],
+        ];
+    }
+
+    public function wrongTypes()
+    {
+        return [
+            [sprintf('%sUser1', self::BASE)],
+            [sprintf('%sUser8', self::BASE)],
+            [sprintf('%sUser9', self::BASE)],
+            [sprintf('%sUser10', self::BASE)],
+            [sprintf('%sUser11', self::BASE)],
+        ];
+    }
+
+    protected function getUser(): User
     {
         return new User();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getUsedEntityFixtures()
     {
-        return [
-            self::USER,
-        ];
+        return [User::class];
     }
 }

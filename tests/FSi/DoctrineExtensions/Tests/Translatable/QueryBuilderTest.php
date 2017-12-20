@@ -10,6 +10,7 @@
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
 use Doctrine\ORM\Query\Expr;
+use FSi\DoctrineExtensions\Exception\InvalidArgumentException;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
 use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder;
@@ -18,25 +19,20 @@ class QueryBuilderTest extends BaseTranslatableTest
 {
     public function testJoinTranslationWithWrongJoinType()
     {
-        $this->setExpectedException(
-            'FSi\DoctrineExtensions\Exception\InvalidArgumentException',
-            'Unknown join type "RIGHT"'
-        );
+        $this->setExpectedException(InvalidArgumentException::class, 'Unknown join type "RIGHT"');
 
-        (new QueryBuilder($this->_em))->from(self::ARTICLE, 'a')->joinTranslations('a.translations', 'RIGHT');
+        $qb = new QueryBuilder($this->_em);
+        $qb->from(self::ARTICLE, 'a')->joinTranslations('a.translations', 'RIGHT');
     }
 
     public function testJoinTranslationWithAllDefaultArguments()
     {
         $qb = new QueryBuilder($this->_em);
-        $qb->from(self::ARTICLE, 'a');
-        $qb->select('a');
-        $qb->joinTranslations('a.translations');
+        $qb->select('a')->from(self::ARTICLE, 'a')->joinTranslations('a.translations');
 
         $this->assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
-                FROM %s a LEFT JOIN a.translations atranslations',
+            $this->normalizeDql(sprintf(
+                'SELECT a FROM %s a LEFT JOIN a.translations atranslations',
                 self::ARTICLE
             )),
             $qb->getDQL()
@@ -57,7 +53,7 @@ class QueryBuilderTest extends BaseTranslatableTest
             $this->normalizeDql(sprintf('
                 SELECT a
                 FROM %s a
-                    LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc',
+                LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc',
                 self::ARTICLE
             )),
             $qb->getDQL()
@@ -256,9 +252,7 @@ class QueryBuilderTest extends BaseTranslatableTest
     {
         $this->_translatableListener->setLocale($this->_languageEn);
         $qb = new QueryBuilder($this->_em);
-        $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
-        $qb->addTranslatableOrderBY('a', 'title', 'ASC');
+        $qb->select('a')->from(self::ARTICLE, 'a')->addTranslatableOrderBY('a', 'title', 'ASC');
 
         $this->assertEquals(
             $this->normalizeDql(sprintf('

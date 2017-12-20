@@ -65,10 +65,12 @@ class SplFileInfoHandler extends AbstractHandler
             throw $this->generateNotSupportedException($file);
         }
 
-        $filename = basename($file->getRealpath());
+        if ($file->getRealpath()) {
+            $filename = basename($file->getRealpath());
 
-        if (!empty($filename)) {
-            return $filename;
+            if (!empty($filename)) {
+                return $filename;
+            }
         }
 
         return $this->tempFilename;

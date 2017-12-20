@@ -156,7 +156,7 @@ class QueryBuilder extends BaseQueryBuilder
     public function addTranslatableOrderBy(
         string $alias,
         string $field,
-        ?array $order = null,
+        ?string $order = null,
         ?string $locale = null
     ): self {
         $this->addOrderBy(
@@ -212,7 +212,7 @@ class QueryBuilder extends BaseQueryBuilder
     private function getTranslatableCollectionExpr(
         string $alias,
         string $field,
-        string $exprTemplate,
+        $exprTemplate,
         bool $doJoin,
         ?string $locale = null
     ): string {
@@ -253,7 +253,7 @@ class QueryBuilder extends BaseQueryBuilder
     private function getTranslatableCollectionTranslationExpr(
         string $alias,
         string $field,
-        string $exprTemplate,
+        $exprTemplate,
         bool $doJoin,
         string $locale
     ) {
@@ -445,7 +445,7 @@ class QueryBuilder extends BaseQueryBuilder
         return substr($join, strpos($join, '.') + 1);
     }
 
-    private function getJoinTranslationsAlias(string $alias, string $join, string $locale): string
+    private function getJoinTranslationsAlias(?string $alias, string $join, ?string $locale): string
     {
         if (isset($alias)) {
             return $alias;
@@ -462,10 +462,10 @@ class QueryBuilder extends BaseQueryBuilder
     private function getJoinTranslationsCondition(
         string $join,
         string $alias,
-        string $localeParameter,
+        ?string $localeParameter,
         ?string $locale
     ): ?string {
-        if (!isset($locale)) {
+        if (is_null($locale)) {
             return null;
         }
 
@@ -503,7 +503,7 @@ class QueryBuilder extends BaseQueryBuilder
         );
     }
 
-    private function addJoinedTranslationsAlias(string $join, string $locale, string $alias): string
+    private function addJoinedTranslationsAlias(string $join, ?string $locale, string $alias): void
     {
         if (!isset($this->translationsAliases[$join])) {
             $this->translationsAliases[$join] = [];
@@ -676,7 +676,7 @@ class QueryBuilder extends BaseQueryBuilder
         return $this->translatableFieldsInSelect[$hiddenSelect];
     }
 
-    private function getJoinedDefaultTranslationsAlias(string $alias, string $property): array
+    private function getJoinedDefaultTranslationsAlias(string $alias, string $property): string
     {
         $translationAssociation = $this->getTranslationAssociation($alias, $property);
         $join = $this->getTranslationsJoin($alias, $translationAssociation);

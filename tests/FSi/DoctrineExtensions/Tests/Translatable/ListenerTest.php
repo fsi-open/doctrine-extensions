@@ -11,6 +11,13 @@ namespace FSi\DoctrineExtensions\Tests\Translatable;
 
 use DateTime;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutTranslations;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale;
+use FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository;
+use FSi\DoctrineExtensions\Translatable\Exception\MappingException;
+use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
 use SplFileInfo;
 
 class ListenerTest extends BaseTranslatableTest
@@ -55,7 +62,8 @@ class ListenerTest extends BaseTranslatableTest
     }
 
     /**
-     * Test simple entity creation without translations and adding translation later its state after $em->flush()
+     * Test simple entity creation without translations and adding translation
+     * later its state after $em->flush()
      */
     public function testInsertAndAddFirstTranslation()
     {
@@ -494,7 +502,7 @@ class ListenerTest extends BaseTranslatableTest
         $article->setContents(self::POLISH_CONTENTS_1);
 
         $this->setExpectedException(
-            "\FSi\DoctrineExtensions\Translatable\Exception\RuntimeException",
+            RuntimeException::class,
             "Neither object's locale nor the current locale was set for translatable properties"
         );
 
@@ -570,6 +578,7 @@ class ListenerTest extends BaseTranslatableTest
     public function testPostHydrate()
     {
         $this->_translatableListener->setLocale($this->_languageEn);
+        /* @var $repository TranslatableRepository */
         $repository = $this->_em->getRepository(self::ARTICLE);
         $article = new Article();
         $article->setDate(new DateTime());
@@ -606,57 +615,66 @@ class ListenerTest extends BaseTranslatableTest
     public function testTranslatableWithoutLocaleProperty()
     {
         $this->setExpectedException(
-            'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
-            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale\''
-            . ' has translatable properties so it must have property marked with'
-            . ' @Translatable\Language annotation'
+            MappingException::class,
+            sprintf(
+                "Entity '%s' has translatable properties so it must have property"
+                . " marked with @Translatable\Language annotation",
+                TranslatableWithoutLocale::class
+            )
         );
 
         $this->_translatableListener->getExtendedMetadata(
             $this->_em,
-            'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale'
+            TranslatableWithoutLocale::class
         );
     }
 
     public function testTranslatableWithoutTranslations()
     {
         $this->setExpectedException(
-            'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
-            'Field \'translations\' in entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture'
-            . '\TranslatableWithoutTranslations\' has to be a OneToMany association'
+            MappingException::class,
+            sprintf(
+                "Field 'translations' in entity '%s' has to be a OneToMany association",
+                TranslatableWithoutTranslations::class
+            )
         );
 
         $this->_translatableListener->getExtendedMetadata(
             $this->_em,
-            'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutTranslations'
+            TranslatableWithoutTranslations::class
         );
     }
 
     public function testTranslatableWithPersistentLocale()
     {
         $this->setExpectedException(
-            'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
-            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale\''
-            . ' seems to be a translatable entity so its \'locale\' field must not be persistent'
+            MappingException::class,
+            sprintf(
+                "Entity '%s' seems to be a translatable entity so its 'locale' field"
+                . " must not be persistent",
+                TranslatableWithPersistentLocale::class
+            )
         );
 
         $this->_translatableListener->getExtendedMetadata(
             $this->_em,
-            'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithPersistentLocale'
+            TranslatableWithPersistentLocale::class
         );
     }
 
     public function testTranslationsWithoutPersistentLocale()
     {
         $this->setExpectedException(
-            'FSi\DoctrineExtensions\Translatable\Exception\MappingException',
-            'Entity \'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation\''
-            . ' seems to be a translation entity so its \'locale\' field must be persistent'
+            MappingException::class,
+            sprintf(
+                "Entity '%s' seems to be a translation entity so its 'locale' field must be persistent",
+                TranslatableWithLocalelessTranslationTranslation::class
+            )
         );
 
         $this->_translatableListener->getExtendedMetadata(
             $this->_em,
-            'FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation'
+            TranslatableWithLocalelessTranslationTranslation::class
         );
     }
 

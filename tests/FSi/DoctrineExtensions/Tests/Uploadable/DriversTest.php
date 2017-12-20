@@ -9,12 +9,14 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-class DriversTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class DriversTest extends TestCase
 {
     /**
      * @dataProvider drivers
      */
-    public function testDrivers($class)
+    public function testDrivers(string $class)
     {
         $this->assertTrue(class_exists($class));
     }

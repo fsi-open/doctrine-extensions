@@ -11,12 +11,14 @@ namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
 use FSi\DoctrineExtensions\Uploadable\File;
+use SplFileInfo;
+use Throwable;
 
 abstract class GeneralTest extends BaseORMTest
 {
-    const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
-    const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
-    const TEST_FILE3 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lh_01.jpg';
+    public const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
+    public const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
+    public const TEST_FILE3 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lh_01.jpg';
 
     /**
      * Return instance of entity to use in test.
@@ -26,7 +28,7 @@ abstract class GeneralTest extends BaseORMTest
     public function testInsertSplFileInfo()
     {
         $user = $this->getUser();
-        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
         $originalFilename = $file->getFilename();
 
         $user->setFile($file);
@@ -44,7 +46,7 @@ abstract class GeneralTest extends BaseORMTest
     public function testInsertFileWithNumericSuffix()
     {
         $user = $this->getUser();
-        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE3);
+        $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE3);
         $originalFilename = $file->getFilename();
 
         $user->setFile($file);
@@ -62,13 +64,13 @@ abstract class GeneralTest extends BaseORMTest
     public function testInsertFileWithDuplicatedNumericSuffix()
     {
         $user = $this->getUser();
-        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE3);
+        $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE3);
 
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();
 
-        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE3);
+        $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE3);
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();
@@ -100,8 +102,8 @@ abstract class GeneralTest extends BaseORMTest
     public function testUpdate()
     {
         $user = $this->getUser();
-        $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
-        $file2 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE2);
+        $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file2 = new SplFileInfo(TESTS_PATH . self::TEST_FILE2);
 
         $user->setFile($file1);
         $this->_em->persist($user);
@@ -126,7 +128,7 @@ abstract class GeneralTest extends BaseORMTest
     public function testDelete()
     {
         $user = $this->getUser();
-        $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
         $this->_em->persist($user);
@@ -149,7 +151,7 @@ abstract class GeneralTest extends BaseORMTest
     public function testDeleteWithFailure()
     {
         $user = $this->getUser();
-        $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
         $this->_em->persist($user);
@@ -165,7 +167,7 @@ abstract class GeneralTest extends BaseORMTest
             // Setting name to null while it is not nullable should raise exception.
             $user->name = null;
             $this->_em->flush();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $exceptionThrown = true;
         }
 
@@ -180,8 +182,8 @@ abstract class GeneralTest extends BaseORMTest
     public function testUpdateWithFailure()
     {
         $user = $this->getUser();
-        $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
-        $file2 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE2);
+        $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file2 = new SplFileInfo(TESTS_PATH . self::TEST_FILE2);
 
         $user->setFile($file1);
         $this->_em->persist($user);
@@ -192,16 +194,10 @@ abstract class GeneralTest extends BaseORMTest
 
         $user->setFile($file2);
 
-        $exceptionThrown = false;
-        try {
-            // Setting name to null while it is not nullable should raise exception.
-            $user->name = null;
-            $this->_em->flush();
-        } catch (\Throwable $e) {
-            $exceptionThrown = true;
-        }
-
-        $this->assertTrue($exceptionThrown);
+        $this->setExpectedException(Throwable::class);
+        // Setting name to null while it is not nullable should raise exception.
+        $user->name = null;
+        $this->_em->flush();
 
         // Old file must be preserved.
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
@@ -212,7 +208,7 @@ abstract class GeneralTest extends BaseORMTest
     public function testDeleteEntity()
     {
         $user = $this->getUser();
-        $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
         $this->_em->persist($user);
@@ -232,7 +228,7 @@ abstract class GeneralTest extends BaseORMTest
         $content = 'some content';
 
         $user = $this->getUser();
-        $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
         $this->_em->persist($user);
@@ -259,7 +255,7 @@ abstract class GeneralTest extends BaseORMTest
         $content = 'some content';
 
         $user = $this->getUser();
-        $file1 = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
         $this->_em->persist($user);
@@ -275,7 +271,7 @@ abstract class GeneralTest extends BaseORMTest
             $user->name = null;
             $user->setFile($file1);
             $this->_em->flush();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $exceptionThrown = true;
         }
 
@@ -310,14 +306,14 @@ abstract class GeneralTest extends BaseORMTest
         $file->setContent('');
         $this->assertEquals('blabla', $this->_uploadableListener->getFileHandler()->getName($file));
 
-        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
         $this->assertEquals('penguins.jpg', $this->_uploadableListener->getFileHandler()->getName($file));
     }
 
     public function testLoadingFiles()
     {
         $user = $this->getUser();
-        $file = new \SplFileInfo(TESTS_PATH . self::TEST_FILE1);
+        $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file);
         $this->_em->persist($user);

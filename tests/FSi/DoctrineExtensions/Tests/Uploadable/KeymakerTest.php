@@ -9,11 +9,12 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
-use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use PHPUnit\Framework\TestCase;
 
-class KeymakerTest extends \PHPUnit_Framework_TestCase
+class KeymakerTest extends TestCase
 {
     const PROPERTY = 'property';
     const ID = 1;

@@ -9,14 +9,17 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 
+use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\SplFileInfoHandler;
 use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
+use SplFileInfo;
+use SplTempFileObject;
 
 class SplFileInfoHandlerTest extends BaseHandlerTest
 {
-    const KEY = '/someKey';
-    const TEMP_FILENAME = 'tempfile';
+    public const KEY = '/someKey';
+    public const TEMP_FILENAME = 'tempfile';
 
     protected function setUp()
     {
@@ -38,7 +41,7 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
 
     public function testGetContentOnTempFile()
     {
-        $input = new \SplTempFileObject();
+        $input = new SplTempFileObject();
         $input->fwrite(self::CONTENT);
         $position = $input->ftell();
 
@@ -65,7 +68,7 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
 
     public function testGetNameOnTempFile()
     {
-        $input = new \SplTempFileObject();
+        $input = new SplTempFileObject();
         $input->fwrite(self::CONTENT);
 
         $name = $this->handler->getName($input);
@@ -75,16 +78,16 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
     public function testException()
     {
         $filesystem = new Filesystem(new Local(FILESYSTEM1));
-        $input = new \SplFileInfo(FILESYSTEM1 . self::KEY);
+        $input = new SplFileInfo(FILESYSTEM1 . self::KEY);
         $key = self::KEY;
 
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        $this->setExpectedException(RuntimeException::class);
         $this->handler->getContent($input, $key, $filesystem);
     }
 
     protected function getInput()
     {
-        $input = new \SplFileInfo(FILESYSTEM1 . self::KEY);
+        $input = new SplFileInfo(FILESYSTEM1 . self::KEY);
         $fileObj = $input->openFile('a');
         $fileObj->fwrite(self::CONTENT);
         return $input;

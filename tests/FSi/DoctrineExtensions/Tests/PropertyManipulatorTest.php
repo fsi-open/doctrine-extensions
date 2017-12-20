@@ -9,11 +9,11 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable\PropertyManipulator;
 
-use FSi\DoctrineExtensions\Tests\Uploadable\PropertyManipulator\TestObject;
 use FSi\DoctrineExtensions\PropertyManipulator;
-use PHPUnit_Framework_TestCase;
+use FSi\DoctrineExtensions\Tests\Uploadable\PropertyManipulator\TestObject;
+use PHPUnit\Framework\TestCase;
 
-class PropertyManipulatorTest extends PHPUnit_Framework_TestCase
+class PropertyManipulatorTest extends TestCase
 {
     public function testValueChanged()
     {

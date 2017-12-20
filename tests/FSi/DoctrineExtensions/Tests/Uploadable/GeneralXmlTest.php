@@ -9,35 +9,56 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\Car;
+use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
+use TypeError;
 
 class GeneralXmlTest extends GeneralTest
 {
-    const USER = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\User';
-    const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Common\\';
+    public const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Common\\';
 
     /**
-     * @dataProvider wrongClasses
+     * @dataProvider wrongMappings
      */
     public function testWrongMapping($class)
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\MappingException');
+        $this->setExpectedException(MappingException::class);
         $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
     }
 
-    public static function wrongClasses()
+    /**
+     * @dataProvider wrongTypes()
+     */
+    public function testWrongTypes(string $class)
     {
-        $classes = [];
-        for ($i = 1; $i < 8; $i++) {
-            $classes[] = [self::BASE . 'User' . $i];
-        }
-        return $classes;
+        $this->setExpectedException(TypeError::class);
+        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+    }
+
+    public function wrongMappings()
+    {
+        return [
+            [sprintf('%sUser1', self::BASE)],
+            [sprintf('%sUser2', self::BASE)],
+            [sprintf('%sUser3', self::BASE)],
+            [sprintf('%sUser4', self::BASE)],
+            [sprintf('%sUser7', self::BASE)],
+        ];
+    }
+
+    public function wrongTypes()
+    {
+        return [
+            [sprintf('%sUser6', self::BASE)],
+            [sprintf('%sUser8', self::BASE)],
+        ];
     }
 
     public function testMappingWithOtherNamespaces()
     {
-        $this->_uploadableListener->getExtendedMetadata($this->_em, 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Xml\\Car');
+        $this->_uploadableListener->getExtendedMetadata($this->_em, Car::class);
     }
 
     /**
@@ -51,7 +72,7 @@ class GeneralXmlTest extends GeneralTest
     /**
      * {@inheritdoc}
      *
-     * @return \FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\User
+     * @return User
      */
     protected function getUser()
     {
@@ -63,8 +84,6 @@ class GeneralXmlTest extends GeneralTest
      */
     protected function getUsedEntityFixtures()
     {
-        return [
-            self::USER,
-        ];
+        return [User::class];
     }
 }

@@ -38,7 +38,10 @@ class Yaml extends AbstractYamlDriver
         $mapping = $this->getFileMapping($extendedClassMetadata);
         if (isset($mapping['type']) && isset($mapping['fields']) && is_array($mapping['fields'])) {
             foreach ($mapping['fields'] as $field => $config) {
-                if (isset($config['fsi']) && is_array($config['fsi']) && isset($config['fsi']['uploadable'])) {
+                if (isset($config['fsi'])
+                    && is_array($config['fsi'])
+                    && isset($config['fsi']['uploadable'])
+                ) {
                     $uploadable = $config['fsi']['uploadable'];
                     if (!is_array($uploadable)) {
                         throw new MappingException(sprintf(
@@ -47,12 +50,17 @@ class Yaml extends AbstractYamlDriver
                             $extendedClassMetadata->getClassName()
                         ));
                     }
+
+                    $keyLength = $this->getValue($uploadable, 'keyLength');
+                    if (!is_null($keyLength)) {
+                        $keyLength = (int) $keyLength;
+                    }
                     $extendedClassMetadata->addUploadableProperty(
                         $field,
                         $this->getValue($uploadable, 'targetField'),
                         $this->getValue($uploadable, 'filesystem'),
                         $this->getValue($uploadable, 'keymaker'),
-                        $this->getValue($uploadable, 'keyLength'),
+                        $keyLength,
                         $this->getValue($uploadable, 'keyPattern')
                     );
                 }

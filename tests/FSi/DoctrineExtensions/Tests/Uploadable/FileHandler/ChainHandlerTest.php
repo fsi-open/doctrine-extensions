@@ -9,6 +9,7 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 
+use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\ChainHandler;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
 
@@ -33,8 +34,8 @@ class ChainHandlerTest extends BaseHandlerTest
 
     public function testIsNotInitializableWithWrongHandlers2()
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new ChainHandler(['not handler']);
+        $this->setExpectedException(RuntimeException::class);
+        new ChainHandler(['not a handler']);
     }
 
     public function testIsInitializableWithHandlers()
@@ -125,8 +126,8 @@ class ChainHandlerTest extends BaseHandlerTest
         $this->assertEquals($result, $handler->getContent($input));
     }
 
-    protected function getHandlerMock()
+    protected function getHandlerMock(): FileHandlerInterface
     {
-        return $this->createMock('FSi\\DoctrineExtensions\\Uploadable\\FileHandler\\FileHandlerInterface');
+        return $this->createMock(FileHandlerInterface::class);
     }
 }

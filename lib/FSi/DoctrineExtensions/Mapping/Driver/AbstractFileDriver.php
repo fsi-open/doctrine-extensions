@@ -98,10 +98,8 @@ abstract class AbstractFileDriver implements DriverInterface
      * Returns path of the file containing class matadata.
      *
      * This method shout be used in loadClassMetadata to reach metadata file.
-     *
-     * @param ClassMetadataInterface $metadata
      */
-    protected function findMappingFile(ClassMetadataInterface $metadata): FileLocator
+    protected function findMappingFile(ClassMetadataInterface $metadata): string
     {
         return $this->getFileLocator()->findMappingFile($metadata->getClassName());
     }

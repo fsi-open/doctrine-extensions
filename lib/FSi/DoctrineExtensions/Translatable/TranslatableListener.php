@@ -49,7 +49,7 @@ class TranslatableListener extends MappedEventSubscriber
         $this->translationHelper = new TranslationHelper();
     }
 
-    public function setLocale(string $locale): void
+    public function setLocale(?string $locale): void
     {
         $this->currentLocale = $locale;
     }

@@ -72,7 +72,7 @@ class UploadableListener extends MappedEventSubscriber
     protected $toDelete = [];
 
     /**
-     * @param array|FilesystemMap $filesystems
+     * @param FilesystemMap[]|FilesystemMap $filesystems
      */
     public function __construct($filesystems, FileHandlerInterface $fileHandler)
     {
@@ -81,7 +81,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * @param array|FilesystemMap $filesystems
+     * @param FilesystemMap[]|FilesystemMap $filesystems
      * @throws RuntimeException
      */
     public function setFilesystems($filesystems)
@@ -94,10 +94,10 @@ class UploadableListener extends MappedEventSubscriber
             ));
         }
 
-        $this->filesystems = [];
         if ($filesystems instanceof FilesystemMap) {
-            $filesystems = $filesystems->all();
+            $this->filesystems = $filesystems->all();
         } else {
+            $this->filesystems = [];
             foreach ($filesystems as $id => $filesystem) {
                 $this->setFilesystem($id, $filesystem);
             }
@@ -540,9 +540,9 @@ class UploadableListener extends MappedEventSubscriber
         string $id,
         string $fileName,
         int $keyLength,
-        string $keyPattern,
+        ?string $keyPattern,
         Filesystem $filesystem
-    ): string {
+    ): ?string {
         while ($filesystem->has($newKey = $keymaker->createKey($object, $property, $id, $fileName, $keyPattern))) {
             $matches = [];
             $match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches);

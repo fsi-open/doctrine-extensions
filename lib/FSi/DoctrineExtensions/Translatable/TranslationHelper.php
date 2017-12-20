@@ -248,7 +248,7 @@ class TranslationHelper
      * @param string|boolean $targetField
      */
     private function removeFromRelation(
-        string $relationType,
+        int $relationType,
         $translation,
         $collectionElement,
         $targetField
@@ -280,7 +280,7 @@ class TranslationHelper
      * @param string|boolean $targetField
      */
     private function addToRelation(
-        string $relationType,
+        int $relationType,
         $translation,
         $collectionElement,
         $targetField
@@ -332,7 +332,7 @@ class TranslationHelper
     private function setObjectLocale(
         TranslatableClassMetadata $classMetadata,
         $object,
-        string $locale
+        ?string $locale
     ): void {
         $this->propertyManipulator->setPropertyValue($object, $classMetadata->localeProperty, $locale);
     }

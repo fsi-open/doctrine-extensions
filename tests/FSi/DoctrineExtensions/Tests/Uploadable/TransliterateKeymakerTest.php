@@ -9,12 +9,12 @@
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use FSi\DoctrineExtensions\Uploadable\Keymaker\TransliterateEntity;
-use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
-use PHPUnit_Framework_TestCase;
+use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
+use FSi\DoctrineExtensions\Uploadable\Keymaker\TransliterateEntity;
+use PHPUnit\Framework\TestCase;
 
-class TransliterateKeymakerTest extends PHPUnit_Framework_TestCase
+class TransliterateKeymakerTest extends TestCase
 {
     const PROPERTY = 'property';
     const ID = 1;
