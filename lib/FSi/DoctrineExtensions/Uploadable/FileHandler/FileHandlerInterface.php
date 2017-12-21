@@ -20,7 +20,7 @@ interface FileHandlerInterface
     public function supports($file): bool;
 
     /**
-     * Get name of resource, that will be a part of its key (for example base name of file path0.
+     * Get name of resource, that will be a part of its key (for example base name of file path).
      *
      * @param mixed $file
      */

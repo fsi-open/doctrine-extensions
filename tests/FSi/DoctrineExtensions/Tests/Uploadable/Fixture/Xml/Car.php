@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * (c) FSi sp. z o.o. <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml;
 
 class Car
@@ -24,17 +33,17 @@ class Car
      */
     protected $file;
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setFileKey($key)
+    public function setFileKey(?string $key): void
     {
         $this->fileKey = $key;
     }
 
-    public function getFileKey()
+    public function getFileKey(): ?string
     {
         return $this->fileKey;
     }
@@ -51,7 +60,7 @@ class Car
         return $this->file;
     }
 
-    public function deleteFile()
+    public function deleteFile(): void
     {
         $this->file = null;
     }

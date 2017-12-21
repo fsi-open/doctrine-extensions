@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture\Traits;
 
 trait SubtitleTranslationTrait
@@ -17,12 +19,12 @@ trait SubtitleTranslationTrait
      */
     private $subtitle;
 
-    public function getSubtitle()
+    public function getSubtitle(): ?string
     {
         return $this->subtitle;
     }
 
-    public function setSubtitle($subtitle)
+    public function setSubtitle(?string $subtitle): void
     {
         $this->subtitle = $subtitle;
     }

@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use Doctrine\ORM\Mapping\Driver\XmlDriver;

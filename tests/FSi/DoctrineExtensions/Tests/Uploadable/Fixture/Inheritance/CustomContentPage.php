@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * (c) FSi sp. z o.o. <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -46,66 +55,42 @@ abstract class CustomContentPage
      */
     private $column2;
 
-    /**
-     * @param int $id
-     */
-    public function setId($id)
+    public function setId(?int $id): void
     {
         $this->id = $id;
     }
 
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @param string $title
-     */
-    public function setTitle($title)
+    public function setTitle(?string $title): void
     {
         $this->title = $title;
     }
 
-    /**
-     * @return string
-     */
-    public function getTitle()
+    public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    /**
-     * @return string
-     */
-    public function getColumn1()
+    public function getColumn1(): ?string
     {
         return $this->column1;
     }
 
-    /**
-     * @param string $column1
-     */
-    public function setColumn1($column1)
+    public function setColumn1(?string $column1): void
     {
         $this->column1 = $column1;
     }
 
-    /**
-     * @return string
-     */
-    public function getColumn2()
+    public function getColumn2(): ?string
     {
         return $this->column2;
     }
 
-    /**
-     * @param string $column2
-     */
-    public function setColumn2($column2)
+    public function setColumn2(?string $column2): void
     {
         $this->column2 = $column2;
     }

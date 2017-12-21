@@ -7,10 +7,13 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity
@@ -20,7 +23,7 @@ class Section
     /**
      * @var integer $id
      *
-     * @ORM\Column(name="id", type="bigint")
+     * @ORM\Column(type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
@@ -34,7 +37,7 @@ class Section
     private $title;
 
     /**
-     * @var ArrayCollection
+     * @var Collection
      *
      * @ORM\OneToMany(targetEntity="Article", mappedBy="section")
      */
@@ -45,37 +48,27 @@ class Section
         $this->articles = new ArrayCollection();
     }
 
-    /**
-     * @return integer
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setTitle($title)
+    public function setTitle(?string $title): void
     {
         $this->title = $title;
-        return $this;
     }
 
-    public function getTitle()
+    public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getArticles()
+    public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    /**
-     * @param mixed $articles
-     */
-    public function setArticles($articles)
+    public function setArticles($articles): void
     {
         $this->articles = $articles;
     }

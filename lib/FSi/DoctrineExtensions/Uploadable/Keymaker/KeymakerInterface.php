@@ -17,11 +17,12 @@ interface KeymakerInterface
      * Creates a key for a file.
      *
      * @param object $object
+     * @param int|string $id
      */
     public function createKey(
         $object,
         string $property,
-        string $id,
+        $id,
         string $originalName,
         ?string $pattern = null
     ): string;

@@ -23,7 +23,7 @@ class TransliterateEntity implements KeymakerInterface
     public function createKey(
         $object,
         string $property,
-        string $id,
+        $id,
         string $originalName,
         ?string $pattern = null
     ): string {

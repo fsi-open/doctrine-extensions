@@ -7,10 +7,13 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Traits\SubtitleTrait;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
@@ -18,17 +21,16 @@ use FSi\DoctrineExtensions\Uploadable\File;
 use SplFileInfo;
 
 /**
- * @ORM\Entity(repositoryClass="\FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
+ * @ORM\Entity(repositoryClass="FSi\DoctrineExtensions\Translatable\Entity\Repository\TranslatableRepository")
  */
 class Article
 {
     use SubtitleTrait;
 
     /**
-     * @ORM\Column(name="id", type="bigint")
+     * @ORM\Column(type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @var integer $id
      */
     private $id;
 
@@ -76,20 +78,20 @@ class Article
     private $section;
 
     /**
-     * @var ArrayCollection|Comment[]
+     * @var Collection|Comment[]
      * @Translatable\Translatable(mappedBy="translations")
      */
     private $comments;
 
     /**
-     * @var ArrayCollection|Comment[]
+     * @var Collection|Comment[]
      * @Translatable\Translatable(mappedBy="translations")
      */
     private $specialComments;
 
     /**
      * @ORM\OneToMany(targetEntity="ArticleTranslation", mappedBy="article", indexBy="locale")
-     * @var ArrayCollection
+     * @var Collection
      */
     private $translations;
 
@@ -99,7 +101,7 @@ class Article
      *      joinColumns={@ORM\JoinColumn(name="category", referencedColumnName="id", onDelete="CASCADE")},
      *      inverseJoinColumns={@ORM\JoinColumn(name="article", referencedColumnName="id")}
      * )
-     * @var ArrayCollection
+     * @var Collection
      */
     private $categories;
 
@@ -117,59 +119,47 @@ class Article
         $this->translations = new ArrayCollection();
     }
 
-    /**
-     * @return integer
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return string
-     */
-    public function getTeaser()
+    public function getTeaser(): ?string
     {
         return $this->teaser;
     }
 
-    /**
-     * @param string $teaser
-     */
-    public function setTeaser($teaser)
+    public function setTeaser(?string $teaser): void
     {
         $this->teaser = $teaser;
     }
 
-    public function setDate(DateTime $date)
+    public function setDate(DateTime $date): void
     {
         $this->date = $date;
-        return $this;
     }
 
-    public function getDate()
+    public function getDate(): ?DateTime
     {
         return $this->date;
     }
 
-    public function setTitle($title)
+    public function setTitle(?string $title): void
     {
         $this->title = $title;
-        return $this;
     }
 
-    public function getTitle()
+    public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    public function setContents($contents)
+    public function setContents(?string $contents): void
     {
         $this->contents = $contents;
-        return $this;
     }
 
-    public function getContents()
+    public function getContents(): ?string
     {
         return $this->contents;
     }
@@ -184,117 +174,83 @@ class Article
         $this->introImage = $introImage;
     }
 
-    public function setLocale($locale)
+    public function setLocale(?string $locale): void
     {
         $this->locale = $locale;
-        return $this;
     }
 
-    public function getLocale()
+    public function getLocale(): ?string
     {
         return (string) $this->locale;
     }
 
-    public function addCategory(Category $category)
+    public function addCategory(Category $category): void
     {
         $this->categories[] = $category;
         $category->addArticle($this);
     }
 
-    public function getCategories()
+    public function getCategories(): Collection
     {
         return $this->categories;
     }
 
-    public function getTranslations()
+    public function getTranslations(): Collection
     {
         return $this->translations;
     }
 
-    /**
-     * @return Section
-     */
-    public function getSection()
+    public function getSection(): ?Section
     {
         return $this->section;
     }
 
-    /**
-     * @param Section $section
-     */
-    public function setSection($section)
+    public function setSection(?Section $section): void
     {
         $this->section = $section;
     }
 
-    /**
-     * @return ArrayCollection|Comment[]
-     */
-    public function getComments()
+    public function getComments(): Collection
     {
         return $this->comments;
     }
 
-    /**
-     * @param Comment $comment
-     */
-    public function addComment(Comment $comment)
+    public function addComment(Comment $comment): void
     {
         $this->comments->add($comment);
     }
 
-    /**
-     * @param Comment $comment
-     */
-    public function removeComment(Comment $comment)
+    public function removeComment(Comment $comment): void
     {
         $this->comments->removeElement($comment);
     }
 
-    /**
-     * @return ArrayCollection|Comment[]
-     */
-    public function getSpecialComments()
+    public function getSpecialComments(): Collection
     {
         return $this->specialComments;
     }
 
-    /**
-     * @param Comment $comment
-     */
-    public function addSpecialComment(Comment $comment)
+    public function addSpecialComment(Comment $comment): void
     {
         $this->specialComments->add($comment);
     }
 
-    /**
-     * @param Comment $comment
-     */
-    public function removeSpecialComment(Comment $comment)
+    public function removeSpecialComment(Comment $comment): void
     {
         $this->specialComments->removeElement($comment);
     }
 
-    /**
-     * @return Collection|ArticlePage[]
-     */
-    public function getPages()
+    public function getPages(): Collection
     {
         return $this->pages;
     }
 
-    /**
-     * @param ArticlePage $page
-     */
-    public function addPage(ArticlePage $page)
+    public function addPage(ArticlePage $page): void
     {
         $this->pages->add($page);
     }
 
-    /**
-     * @param ArticlePage $page
-     */
-    public function removePage(ArticlePage $page)
+    public function removePage(ArticlePage $page): void
     {
         $this->pages->removeElement($page);
     }

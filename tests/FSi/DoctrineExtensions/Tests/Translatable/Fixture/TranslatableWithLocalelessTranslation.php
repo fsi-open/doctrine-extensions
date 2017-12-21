@@ -7,9 +7,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 
@@ -19,7 +22,7 @@ use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 class TranslatableWithLocalelessTranslation
 {
     /**
-     * @ORM\Column(name="id", type="bigint")
+     * @ORM\Column(type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @var integer $id
@@ -49,37 +52,32 @@ class TranslatableWithLocalelessTranslation
         $this->translations = new ArrayCollection();
     }
 
-    /**
-     * @return integer
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setContents($contents)
+    public function setContents(?string $contents): void
     {
         $this->contents = $contents;
-        return $this;
     }
 
-    public function getContents()
+    public function getContents(): ?string
     {
         return $this->contents;
     }
 
-    public function setLocale($locale)
+    public function setLocale(?string $locale): void
     {
         $this->locale = $locale;
-        return $this;
     }
 
-    public function getLocale()
+    public function getLocale(): ?string
     {
         return $this->locale;
     }
 
-    public function getTranslations()
+    public function getTranslations(): Collection
     {
         return $this->translations;
     }
