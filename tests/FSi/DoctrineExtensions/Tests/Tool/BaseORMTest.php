@@ -13,11 +13,14 @@ namespace FSi\DoctrineExtensions\Tests\Tool;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
+use Doctrine\ORM\Mapping\ClassMetadataFactory;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Logging\DebugStack;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
@@ -70,12 +73,7 @@ abstract class BaseORMTest extends TestCase
         $this->_em = $this->getEntityManager();
     }
 
-    /**
-     * Creates default mapping driver.
-     *
-     * @return \Doctrine\ORM\Mapping\Driver\Driver
-     */
-    protected function getMetadataDriverImplementation()
+    protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new AnnotationDriver($_ENV['annotation_reader']);
     }
@@ -85,7 +83,7 @@ abstract class BaseORMTest extends TestCase
      */
     protected function getMockAnnotatedConfig()
     {
-        $config = $this->createMock('Doctrine\ORM\Configuration');
+        $config = $this->createMock(Configuration::class);
         $config->expects($this->once())
             ->method('getProxyDir')
             ->will($this->returnValue(TESTS_TEMP_DIR))
@@ -103,7 +101,7 @@ abstract class BaseORMTest extends TestCase
 
         $config->expects($this->once())
             ->method('getClassMetadataFactoryName')
-            ->will($this->returnValue('Doctrine\\ORM\\Mapping\\ClassMetadataFactory'))
+            ->will($this->returnValue(ClassMetadataFactory::class))
         ;
 
         $config->expects($this->any())
@@ -134,7 +132,7 @@ abstract class BaseORMTest extends TestCase
 
         $config->expects($this->any())
             ->method('getDefaultRepositoryClassName')
-            ->will($this->returnValue('Doctrine\\ORM\\EntityRepository'))
+            ->will($this->returnValue(EntityRepository::class))
         ;
 
         $this->_logger = new DebugStack();
@@ -148,12 +146,9 @@ abstract class BaseORMTest extends TestCase
         return $config;
     }
 
-    /**
-     * @return EntityManagerInterface
-     */
-    protected function getEntityManager()
+    protected function getEntityManager(): EntityManagerInterface
     {
-        $evm = new EventManager;
+        $evm = new EventManager();
 
         $this->_translatableListener = new TranslatableListener();
         $evm->addEventSubscriber($this->_translatableListener);

@@ -11,7 +11,14 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User1;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User2;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User3;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User4;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User6;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User7;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\Car;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
@@ -19,8 +26,6 @@ use TypeError;
 
 class GeneralXmlTest extends GeneralTest
 {
-    public const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Common\\';
-
     /**
      * @dataProvider wrongMappings
      */
@@ -42,19 +47,18 @@ class GeneralXmlTest extends GeneralTest
     public function wrongMappings()
     {
         return [
-            [sprintf('%sUser1', self::BASE)],
-            [sprintf('%sUser2', self::BASE)],
-            [sprintf('%sUser3', self::BASE)],
-            [sprintf('%sUser4', self::BASE)],
-            [sprintf('%sUser7', self::BASE)],
+            [User1::class],
+            [User2::class],
+            [User3::class],
+            [User4::class],
+            [User7::class],
         ];
     }
 
     public function wrongTypes()
     {
         return [
-            [sprintf('%sUser6', self::BASE)],
-            [sprintf('%sUser8', self::BASE)],
+            [User6::class],
         ];
     }
 
@@ -63,10 +67,7 @@ class GeneralXmlTest extends GeneralTest
         $this->_uploadableListener->getExtendedMetadata($this->_em, Car::class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getMetadataDriverImplementation()
+    protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new XmlDriver(__DIR__.'/Fixture/Xml/config');
     }

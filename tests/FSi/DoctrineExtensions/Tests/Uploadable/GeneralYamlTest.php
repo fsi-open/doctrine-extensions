@@ -11,15 +11,20 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User1;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User2;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User3;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User4;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User6;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User7;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
 use TypeError;
 
 class GeneralYamlTest extends GeneralTest
 {
-    const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Common\\';
-
     /**
      * @dataProvider wrongMappings
      */
@@ -41,27 +46,26 @@ class GeneralYamlTest extends GeneralTest
     public function wrongMappings()
     {
         return [
-            [sprintf('%sUser1', self::BASE)],
-            [sprintf('%sUser4', self::BASE)],
-            [sprintf('%sUser5', self::BASE)],
-            [sprintf('%sUser6', self::BASE)],
-            [sprintf('%sUser7', self::BASE)],
+            [User1::class],
+            [User4::class],
+            [User6::class],
+            [User7::class]
         ];
     }
 
     public function wrongTypes()
     {
         return [
-            [sprintf('%sUser2', self::BASE)],
-            [sprintf('%sUser3', self::BASE)],
-            [sprintf('%sUser8', self::BASE)],
+            [User2::class],
+            [User3::class],
+            [User5::class]
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function getMetadataDriverImplementation()
+    protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new YamlDriver(__DIR__.'/Fixture/Yaml/config');
     }

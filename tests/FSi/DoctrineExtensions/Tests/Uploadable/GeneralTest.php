@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
+use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Tests\Tool\BaseORMTest;
 use FSi\DoctrineExtensions\Uploadable\File;
 use SplFileInfo;
@@ -294,7 +295,7 @@ abstract class GeneralTest extends BaseORMTest
         $file = new File($key, $this->_filesystem1);
         $file->setContent('');
 
-        $this->expectException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
+        $this->expectException(RuntimeException::class);
         $user->setFile($file);
         $this->_em->persist($user);
         $this->_em->flush();

@@ -198,8 +198,8 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         if (!($translations instanceof Collection)) {
             throw new RuntimeException(sprintf(
                 'Entity %s must contains implementation of "%s" in "%s" association',
-                Collection::class,
                 $this->getClassName(),
+                Collection::class,
                 $translationAssociation
             ));
         }

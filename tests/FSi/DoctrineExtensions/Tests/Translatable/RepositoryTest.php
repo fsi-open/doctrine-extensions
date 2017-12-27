@@ -12,7 +12,10 @@ declare(strict_types=1);
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
 use DateTime;
+use Doctrine\ORM\NoResultException;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticlePage;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticleTranslation;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Section;
@@ -26,7 +29,7 @@ class RepositoryTest extends BaseTranslatableTest
     public function testCreatingNonExistentTranslationThroughRepository()
     {
         $this->_translatableListener->setLocale($this->_languagePl);
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
         $this->_em->persist($article);
@@ -50,7 +53,7 @@ class RepositoryTest extends BaseTranslatableTest
     public function testCheckingIfTranslationExistsThroughRepository()
     {
         $this->_translatableListener->setLocale($this->_languagePl);
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
         $translationEn = $repository->getTranslation($article, $this->_languageEn);
@@ -69,7 +72,7 @@ class RepositoryTest extends BaseTranslatableTest
     public function testNotOverwritingTranslationForNewObject()
     {
         $this->_translatableListener->setLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
 
@@ -106,12 +109,12 @@ class RepositoryTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languagePl);
         $this->_translatableListener->setDefaultLocale($this->_languageEn);
 
-        $qb = $this->_em->getRepository(self::ARTICLE)->createTranslatableQueryBuilder('a', 't');
+        $qb = $this->_em->getRepository(Article::class)->createTranslatableQueryBuilder('a', 't');
         $this->assertEquals(
             sprintf(
                 'SELECT a, t, dt FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale'
                 . ' LEFT JOIN a.translations dt WITH dt.locale = :deflocale',
-                self::ARTICLE
+                Article::class
             ),
             $qb->getQuery()->getDql(),
             'Wrong DQL returned from QueryBuilder'
@@ -139,11 +142,11 @@ class RepositoryTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languageEn);
         $this->_translatableListener->setDefaultLocale($this->_languageEn);
 
-        $qb = $this->_em->getRepository(self::ARTICLE)->createTranslatableQueryBuilder('a', 't');
+        $qb = $this->_em->getRepository(Article::class)->createTranslatableQueryBuilder('a', 't');
         $this->assertEquals(
             sprintf(
                 'SELECT a, t FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale',
-                self::ARTICLE
+                Article::class
             ),
             $qb->getQuery()->getDql(),
             'Wrong DQL returned from QueryBuilder'
@@ -159,7 +162,7 @@ class RepositoryTest extends BaseTranslatableTest
     public function testPostHydrateWithTranslatableQueryBuilder()
     {
         $this->_translatableListener->setLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
 
@@ -203,10 +206,10 @@ class RepositoryTest extends BaseTranslatableTest
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(self::ARTICLE);
-        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(['title' => self::CATEGORY_1]);
-        $section = $this->_em->getRepository(self::SECTION)->findOneBy(['title' => self::SECTION_1]);
-        $comment = $this->_em->getRepository(self::COMMENT)->findOneBy(['content' => 'Ipsum']);
+        $repository = $this->_em->getRepository(Article::class);
+        $category = $this->_em->getRepository(Category::class)->findOneBy(['title' => self::CATEGORY_1]);
+        $section = $this->_em->getRepository(Section::class)->findOneBy(['title' => self::SECTION_1]);
+        $comment = $this->_em->getRepository(Comment::class)->findOneBy(['content' => 'Ipsum']);
 
         $this->_logger->enabled = true;
         /** @var Article $article */
@@ -238,7 +241,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
 
         /** @var Article $article */
         $articles = $repository->findTranslatableBy(['date' => '2014-01-01 00:00:00']);
@@ -259,7 +262,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
 
         /** @var Article $article */
         $articles = $repository->findTranslatableBy(
@@ -286,11 +289,11 @@ class RepositoryTest extends BaseTranslatableTest
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(self::ARTICLE);
-        $category = $this->_em->getRepository(self::CATEGORY)->findOneBy(['title' => self::CATEGORY_1]);
-        $section = $this->_em->getRepository(self::SECTION)->findOneBy(['title' => self::SECTION_1]);
-        $comment1 = $this->_em->getRepository(self::COMMENT)->findOneBy(['content' => 'Ipsum']);
-        $comment2 = $this->_em->getRepository(self::COMMENT)->findOneBy(['content' => 'Lorem']);
+        $repository = $this->_em->getRepository(Article::class);
+        $category = $this->_em->getRepository(Category::class)->findOneBy(['title' => self::CATEGORY_1]);
+        $section = $this->_em->getRepository(Section::class)->findOneBy(['title' => self::SECTION_1]);
+        $comment1 = $this->_em->getRepository(Comment::class)->findOneBy(['content' => 'Ipsum']);
+        $comment2 = $this->_em->getRepository(Comment::class)->findOneBy(['content' => 'Lorem']);
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy([
@@ -307,7 +310,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->assertEquals(self::POLISH_TEASER, $article->getTeaser());
         $this->assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
 
-        $this->expectException('\Doctrine\ORM\NoResultException');
+        $this->expectException(NoResultException::class);
 
         //value that not exists
         $repository->findTranslatableOneBy(['date' => '2014-01-01 00:00:01']);
@@ -325,7 +328,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy(['date' => '2014-01-01 00:00:00']);
@@ -345,7 +348,7 @@ class RepositoryTest extends BaseTranslatableTest
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy(
@@ -359,22 +362,22 @@ class RepositoryTest extends BaseTranslatableTest
         $this->assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [
-            self::CATEGORY,
-            self::SECTION,
-            self::COMMENT,
-            self::ARTICLE,
-            self::ARTICLE_TRANSLATION,
-            self::ARTICLE_PAGE
+            Category::class,
+            Section::class,
+            Comment::class,
+            Article::class,
+            ArticleTranslation::class,
+            ArticlePage::class
         ];
     }
 
     private function fillDataForFindTranslatable()
     {
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
 
         $article1 = new Article();
         $this->_em->persist($article1);

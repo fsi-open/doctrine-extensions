@@ -13,6 +13,11 @@ namespace FSi\DoctrineExtensions\Tests\Translatable;
 
 use DateTime;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticlePage;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticleTranslation;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Section;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithLocalelessTranslationTranslation;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutLocale;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\TranslatableWithoutTranslations;
@@ -196,7 +201,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_em->clear();
         $this->_logger->enabled = true;
         $this->_translatableListener->setLocale($this->_languagePl);
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
 
         $this->assertEquals(
             5,
@@ -253,7 +258,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_em->clear();
 
         $this->_translatableListener->setLocale($this->_languageEn);
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $article->setTitle(null);
         $article->setContents(null);
 
@@ -295,7 +300,7 @@ class ListenerTest extends BaseTranslatableTest
 
         $this->_logger->enabled = true;
         $this->_translatableListener->setLocale($this->_languagePl);
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
 
         $this->assertEquals(
             5,
@@ -380,7 +385,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_em->clear();
         $this->_logger->enabled = true;
         $this->_translatableListener->setLocale($this->_languagePl);
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
 
         $this->assertEquals(
             5,
@@ -465,7 +470,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_translatableListener->setLocale($this->_languageEn);
         $this->_translatableListener->setDefaultLocale($this->_languagePl);
         $this->_logger->enabled = true;
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
 
         $this->assertEquals(
             5,
@@ -482,7 +487,7 @@ class ListenerTest extends BaseTranslatableTest
         $this->_em->flush();
         $this->_em->clear();
 
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertAttributeEquals($this->_languageEn, 'locale', $article);
         $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
         $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
@@ -503,8 +508,8 @@ class ListenerTest extends BaseTranslatableTest
         $article->setTitle(self::POLISH_TITLE_1);
         $article->setContents(self::POLISH_CONTENTS_1);
 
-        $this->expectException(
-            RuntimeException::class,
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(
             "Neither object's locale nor the current locale was set for translatable properties"
         );
 
@@ -529,7 +534,7 @@ class ListenerTest extends BaseTranslatableTest
 
         $this->_em->clear();
         $this->_translatableListener->setLocale($this->_languagePl);
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
 
         $this->_logger->enabled = true;
         $this->_translatableListener->loadTranslation($this->_em, $article, $this->_languageEn);
@@ -562,14 +567,14 @@ class ListenerTest extends BaseTranslatableTest
 
         $this->_em->clear();
         $this->_translatableListener->setLocale($this->_languagePl);
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
 
         $file1 = $article->getIntroImage()->getKey();
         $this->assertFileExists(FILESYSTEM1 . $file1);
 
         $this->_em->clear();
         $this->_translatableListener->setLocale($this->_languageEn);
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
 
         $file2 = $article->getIntroImage()->getKey();
         $this->assertFileExists(FILESYSTEM1 . $file2);
@@ -581,7 +586,7 @@ class ListenerTest extends BaseTranslatableTest
     {
         $this->_translatableListener->setLocale($this->_languageEn);
         /* @var $repository TranslatableRepository */
-        $repository = $this->_em->getRepository(self::ARTICLE);
+        $repository = $this->_em->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
 
@@ -616,14 +621,12 @@ class ListenerTest extends BaseTranslatableTest
 
     public function testTranslatableWithoutLocaleProperty()
     {
-        $this->expectException(
-            MappingException::class,
-            sprintf(
-                "Entity '%s' has translatable properties so it must have property"
-                . " marked with @Translatable\Language annotation",
-                TranslatableWithoutLocale::class
-            )
-        );
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage(sprintf(
+            "Entity '%s' has translatable properties so it must have property"
+            . " marked with @Translatable\Language annotation",
+            TranslatableWithoutLocale::class
+        ));
 
         $this->_translatableListener->getExtendedMetadata(
             $this->_em,
@@ -633,13 +636,11 @@ class ListenerTest extends BaseTranslatableTest
 
     public function testTranslatableWithoutTranslations()
     {
-        $this->expectException(
-            MappingException::class,
-            sprintf(
-                "Field 'translations' in entity '%s' has to be a OneToMany association",
-                TranslatableWithoutTranslations::class
-            )
-        );
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage(sprintf(
+            "Field 'translations' in entity '%s' has to be a OneToMany association",
+            TranslatableWithoutTranslations::class
+        ));
 
         $this->_translatableListener->getExtendedMetadata(
             $this->_em,
@@ -649,14 +650,12 @@ class ListenerTest extends BaseTranslatableTest
 
     public function testTranslatableWithPersistentLocale()
     {
-        $this->expectException(
-            MappingException::class,
-            sprintf(
-                "Entity '%s' seems to be a translatable entity so its 'locale' field"
-                . " must not be persistent",
-                TranslatableWithPersistentLocale::class
-            )
-        );
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage(sprintf(
+            "Entity '%s' seems to be a translatable entity so its 'locale' field"
+            . " must not be persistent",
+            TranslatableWithPersistentLocale::class
+        ));
 
         $this->_translatableListener->getExtendedMetadata(
             $this->_em,
@@ -666,13 +665,11 @@ class ListenerTest extends BaseTranslatableTest
 
     public function testTranslationsWithoutPersistentLocale()
     {
-        $this->expectException(
-            MappingException::class,
-            sprintf(
-                "Entity '%s' seems to be a translation entity so its 'locale' field must be persistent",
-                TranslatableWithLocalelessTranslationTranslation::class
-            )
-        );
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage(sprintf(
+            "Entity '%s' seems to be a translation entity so its 'locale' field must be persistent",
+            TranslatableWithLocalelessTranslationTranslation::class
+        ));
 
         $this->_translatableListener->getExtendedMetadata(
             $this->_em,
@@ -680,15 +677,15 @@ class ListenerTest extends BaseTranslatableTest
         );
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [
-            self::CATEGORY,
-            self::SECTION,
-            self::COMMENT,
-            self::ARTICLE,
-            self::ARTICLE_TRANSLATION,
-            self::ARTICLE_PAGE
+            Category::class,
+            Section::class,
+            Comment::class,
+            Article::class,
+            ArticleTranslation::class,
+            ArticlePage::class
         ];
     }
 }

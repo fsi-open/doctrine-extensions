@@ -17,13 +17,6 @@ use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
 
 abstract class BaseTranslatableTest extends BaseORMTest
 {
-    const CATEGORY = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Category";
-    const SECTION = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Section";
-    const COMMENT = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Comment";
-    const ARTICLE = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Article";
-    const ARTICLE_TRANSLATION = "FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\ArticleTranslation";
-    const ARTICLE_PAGE = 'FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticlePage';
-
     const SECTION_1 = 'Section 1';
     const CATEGORY_1 = 'Category 1';
     const CATEGORY_2 = 'Category 2';

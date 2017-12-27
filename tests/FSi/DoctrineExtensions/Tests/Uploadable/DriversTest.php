@@ -11,6 +11,11 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\Annotation;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\SimplifiedXml;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\SimplifiedYaml;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\Xml;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\Yaml;
 use PHPUnit\Framework\TestCase;
 
 class DriversTest extends TestCase
@@ -25,14 +30,12 @@ class DriversTest extends TestCase
 
     public static function drivers()
     {
-        $base = 'FSi\\DoctrineExtensions\\Uploadable\\Mapping\\Driver\\';
-
         return [
-            [$base . 'Xml'],
-            [$base . 'Yaml'],
-            [$base . 'Annotation'],
-            [$base . 'SimplifiedXml'],
-            [$base . 'SimplifiedYaml'],
+            [Xml::class],
+            [Yaml::class],
+            [Annotation::class],
+            [SimplifiedXml::class],
+            [SimplifiedYaml::class],
         ];
     }
 }

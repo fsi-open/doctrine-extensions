@@ -532,12 +532,13 @@ class UploadableListener extends MappedEventSubscriber
      * when given key already exists and can't be reused.
      *
      * @param object $object
+     * @param int|string $id
      */
     private function generateNewKey(
         KeymakerInterface $keymaker,
         $object,
         string $property,
-        string $id,
+        $id,
         string $fileName,
         int $keyLength,
         ?string $keyPattern,

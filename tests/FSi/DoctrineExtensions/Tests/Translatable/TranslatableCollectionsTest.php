@@ -11,9 +11,9 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
-use DateTime;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticlePage;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticleTranslation;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
 
 class TranslatableCollectionsTest extends BaseTranslatableTest
@@ -40,7 +40,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $this->_logger->queries = [];
 
         /* @var $article Article */
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             5,
             count($this->_logger->queries),
@@ -70,7 +70,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $article->addComment(new Comment(self::POLISH_COMMENT_1));
         $this->persistAndFlush($article);
 
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             $article->getComments()->count(),
             1,
@@ -88,7 +88,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $this->_em->flush();
         $this->_em->clear();
 
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             $article->getComments()->count(),
             0,
@@ -120,7 +120,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $this->_logger->queries = [];
 
         /* @var $article Article */
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             5,
             count($this->_logger->queries),
@@ -150,7 +150,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $article->addPage(new ArticlePage(self::POLISH_ARTICLE_PAGE_TITLE_1));
         $this->persistAndFlush($article);
 
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             $article->getPages()->count(),
             1,
@@ -168,7 +168,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $this->_em->flush();
         $this->_em->clear();
 
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             0,
             $article->getPages()->count(),
@@ -200,7 +200,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $this->_logger->queries = [];
 
         /* @var $article Article */
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             5,
             count($this->_logger->queries),
@@ -229,7 +229,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $article->addSpecialComment(new Comment(self::POLISH_COMMENT_1));
         $this->persistAndFlush($article);
 
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             $article->getSpecialComments()->count(),
             1,
@@ -247,7 +247,7 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         $this->_em->flush();
         $this->_em->clear();
 
-        $article = $this->_em->find(self::ARTICLE, $article->getId());
+        $article = $this->_em->find(Article::class, $article->getId());
         $this->assertEquals(
             0,
             $article->getSpecialComments()->count(),
@@ -260,13 +260,13 @@ class TranslatableCollectionsTest extends BaseTranslatableTest
         );
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [
-            self::COMMENT,
-            self::ARTICLE,
-            self::ARTICLE_TRANSLATION,
-            self::ARTICLE_PAGE
+            Comment::class,
+            Article::class,
+            ArticleTranslation::class,
+            ArticlePage::class
         ];
     }
 }

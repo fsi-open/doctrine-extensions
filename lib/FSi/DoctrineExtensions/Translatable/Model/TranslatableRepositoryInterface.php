@@ -44,6 +44,8 @@ interface TranslatableRepositoryInterface
 
     /**
      * Returns true if a translation entity for specified base entity and locale exists
+     *
+     * @param object $object
      */
     public function hasTranslation(
         $object,
@@ -54,6 +56,8 @@ interface TranslatableRepositoryInterface
     /**
      * Returns existing or newly created translation entity for specified base
      * entity and locale
+     *
+     * @param object $object
      * @return object existing or new translation entity for specified locale
      */
     public function getTranslation(
@@ -62,11 +66,17 @@ interface TranslatableRepositoryInterface
         ?string $translationAssociation = 'translations'
     );
 
+    /**
+     * @param object $object
+     */
     public function getTranslations(
         $object,
         ?string $translationAssociation = 'translations'
     ): Collection;
 
+    /**
+     * @param object $object
+     */
     public function findTranslation(
         $object,
         string $locale,

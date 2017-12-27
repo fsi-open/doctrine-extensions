@@ -11,14 +11,13 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\Page;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\PageTranslation;
 
 class YAMLTest extends BaseTranslatableTest
 {
-    const PAGE = 'FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Common\\Page';
-    const PAGE_TRANSLATION = 'FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Common\\PageTranslation';
-
     public function testYAMLMapping()
     {
         $this->_logger->enabled = true;
@@ -62,13 +61,13 @@ class YAMLTest extends BaseTranslatableTest
         );
     }
 
-    protected function getMetadataDriverImplementation()
+    protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new YamlDriver(sprintf('%s/Fixture/YAML/config', __DIR__));
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
-        return [self::PAGE, self::PAGE_TRANSLATION];
+        return [Page::class, PageTranslation::class];
     }
 }
