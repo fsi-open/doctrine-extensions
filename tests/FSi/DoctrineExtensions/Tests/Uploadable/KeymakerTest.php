@@ -18,9 +18,9 @@ use PHPUnit\Framework\TestCase;
 
 class KeymakerTest extends TestCase
 {
-    const PROPERTY = 'property';
-    const ID = 1;
-    const ORIGINAL_NAME = 'originalName.txt';
+    public const PROPERTY = 'property';
+    public const ID = 1;
+    public const ORIGINAL_NAME = 'originalName.txt';
 
     public function testCreation()
     {

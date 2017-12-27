@@ -13,14 +13,15 @@ namespace FSi\DoctrineExtensions\Tests\Tool;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
-use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Logging\DebugStack;
+use Doctrine\DBAL\Logging\SQLLogger;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
@@ -41,36 +42,36 @@ abstract class BaseORMTest extends TestCase
     /**
      * @var EntityManagerInterface
      */
-    protected $_em;
+    protected $entityManager;
 
     /**
      * @var TranslatableListener
      */
-    protected $_translatableListener;
+    protected $translatableListener;
 
     /**
      * @var UploadableListener
      */
-    protected $_uploadableListener;
+    protected $uploadableListener;
 
     /**
-     * @var DebugStack
+     * @var SQLLogger
      */
-    protected $_logger;
-
-    /**
-     * @var Filesystem
-     */
-    protected $_filesystem1;
+    protected $logger;
 
     /**
      * @var Filesystem
      */
-    protected $_filesystem2;
+    protected $filesystem1;
+
+    /**
+     * @var Filesystem
+     */
+    protected $filesystem2;
 
     protected function setUp()
     {
-        $this->_em = $this->getEntityManager();
+        $this->entityManager = $this->getEntityManager();
     }
 
     protected function getMetadataDriverImplementation(): MappingDriver
@@ -135,12 +136,12 @@ abstract class BaseORMTest extends TestCase
             ->will($this->returnValue(EntityRepository::class))
         ;
 
-        $this->_logger = new DebugStack();
-        $this->_logger->enabled = false;
+        $this->logger = new DebugStack();
+        $this->logger->enabled = false;
 
         $config->expects($this->any())
             ->method('getSQLLogger')
-            ->will($this->returnValue($this->_logger))
+            ->will($this->returnValue($this->logger))
         ;
 
         return $config;
@@ -150,24 +151,24 @@ abstract class BaseORMTest extends TestCase
     {
         $evm = new EventManager();
 
-        $this->_translatableListener = new TranslatableListener();
-        $evm->addEventSubscriber($this->_translatableListener);
+        $this->translatableListener = new TranslatableListener();
+        $evm->addEventSubscriber($this->translatableListener);
 
-        $this->_filesystem1 = new Filesystem(new Local(FILESYSTEM1));
-        $this->_filesystem2 = new Filesystem(new Local(FILESYSTEM2));
+        $this->filesystem1 = new Filesystem(new Local(FILESYSTEM1));
+        $this->filesystem2 = new Filesystem(new Local(FILESYSTEM2));
 
         $handler = new FileHandler\ChainHandler([
             new FileHandler\GaufretteHandler(),
             new FileHandler\SplFileInfoHandler(),
         ]);
         $keymaker = new Entity();
-        $this->_uploadableListener = new UploadableListener(
-            ['one' => $this->_filesystem1, 'two' => $this->_filesystem2],
+        $this->uploadableListener = new UploadableListener(
+            ['one' => $this->filesystem1, 'two' => $this->filesystem2],
             $handler
         );
-        $this->_uploadableListener->setDefaultFilesystem($this->_filesystem1);
-        $this->_uploadableListener->setDefaultKeymaker($keymaker);
-        $evm->addEventSubscriber($this->_uploadableListener);
+        $this->uploadableListener->setDefaultFilesystem($this->filesystem1);
+        $this->uploadableListener->setDefaultKeymaker($keymaker);
+        $evm->addEventSubscriber($this->uploadableListener);
 
         $config = $this->getMockAnnotatedConfig();
         $conn = DriverManager::getConnection(

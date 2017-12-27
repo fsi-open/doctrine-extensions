@@ -32,7 +32,7 @@ class GeneralXmlTest extends GeneralTest
     public function testWrongMapping($class)
     {
         $this->expectException(MappingException::class);
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
     /**
@@ -41,7 +41,7 @@ class GeneralXmlTest extends GeneralTest
     public function testWrongTypes(string $class)
     {
         $this->expectException(TypeError::class);
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
     public function wrongMappings()
@@ -64,7 +64,7 @@ class GeneralXmlTest extends GeneralTest
 
     public function testMappingWithOtherNamespaces()
     {
-        $this->_uploadableListener->getExtendedMetadata($this->_em, Car::class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, Car::class);
     }
 
     protected function getMetadataDriverImplementation(): MappingDriver

@@ -28,22 +28,22 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testCreatingNonExistentTranslationThroughRepository()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $repository = $this->_em->getRepository(Article::class);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $repository = $this->entityManager->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
-        $this->_em->persist($article);
-        $this->_em->flush();
+        $this->entityManager->persist($article);
+        $this->entityManager->flush();
 
-        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $translationEn = $repository->getTranslation($article, self::LANGUAGE_EN);
         $this->assertTrue($article->getTranslations()->contains($translationEn));
 
-        $translationPl = $repository->getTranslation($article, $this->_languagePl);
+        $translationPl = $repository->getTranslation($article, self::LANGUAGE_PL);
         $this->assertTrue($article->getTranslations()->contains($translationPl));
 
-        $this->assertSame($translationEn, $article->getTranslations()->get($this->_languageEn));
-        $this->assertSame($translationPl, $article->getTranslations()->get($this->_languagePl));
-        $this->assertSame($translationPl, $repository->getTranslation($article, $this->_languagePl));
+        $this->assertSame($translationEn, $article->getTranslations()->get(self::LANGUAGE_EN));
+        $this->assertSame($translationPl, $article->getTranslations()->get(self::LANGUAGE_PL));
+        $this->assertSame($translationPl, $repository->getTranslation($article, self::LANGUAGE_PL));
     }
 
     /**
@@ -52,43 +52,43 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testCheckingIfTranslationExistsThroughRepository()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $repository = $this->_em->getRepository(Article::class);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $repository = $this->entityManager->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
-        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $translationEn = $repository->getTranslation($article, self::LANGUAGE_EN);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
         $translationEn->setContents(self::ENGLISH_CONTENTS_1);
-        $this->_em->persist($article);
-        $this->_em->persist($translationEn);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($article);
+        $this->entityManager->persist($translationEn);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
         $article = $repository->find($article->getId());
-        $this->assertTrue($repository->hasTranslation($article, $this->_languageEn));
-        $this->assertFalse($repository->hasTranslation($article, $this->_languagePl));
+        $this->assertTrue($repository->hasTranslation($article, self::LANGUAGE_EN));
+        $this->assertFalse($repository->hasTranslation($article, self::LANGUAGE_PL));
     }
 
     public function testNotOverwritingTranslationForNewObject()
     {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(Article::class);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $repository = $this->entityManager->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
 
-        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $translationEn = $repository->getTranslation($article, self::LANGUAGE_EN);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
         $translationEn->setContents(self::ENGLISH_CONTENTS_1);
-        $translationPl = $repository->getTranslation($article, $this->_languagePl);
+        $translationPl = $repository->getTranslation($article, self::LANGUAGE_PL);
         $translationPl->setTitle(self::POLISH_TITLE_1);
         $translationPl->setContents(self::POLISH_CONTENTS_1);
 
-        $this->_em->persist($translationEn);
-        $this->_em->persist($translationPl);
-        $this->_em->persist($article);
-        $this->_em->flush();
+        $this->entityManager->persist($translationEn);
+        $this->entityManager->persist($translationPl);
+        $this->entityManager->persist($article);
+        $this->entityManager->flush();
 
-        $this->_em->refresh($article);
+        $this->entityManager->refresh($article);
 
         $this->assertEquals(
             2,
@@ -106,10 +106,10 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testTranslatableRepositoryCreateQueryBuilder()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
-        $qb = $this->_em->getRepository(Article::class)->createTranslatableQueryBuilder('a', 't');
+        $qb = $this->entityManager->getRepository(Article::class)->createTranslatableQueryBuilder('a', 't');
         $this->assertEquals(
             sprintf(
                 'SELECT a, t, dt FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale'
@@ -121,13 +121,13 @@ class RepositoryTest extends BaseTranslatableTest
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('locale')->getValue(),
             'Parameter :locale has wrong value'
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('deflocale')->getValue(),
             'Parameter :deflocale has wrong value'
         );
@@ -139,10 +139,10 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testTranslatableRepositoryCreateQueryBuilderWithLocaleSameAsDefaultLocale()
     {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
-        $qb = $this->_em->getRepository(Article::class)->createTranslatableQueryBuilder('a', 't');
+        $qb = $this->entityManager->getRepository(Article::class)->createTranslatableQueryBuilder('a', 't');
         $this->assertEquals(
             sprintf(
                 'SELECT a, t FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale',
@@ -153,7 +153,7 @@ class RepositoryTest extends BaseTranslatableTest
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('locale')->getValue(),
             'Parameter :locale has wrong value'
         );
@@ -161,25 +161,25 @@ class RepositoryTest extends BaseTranslatableTest
 
     public function testPostHydrateWithTranslatableQueryBuilder()
     {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $repository = $this->_em->getRepository(Article::class);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $repository = $this->entityManager->getRepository(Article::class);
         $article = new Article();
         $article->setDate(new DateTime());
 
-        $translationEn = $repository->getTranslation($article, $this->_languageEn);
+        $translationEn = $repository->getTranslation($article, self::LANGUAGE_EN);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
         $translationEn->setContents(self::ENGLISH_CONTENTS_1);
-        $translationPl = $repository->getTranslation($article, $this->_languagePl);
+        $translationPl = $repository->getTranslation($article, self::LANGUAGE_PL);
         $translationPl->setTitle(self::POLISH_TITLE_1);
         $translationPl->setContents(self::POLISH_CONTENTS_1);
 
-        $this->_em->persist($translationEn);
-        $this->_em->persist($translationPl);
-        $this->_em->persist($article);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($translationEn);
+        $this->entityManager->persist($translationPl);
+        $this->entityManager->persist($article);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $this->_logger->enabled = true;
+        $this->logger->enabled = true;
         $query = $repository->createTranslatableQueryBuilder('a', 't', 'dt')->getQuery();
 
         $articles = $query->execute();
@@ -190,7 +190,7 @@ class RepositoryTest extends BaseTranslatableTest
 
         $this->assertEquals(
             4,
-            count($this->_logger->queries),
+            count($this->logger->queries),
             'Reloading executed wrong number of queries'
         );
     }
@@ -200,18 +200,18 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testFindTranslatableByFields()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(Article::class);
-        $category = $this->_em->getRepository(Category::class)->findOneBy(['title' => self::CATEGORY_1]);
-        $section = $this->_em->getRepository(Section::class)->findOneBy(['title' => self::SECTION_1]);
-        $comment = $this->_em->getRepository(Comment::class)->findOneBy(['content' => 'Ipsum']);
+        $repository = $this->entityManager->getRepository(Article::class);
+        $category = $this->entityManager->getRepository(Category::class)->findOneBy(['title' => self::CATEGORY_1]);
+        $section = $this->entityManager->getRepository(Section::class)->findOneBy(['title' => self::SECTION_1]);
+        $comment = $this->entityManager->getRepository(Comment::class)->findOneBy(['content' => 'Ipsum']);
 
-        $this->_logger->enabled = true;
+        $this->logger->enabled = true;
         /** @var Article $article */
         $articles = $repository->findTranslatableBy([
             'date' => '2014-02-02 00:00:00', //field in Article, not translated
@@ -223,7 +223,7 @@ class RepositoryTest extends BaseTranslatableTest
         ], ['date' => 'ASC', 'title' => 'DESC']);
 
         $this->assertCount(1, $articles);
-        $this->assertEquals($this->_languagePl, $articles[0]->getLocale());
+        $this->assertEquals(self::LANGUAGE_PL, $articles[0]->getLocale());
         $this->assertEquals(self::POLISH_TITLE_1, $articles[0]->getTitle());
         $this->assertEquals(self::POLISH_TEASER, $articles[0]->getTeaser());
         $this->assertEquals(self::POLISH_CONTENTS_1, $articles[0]->getContents());
@@ -235,13 +235,13 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testFindTranslatableByLocaleFallback()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(Article::class);
+        $repository = $this->entityManager->getRepository(Article::class);
 
         /** @var Article $article */
         $articles = $repository->findTranslatableBy(['date' => '2014-01-01 00:00:00']);
@@ -256,13 +256,13 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testFindTranslatableByCustomLocale()
     {
-        $this->_translatableListener->setLocale($this->_languageDe);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_DE);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(Article::class);
+        $repository = $this->entityManager->getRepository(Article::class);
 
         /** @var Article $article */
         $articles = $repository->findTranslatableBy(
@@ -270,7 +270,7 @@ class RepositoryTest extends BaseTranslatableTest
             null,
             null,
             null,
-            $this->_languagePl
+            self::LANGUAGE_PL
         );
 
         $this->assertEquals(self::ENGLISH_TITLE_1, $articles[0]->getTitle());
@@ -283,17 +283,17 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testFindTranslatableOneByFields()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(Article::class);
-        $category = $this->_em->getRepository(Category::class)->findOneBy(['title' => self::CATEGORY_1]);
-        $section = $this->_em->getRepository(Section::class)->findOneBy(['title' => self::SECTION_1]);
-        $comment1 = $this->_em->getRepository(Comment::class)->findOneBy(['content' => 'Ipsum']);
-        $comment2 = $this->_em->getRepository(Comment::class)->findOneBy(['content' => 'Lorem']);
+        $repository = $this->entityManager->getRepository(Article::class);
+        $category = $this->entityManager->getRepository(Category::class)->findOneBy(['title' => self::CATEGORY_1]);
+        $section = $this->entityManager->getRepository(Section::class)->findOneBy(['title' => self::SECTION_1]);
+        $comment1 = $this->entityManager->getRepository(Comment::class)->findOneBy(['content' => 'Ipsum']);
+        $comment2 = $this->entityManager->getRepository(Comment::class)->findOneBy(['content' => 'Lorem']);
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy([
@@ -305,7 +305,7 @@ class RepositoryTest extends BaseTranslatableTest
             'comments' => [$comment1, $comment2], //translatable property in Article - one to many association
         ]);
 
-        $this->assertEquals($this->_languagePl, $article->getLocale());
+        $this->assertEquals(self::LANGUAGE_PL, $article->getLocale());
         $this->assertEquals(self::POLISH_TITLE_1, $article->getTitle());
         $this->assertEquals(self::POLISH_TEASER, $article->getTeaser());
         $this->assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
@@ -322,13 +322,13 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testFindTranslatableOneByLocaleFallback()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(Article::class);
+        $repository = $this->entityManager->getRepository(Article::class);
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy(['date' => '2014-01-01 00:00:00']);
@@ -342,19 +342,19 @@ class RepositoryTest extends BaseTranslatableTest
      */
     public function testFindTranslatableOneByWithCustomLocale()
     {
-        $this->_translatableListener->setLocale($this->_languageDe);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_DE);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $this->fillDataForFindTranslatable();
 
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(Article::class);
+        $repository = $this->entityManager->getRepository(Article::class);
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy(
             ['date' => '2014-01-01 00:00:00'],
             null,
-            $this->_languagePl
+            self::LANGUAGE_PL
         );
 
         $this->assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
@@ -377,42 +377,42 @@ class RepositoryTest extends BaseTranslatableTest
     private function fillDataForFindTranslatable()
     {
         /** @var TranslatableRepository $repository */
-        $repository = $this->_em->getRepository(Article::class);
+        $repository = $this->entityManager->getRepository(Article::class);
 
         $article1 = new Article();
-        $this->_em->persist($article1);
+        $this->entityManager->persist($article1);
         $article1->setDate(new DateTime('2014-01-01 00:00:00'));
-        $translationEn = $repository->getTranslation($article1, $this->_languageEn);
+        $translationEn = $repository->getTranslation($article1, self::LANGUAGE_EN);
         $translationEn->setTitle(self::ENGLISH_TITLE_1);
         $translationEn->setIntroduction(self::ENGLISH_TEASER);
         $translationEn->setContents(self::ENGLISH_CONTENTS_1);
-        $this->_em->persist($translationEn);
+        $this->entityManager->persist($translationEn);
 
         $article2 = new Article();
-        $this->_em->persist($article2);
+        $this->entityManager->persist($article2);
         $article2->setDate(new DateTime('2014-02-02 00:00:00'));
-        $translationPl = $repository->getTranslation($article2, $this->_languagePl);
+        $translationPl = $repository->getTranslation($article2, self::LANGUAGE_PL);
         $translationPl->setTitle(self::POLISH_TITLE_1);
         $translationPl->setIntroduction(self::POLISH_TEASER);
         $translationPl->setContents(self::POLISH_CONTENTS_1);
-        $this->_em->persist($translationPl);
+        $this->entityManager->persist($translationPl);
 
         $category1 = new Category();
         $category1->setTitle(self::CATEGORY_1);
         $article1->addCategory($category1);
         $article2->addCategory($category1);
-        $this->_em->persist($category1);
+        $this->entityManager->persist($category1);
 
         $section = new Section();
         $section->setTitle(self::SECTION_1);
         $article1->setSection($section);
         $article2->setSection($section);
-        $this->_em->persist($section);
+        $this->entityManager->persist($section);
         $translationPl->addComment(new Comment('Lorem'));
         $translationPl->addComment(new Comment('Ipsum'));
 
-        $this->_em->flush();
-        $this->_em->refresh($article1);
-        $this->_em->refresh($article2);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($article1);
+        $this->entityManager->refresh($article2);
     }
 }

@@ -31,7 +31,7 @@ class GeneralYamlTest extends GeneralTest
     public function testWrongMapping($class)
     {
         $this->expectException(MappingException::class);
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
     /**
@@ -40,7 +40,7 @@ class GeneralYamlTest extends GeneralTest
     public function testWrongTypes(string $class)
     {
         $this->expectException(TypeError::class);
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
     public function wrongMappings()

@@ -34,14 +34,14 @@ class InheritanceTest extends BaseORMTest
         $event->setTitle('title');
         $event->setExcerpt('excerpt');
 
-        $this->_em->persist($event);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($event);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $event = $this->_em->find(Event::class, $event->getId());
+        $event = $this->entityManager->find(Event::class, $event->getId());
         $event->setCoverImage(new SplFileInfo(TESTS_PATH . self::TEST_FILE2));
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->flush();
+        $this->entityManager->clear();
     }
 
     public function testUploadablePropertyInLeafClassInInheritanceTree()
@@ -52,15 +52,15 @@ class InheritanceTest extends BaseORMTest
         $promotion->setTitle('title');
         $promotion->setExcerpt('excerpt');
 
-        $this->_em->persist($promotion);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($promotion);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $promotion = $this->_em->find(Promotion::class, $promotion->getId());
+        $promotion = $this->entityManager->find(Promotion::class, $promotion->getId());
         $promotion->setIntroImage(new SplFileInfo(TESTS_PATH . self::TEST_FILE1));
-        $this->_em->flush();
-        $this->_em->clear();
-        $promotion = $this->_em->find(Promotion::class, $promotion->getId());
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+        $promotion = $this->entityManager->find(Promotion::class, $promotion->getId());
 
         $this->assertNotNull($promotion->getIntroImage());
     }
@@ -70,11 +70,11 @@ class InheritanceTest extends BaseORMTest
         $employee = new Employee();
         $employee->setFile(new SplFileInfo(TESTS_PATH . self::TEST_FILE1));
 
-        $this->_em->persist($employee);
-        $this->_em->flush();
-        $this->_em->clear();
+        $this->entityManager->persist($employee);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        $employee = $this->_em->find(Employee::class, $employee->getId());
+        $employee = $this->entityManager->find(Employee::class, $employee->getId());
 
         $this->assertNotNull($employee->getFile());
     }

@@ -19,7 +19,7 @@ use stdClass;
 
 abstract class BaseHandlerTest extends TestCase
 {
-    const CONTENT = 'sampleContent';
+    public const CONTENT = 'sampleContent';
 
     /**
      * @var FileHandlerInterface

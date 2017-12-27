@@ -32,7 +32,7 @@ class GeneralAnnotationTest extends GeneralTest
     public function testWrongAnnotations(string $class)
     {
         $this->expectException(MappingException::class);
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
     /**
@@ -41,7 +41,7 @@ class GeneralAnnotationTest extends GeneralTest
     public function testWrongTypes(string $class)
     {
         $this->expectException(TypeError::class);
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
     public function wrongAnnotations()

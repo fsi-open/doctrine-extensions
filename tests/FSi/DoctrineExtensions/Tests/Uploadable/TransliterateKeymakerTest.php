@@ -18,17 +18,17 @@ use PHPUnit\Framework\TestCase;
 
 class TransliterateKeymakerTest extends TestCase
 {
-    const PROPERTY = 'property';
-    const ID = 1;
+    public const PROPERTY = 'property';
+    public const ID = 1;
 
-    const ORIGINAL_NAME_SPECIAL = '"[[<###$$or~ i+ginal,?;: \\\   /Na%*&^m!e#$!|>]}.txt"';
-    const PARSED_NAME_SPECIAL = 'or-iginal-name.txt';
+    public const ORIGINAL_NAME_SPECIAL = '"[[<###$$or~ i+ginal,?;: \\\   /Na%*&^m!e#$!|>]}.txt"';
+    public const PARSED_NAME_SPECIAL = 'or-iginal-name.txt';
 
-    const ORIGINAL_NAME_PL = '"ołrigiźćnaąślNaóęńme.txt"';
-    const PARSED_NAME_PL = 'olrigizcnaaslnaoenme.txt';
+    public const ORIGINAL_NAME_PL = '"ołrigiźćnaąślNaóęńme.txt"';
+    public const PARSED_NAME_PL = 'olrigizcnaaslnaoenme.txt';
 
-    const ORIGINAL_NAME_GER = 'örigiünälNÄÜméÖß.txt';
-    const PARSED_NAME_GER = 'origiunalnaumeoss.txt';
+    public const ORIGINAL_NAME_GER = 'örigiünälNÄÜméÖß.txt';
+    public const PARSED_NAME_GER = 'origiunalnaumeoss.txt';
 
     public function testCreation()
     {

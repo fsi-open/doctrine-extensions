@@ -35,9 +35,9 @@ abstract class GeneralTest extends BaseORMTest
         $originalFilename = $file->getFilename();
 
         $user->setFile($file);
-        $this->_em->persist($user);
-        $this->_em->flush();
-        $this->_em->refresh($user);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($user);
 
         $path = FILESYSTEM1 . $user->getFileKey();
         $this->assertNotEquals($path, FILESYSTEM1);
@@ -53,9 +53,9 @@ abstract class GeneralTest extends BaseORMTest
         $originalFilename = $file->getFilename();
 
         $user->setFile($file);
-        $this->_em->persist($user);
-        $this->_em->flush();
-        $this->_em->refresh($user);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($user);
 
         $path = FILESYSTEM1 . $user->getFileKey();
         $this->assertNotEquals($path, FILESYSTEM1);
@@ -70,14 +70,14 @@ abstract class GeneralTest extends BaseORMTest
         $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE3);
 
         $user->setFile($file);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE3);
         $user->setFile($file);
-        $this->_em->persist($user);
-        $this->_em->flush();
-        $this->_em->refresh($user);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($user);
 
         $this->assertTrue($user->getFile() instanceof File);
         $this->assertNotNull($user->getFileKey());
@@ -89,13 +89,13 @@ abstract class GeneralTest extends BaseORMTest
         $key = 'some/key';
 
         $user = $this->getUser();
-        $file = new File($key, $this->_filesystem1);
+        $file = new File($key, $this->filesystem1);
         $file->setContent('');
 
         $user->setFile($file);
-        $this->_em->persist($user);
-        $this->_em->flush();
-        $this->_em->refresh($user);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($user);
 
         $this->assertTrue($user->getFile() instanceof File);
         $this->assertNotNull($user->getFileKey());
@@ -109,15 +109,15 @@ abstract class GeneralTest extends BaseORMTest
         $file2 = new SplFileInfo(TESTS_PATH . self::TEST_FILE2);
 
         $user->setFile($file1);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $key1 = $user->getFileKey();
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
 
         $user->setFile($file2);
-        $this->_em->flush();
-        $this->_em->refresh($user);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($user);
 
         // Old file must be deleted.
         $this->assertFalse(file_exists(FILESYSTEM1 . $key1));
@@ -134,15 +134,15 @@ abstract class GeneralTest extends BaseORMTest
         $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $key1 = $user->getFileKey();
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
 
         $user->deleteFile();
-        $this->_em->flush();
-        $this->_em->refresh($user);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($user);
 
         // Old file must be deleted.
         $this->assertFalse(file_exists(FILESYSTEM1 . $key1));
@@ -157,8 +157,8 @@ abstract class GeneralTest extends BaseORMTest
         $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $key1 = $user->getFileKey();
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
@@ -169,7 +169,7 @@ abstract class GeneralTest extends BaseORMTest
         try {
             // Setting name to null while it is not nullable should raise exception.
             $user->name = null;
-            $this->_em->flush();
+            $this->entityManager->flush();
         } catch (Throwable $e) {
             $exceptionThrown = true;
         }
@@ -189,8 +189,8 @@ abstract class GeneralTest extends BaseORMTest
         $file2 = new SplFileInfo(TESTS_PATH . self::TEST_FILE2);
 
         $user->setFile($file1);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $key1 = $user->getFileKey();
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
@@ -200,7 +200,7 @@ abstract class GeneralTest extends BaseORMTest
         $this->expectException(Throwable::class);
         // Setting name to null while it is not nullable should raise exception.
         $user->name = null;
-        $this->_em->flush();
+        $this->entityManager->flush();
 
         // Old file must be preserved.
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
@@ -214,14 +214,14 @@ abstract class GeneralTest extends BaseORMTest
         $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $key1 = $user->getFileKey();
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
 
-        $this->_em->remove($user);
-        $this->_em->flush();
+        $this->entityManager->remove($user);
+        $this->entityManager->flush();
 
         $this->assertFalse(file_exists(FILESYSTEM1 . $key1));
     }
@@ -234,17 +234,17 @@ abstract class GeneralTest extends BaseORMTest
         $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $key1 = $user->getFileKey();
         $this->assertTrue(file_exists(FILESYSTEM1 . $key1));
         $user->getFile()->setContent($content);
 
         $user->setFile($file1);
-        $this->_em->persist($user);
-        $this->_em->flush();
-        $this->_em->refresh($user);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($user);
 
         $key2 = $user->getFileKey();
         $this->assertTrue(file_exists(FILESYSTEM1 . $key2));
@@ -261,8 +261,8 @@ abstract class GeneralTest extends BaseORMTest
         $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file1);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $oldFile = $user->getFile();
         $this->assertTrue($oldFile->exists());
@@ -273,7 +273,7 @@ abstract class GeneralTest extends BaseORMTest
             // Setting name to null while it is not nullable should raise exception.
             $user->name = null;
             $user->setFile($file1);
-            $this->_em->flush();
+            $this->entityManager->flush();
         } catch (Throwable $e) {
             $exceptionThrown = true;
         }
@@ -292,25 +292,25 @@ abstract class GeneralTest extends BaseORMTest
         $key = 'some/key' . str_repeat('aaaaa', 50);
 
         $user = $this->getUser();
-        $file = new File($key, $this->_filesystem1);
+        $file = new File($key, $this->filesystem1);
         $file->setContent('');
 
         $this->expectException(RuntimeException::class);
         $user->setFile($file);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
     }
 
     public function testFileHandlerReturnBasename()
     {
         $key = 'some/key/blabla';
 
-        $file = new File($key, $this->_filesystem1);
+        $file = new File($key, $this->filesystem1);
         $file->setContent('');
-        $this->assertEquals('blabla', $this->_uploadableListener->getFileHandler()->getName($file));
+        $this->assertEquals('blabla', $this->uploadableListener->getFileHandler()->getName($file));
 
         $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
-        $this->assertEquals('penguins.jpg', $this->_uploadableListener->getFileHandler()->getName($file));
+        $this->assertEquals('penguins.jpg', $this->uploadableListener->getFileHandler()->getName($file));
     }
 
     public function testLoadingFiles()
@@ -319,11 +319,11 @@ abstract class GeneralTest extends BaseORMTest
         $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
 
         $user->setFile($file);
-        $this->_em->persist($user);
-        $this->_em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
-        $this->_em->clear();
-        $all = $this->_em->getRepository(get_class($user))->findAll();
+        $this->entityManager->clear();
+        $all = $this->entityManager->getRepository(get_class($user))->findAll();
         $user = array_shift($all);
 
         $path = FILESYSTEM1 . $user->getFileKey();
