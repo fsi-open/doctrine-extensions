@@ -21,14 +21,11 @@ class ClassMetadata extends AbstractClassMetadata
      */
     protected $uploadableProperties = [];
 
-    /**
-     * Set specified property as uploadable.
-     */
     public function addUploadableProperty(
         string $property,
         string $targetField,
-        $filesystem = null,
-        KeymakerInterface $keymaker = null,
+        ?string $filesystem = null,
+        ?KeymakerInterface $keymaker = null,
         ?int $keyLength = null,
         ?string $keyPattern = null
     ) {
