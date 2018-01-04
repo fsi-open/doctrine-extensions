@@ -25,25 +25,16 @@ abstract class AbstractClassMetadata implements ClassMetadataInterface
         $this->setClassName($class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function setClassName(string $class): void
     {
         $this->class = $class;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getClassName(): string
     {
         return $this->class;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getClassReflection(): ReflectionClass
     {
         return new ReflectionClass($this->getClassName());

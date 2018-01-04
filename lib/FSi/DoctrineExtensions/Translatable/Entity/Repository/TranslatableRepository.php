@@ -46,9 +46,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
      */
     protected $translationExtendedMetadata;
 
-    /**
-     * {@inheritdoc}
-     */
     public function findTranslatableBy(
         array $criteria,
         ?array $orderBy = null,
@@ -66,9 +63,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         )->getQuery()->execute();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function findTranslatableOneBy(
         array $criteria,
         ?array $orderBy = null,
@@ -84,9 +78,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         )->getQuery()->getSingleResult();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function createTranslatableQueryBuilder(
         string $alias,
         ?string $translationAlias = 't',
@@ -113,9 +104,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         return $qb;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function hasTranslation(
         $object,
         string $locale,
@@ -130,9 +118,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         return ($translation !== null);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getTranslation(
         $object,
         string $locale,
@@ -160,9 +145,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         return $translation;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function findTranslation(
         $object,
         string $locale,
@@ -183,6 +165,9 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     }
 
     /**
+     * @param object $object
+     * @param string|null $translationAssociation
+     * @return Collection
      * @throws RuntimeException
      */
     public function getTranslations(
@@ -207,9 +192,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         return $translations;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function findNonIndexedTranslation(
         $object,
         string $translationAssociation,
@@ -229,9 +211,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         return null;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function createTranslation(
         $object,
         string $translationAssociation,
@@ -262,6 +241,7 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     }
 
     /**
+     * @return TranslatableListener
      * @throws RuntimeException
      */
     protected function getTranslatableListener(): TranslatableListener
@@ -329,6 +309,7 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
 
     /**
      * @param object $object
+     * @return void
      * @throws RuntimeException
      */
     protected function validateObject($object): void
@@ -344,6 +325,8 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     }
 
     /**
+     * @param string $translationAssociation
+     * @return void
      * @throws RuntimeException
      */
     protected function validateTranslationAssociation(string $translationAssociation): void
@@ -359,9 +342,6 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         }
     }
 
-    /**
-     * @throws MappingException
-     */
     protected function areTranslationsIndexedByLocale(string $translationAssociation): bool
     {
         $translationAssociationMapping = $this->getClassMetadata()
@@ -376,7 +356,9 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     }
 
     /**
+     * @param string $translationAssociation
      * @param object $translation
+     * @return string|null
      */
     protected function getTranslationLocale(
         string $translationAssociation,
@@ -389,7 +371,10 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     }
 
     /**
+     * @param string $translationAssociation
      * @param object $translation
+     * @param string|null $locale
+     * @return void
      */
     protected function setTranslationLocale(
         string $translationAssociation,
@@ -404,8 +389,10 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     }
 
     /**
+     * @param string $translationAssociation
      * @param object $translation
      * @param object $object
+     * @return void
      */
     protected function setTranslationObject(
         string $translationAssociation,

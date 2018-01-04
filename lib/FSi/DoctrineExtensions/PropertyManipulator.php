@@ -29,7 +29,9 @@ class PropertyManipulator
 
     /**
      * @param object $object
+     * @param string $property
      * @param mixed $value
+     * @return void
      */
     public function setAndSaveValue($object, string $property, $value): void
     {
@@ -39,6 +41,7 @@ class PropertyManipulator
 
     /**
      * @param object $object
+     * @param string $property
      * @return mixed
      */
     public function getPropertyValue($object, string $property)
@@ -52,7 +55,9 @@ class PropertyManipulator
 
     /**
      * @param object $object
+     * @param string $property
      * @param mixed $value
+     * @return void
      */
     public function setPropertyValue($object, string $property, $value): void
     {
@@ -65,6 +70,8 @@ class PropertyManipulator
 
     /**
      * @param object $object
+     * @param string $property
+     * @return bool
      */
     public function hasSavedValue($object, string $property): bool
     {
@@ -79,6 +86,9 @@ class PropertyManipulator
 
     /**
      * @param object $object
+     * @param string $property
+     * @param bool $notSavedAsNull
+     * @return bool
      */
     public function hasChangedValue($object, string $property, bool $notSavedAsNull = false): bool
     {
@@ -93,6 +103,7 @@ class PropertyManipulator
 
     /**
      * @param object $object
+     * @param string $property
      * @return mixed
      * @throws RuntimeException
      */
@@ -113,6 +124,8 @@ class PropertyManipulator
 
     /**
      * @param object $object
+     * @param string $property
+     * @return void
      */
     public function saveValue($object, string $property): void
     {
@@ -125,6 +138,7 @@ class PropertyManipulator
     }
 
     /**
+     * @param object $object
      * @param string $property
      * @return object|string
      * @throws RuntimeException
@@ -148,8 +162,9 @@ class PropertyManipulator
     }
 
     /**
-     * @param $object
+     * @param object $object
      * @throws InvalidArgumentException
+     * @return void
      */
     private function assertIsObject($object): void
     {

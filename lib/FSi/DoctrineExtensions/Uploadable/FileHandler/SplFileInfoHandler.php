@@ -27,9 +27,6 @@ class SplFileInfoHandler extends AbstractHandler
         $this->tempFilename = $tempFilename;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getContent($file): string
     {
         if (!$this->supports($file)) {
@@ -56,9 +53,6 @@ class SplFileInfoHandler extends AbstractHandler
         return $content;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName($file): string
     {
         if (!$this->supports($file)) {
@@ -76,9 +70,6 @@ class SplFileInfoHandler extends AbstractHandler
         return $this->tempFilename;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function supports($file): bool
     {
         return $file instanceof SplFileInfo;
@@ -101,12 +92,6 @@ class SplFileInfoHandler extends AbstractHandler
         return $fileObject;
     }
 
-    /**
-     * @param SplFileObject $fileObject
-     * @param int $position
-     * @param int $whence
-     * @return int
-     */
     private function trySeekFile(SplFileObject $fileObject, $position, $whence = SEEK_SET): void
     {
         $seekResult = $fileObject->fseek($position, $whence);

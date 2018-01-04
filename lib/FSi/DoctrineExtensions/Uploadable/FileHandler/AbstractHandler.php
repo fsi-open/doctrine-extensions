@@ -17,6 +17,7 @@ abstract class AbstractHandler implements FileHandlerInterface
 {
     /**
      * @param mixed $file
+     * @return RuntimeException
      */
     protected function generateNotSupportedException($file): RuntimeException
     {

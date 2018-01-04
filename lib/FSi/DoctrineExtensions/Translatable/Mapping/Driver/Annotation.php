@@ -24,7 +24,11 @@ class Annotation extends AbstractAnnotationDriver
     public const LOCALE = 'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation\\Locale';
 
     /**
-     * {@inheritDoc}
+     * @param ClassMetadataInfo $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
+     * @return void
+     * @throws RuntimeException
+     * @throws AnnotationException
      */
     protected function loadExtendedClassMetadata(
         ClassMetadataInfo $baseClassMetadata,

@@ -23,11 +23,13 @@ interface FileHandlerInterface
      * Get name of resource, that will be a part of its key (for example base name of file path).
      *
      * @param mixed $file
+     * @return string
      */
     public function getName($file): string;
 
     /**
      * @param mixed $file
+     * @return string
      */
     public function getContent($file): string;
 }

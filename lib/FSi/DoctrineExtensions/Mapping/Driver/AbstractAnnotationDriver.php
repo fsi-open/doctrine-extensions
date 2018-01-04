@@ -30,17 +30,11 @@ abstract class AbstractAnnotationDriver implements DriverInterface
      */
     private $reader;
 
-    /**
-     * {@inheritdoc}
-     */
     public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory): void
     {
         $this->baseMetadataFactory = $metadataFactory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBaseMetadataFactory(): ClassMetadataFactory
     {
         if (!isset($this->baseMetadataFactory)) {
@@ -50,9 +44,6 @@ abstract class AbstractAnnotationDriver implements DriverInterface
         return $this->baseMetadataFactory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function loadClassMetadata(ClassMetadataInterface $metadata): void
     {
         if ($this->getBaseMetadataFactory()->isTransient($metadata->getClassName())) {
@@ -62,9 +53,6 @@ abstract class AbstractAnnotationDriver implements DriverInterface
         $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
     }
 
-    /**
-     * @param Reader $reader
-     */
     public function setAnnotationReader(Reader $reader): void
     {
         $this->reader = $reader;

@@ -22,15 +22,14 @@ class Yaml extends AbstractYamlDriver
 {
     public const LOCALE = 'locale';
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
-    {
+    protected function loadExtendedClassMetadata(
+        ClassMetadataInfo $baseClassMetadata,
+        ClassMetadataInterface $extendedClassMetadata
+    ): void {
         if (!($extendedClassMetadata instanceof ClassMetadata)) {
             throw new RuntimeException(sprintf(
                 'Expected metadata of class "%s", got "%s"',
-                '\FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata',
+                ClassMetadata::class,
                 get_class($extendedClassMetadata)
             ));
         }
@@ -71,9 +70,9 @@ class Yaml extends AbstractYamlDriver
 
             foreach ($mapping['fsi']['translatable']['fields'] as $field => $options) {
                 $extendedClassMetadata->addTranslatableProperty(
-                    $this->getValue($options, 'mappedBy'),
+                    $options['mappedBy'] ?? null,
                     $field,
-                    $this->getValue($options, 'targetField')
+                    $options['targetField'] ?? null
                 );
             }
         }
@@ -115,15 +114,5 @@ class Yaml extends AbstractYamlDriver
             ;
             $extendedClassMetadata->localeProperty = $locale;
         }
-    }
-
-    /**
-     * @param array $array
-     * @param string $key
-     * @return mixed
-     */
-    private function getValue(array $array, $key)
-    {
-        return isset($array[$key]) ? $array[$key] : null;
     }
 }

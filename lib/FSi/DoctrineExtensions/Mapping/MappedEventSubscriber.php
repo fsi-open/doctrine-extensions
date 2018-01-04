@@ -53,18 +53,11 @@ abstract class MappedEventSubscriber implements EventSubscriber
      */
     private $defaultAnnotationReader;
 
-    /**
-     * @param Reader $reader
-     */
     public function setAnnotationReader(Reader $reader): void
     {
         $this->annotationReader = $reader;
     }
 
-    /**
-     * Scans the objects for extended annotations
-     * event subscribers must subscribe to loadClassMetadata event.
-     */
     public function getExtendedMetadata(
         EntityManagerInterface $entityManager,
         string $class
@@ -85,9 +78,6 @@ abstract class MappedEventSubscriber implements EventSubscriber
         return $extendedMetadata;
     }
 
-    /**
-     * Validate complete metadata for final class (i.e. that is not mapped-superclass).
-     */
     abstract protected function validateExtendedMetadata(
         ClassMetadata $baseClassMetadata,
         ClassMetadataInterface $extendedClassMetadata
@@ -97,6 +87,8 @@ abstract class MappedEventSubscriber implements EventSubscriber
      * Get the namespace of extension event subscriber
      * used for cache id of extensions also to know where
      * to find Mapping drivers and event adapters.
+     *
+     * @return string
      */
     abstract protected function getNamespace(): string;
 
@@ -119,7 +111,9 @@ abstract class MappedEventSubscriber implements EventSubscriber
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param object $object
+     * @return ClassMetadataInterface
      */
     protected function getObjectExtendedMetadata(
         EntityManagerInterface $entityManager,

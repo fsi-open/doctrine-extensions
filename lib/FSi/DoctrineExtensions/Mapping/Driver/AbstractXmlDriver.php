@@ -115,11 +115,6 @@ EOF
         return @$dom->schemaValidateSource($source);
     }
 
-    /**
-     * Retreive path to doctrine xsd mapping file.
-     *
-     * @return string
-     */
     private function getDoctrineSchemePath(): string
     {
         static $path;

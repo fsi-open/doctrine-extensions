@@ -100,6 +100,8 @@ class TranslatableListener extends MappedEventSubscriber
     /**
      * This event handler will update, insert or remove translation entities if
      * main object's translatable properties change.
+     *
+     * @param PreFlushEventArgs $eventArgs
      */
     public function preFlush(PreFlushEventArgs $eventArgs)
     {
@@ -118,7 +120,10 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param object $object
+     * @param string|null $locale
+     * @return void
      */
     public function loadTranslation(EntityManagerInterface $entityManager, $object, ?string $locale): void
     {
@@ -148,7 +153,10 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
-     * {@inheritDoc}
+     * @param ClassMetadata $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
+     * @return void
+     * @throws InvalidArgumentException
      */
     protected function validateExtendedMetadata(
         ClassMetadata $baseClassMetadata,
@@ -171,6 +179,9 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param ClassMetadata $baseClassMetadata
+     * @param TranslatableClassMetadata $translatableClassMetadata
+     * @return void
      * @throws Exception\MappingException
      */
     private function validateTranslatableLocaleProperty(
@@ -218,6 +229,8 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param ClassMetadata $baseClassMetadata
+     * @param TranslatableClassMetadata $translatableClassMetadata
      * @throws Exception\MappingException
      */
     private function validateTranslationLocaleProperty(
@@ -239,9 +252,12 @@ class TranslatableListener extends MappedEventSubscriber
      * Helper method to insert, remove or update translations entities associated
      * with specified object.
      *
+     * @param EntityManagerInterface $entityManager
      * @param object $object
+     * @return void
+     * @throws Exception\RuntimeException
      */
-    private function updateObjectTranslations(EntityManagerInterface $entityManager, $object)
+    private function updateObjectTranslations(EntityManagerInterface $entityManager, $object): void
     {
         $translatableMeta = $this->getTranslatableMetadata($entityManager, $object);
         if (!$translatableMeta->hasTranslatableProperties()) {
@@ -269,16 +285,16 @@ class TranslatableListener extends MappedEventSubscriber
                     $locale
                 );
             } else {
-                $this->translationHelper->removeEmptyTranslation(
-                    $context,
-                    $object
-                );
+                $this->translationHelper->removeEmptyTranslation($context, $object);
             }
         }
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
+     * @param TranslationAssociationMetadata $associationMeta
      * @param object $object
+     * @return ClassTranslationContext
      */
     private function getTranslationContext(
         EntityManagerInterface $entityManager,
@@ -298,7 +314,9 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param object $object
+     * @return ClassMetadata
      */
     private function getObjectClassMetadata(
         EntityManagerInterface $entityManager,
@@ -308,7 +326,9 @@ class TranslatableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param object $object
+     * @return TranslatableClassMetadata
      */
     private function getTranslatableMetadata(
         EntityManagerInterface $entityManager,

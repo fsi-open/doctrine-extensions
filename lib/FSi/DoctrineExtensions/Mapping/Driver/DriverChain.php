@@ -29,11 +29,6 @@ class DriverChain implements DriverInterface
      */
     private $drivers = [];
 
-    /**
-     * Accepts an array of DriverInterface instances indexed by class namespace
-     *
-     * @param \FSi\DoctrineExtensions\Metadata\Driver\DriverInterface[] $drivers
-     */
     public function __construct(array $drivers = [])
     {
         foreach ($drivers as $namespace => $driver) {
@@ -41,9 +36,6 @@ class DriverChain implements DriverInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory): void
     {
         foreach ($this->drivers as $drivers) {
@@ -55,9 +47,6 @@ class DriverChain implements DriverInterface
         $this->baseMetadataFactory = $metadataFactory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getBaseMetadataFactory(): ClassMetadataFactory
     {
         if (!isset($this->baseMetadataFactory)) {
@@ -67,24 +56,15 @@ class DriverChain implements DriverInterface
         return $this->baseMetadataFactory;
     }
 
-    /**
-     * @param \FSi\DoctrineExtensions\Metadata\Driver\DriverInterface $driver
-     * @param string $namespace
-     * @return \FSi\DoctrineExtensions\Metadata\Driver\DriverChain
-     */
-    public function addDriver(DriverInterface $driver, $namespace)
+    public function addDriver(DriverInterface $driver, string $namespace): void
     {
         if (!isset($this->drivers[$namespace])) {
             $this->drivers[$namespace] = [];
         }
-        $this->drivers[$namespace][] = $driver;
 
-        return $this;
+        $this->drivers[$namespace][] = $driver;
     }
 
-    /**
-     * @param \FSi\DoctrineExtensions\Mapping\Driver\ClassMetadataInterface $metadata
-     */
     public function loadClassMetadata(ClassMetadataInterface $metadata): void
     {
         $className = $metadata->getClassName();

@@ -14,10 +14,12 @@ namespace FSi\DoctrineExtensions\Uploadable\Keymaker;
 interface KeymakerInterface
 {
     /**
-     * Creates a key for a file.
-     *
      * @param object $object
+     * @param string $property
      * @param int|string $id
+     * @param string $originalName
+     * @param string|null $pattern
+     * @return string
      */
     public function createKey(
         $object,

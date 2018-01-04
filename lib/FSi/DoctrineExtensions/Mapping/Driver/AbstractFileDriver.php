@@ -30,16 +30,14 @@ abstract class AbstractFileDriver implements DriverInterface
      */
     private $locator;
 
-    /**
-     * {@inheritdoc}
-     */
     public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory): void
     {
         $this->baseMetadataFactory = $metadataFactory;
     }
 
     /**
-     * {@inheritdoc}
+     * @return ClassMetadataFactory
+     * @throws RuntimeException
      */
     public function getBaseMetadataFactory(): ClassMetadataFactory
     {
@@ -50,9 +48,6 @@ abstract class AbstractFileDriver implements DriverInterface
         return $this->baseMetadataFactory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function loadClassMetadata(ClassMetadataInterface $metadata): void
     {
         if ($this->getBaseMetadataFactory()->isTransient($metadata->getClassName())) {
@@ -62,15 +57,13 @@ abstract class AbstractFileDriver implements DriverInterface
         $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
     }
 
-    /**
-     * @param FileLocator $locator
-     */
     public function setFileLocator(FileLocator $locator): void
     {
         $this->locator = $locator;
     }
 
     /**
+     * @return FileLocator
      * @throws RuntimeException
      */
     public function getFileLocator(): FileLocator
@@ -94,11 +87,6 @@ abstract class AbstractFileDriver implements DriverInterface
         ClassMetadataInterface $extendedClassMetadata
     );
 
-    /**
-     * Returns path of the file containing class matadata.
-     *
-     * This method shout be used in loadClassMetadata to reach metadata file.
-     */
     protected function findMappingFile(ClassMetadataInterface $metadata): string
     {
         return $this->getFileLocator()->findMappingFile($metadata->getClassName());

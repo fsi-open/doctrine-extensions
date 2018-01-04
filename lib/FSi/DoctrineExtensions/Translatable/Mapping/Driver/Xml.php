@@ -25,8 +25,10 @@ class Xml extends AbstractXmlDriver
     /**
      * {@inheritdoc}
      */
-    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
-    {
+    protected function loadExtendedClassMetadata(
+        ClassMetadataInfo $baseClassMetadata,
+        ClassMetadataInterface $extendedClassMetadata
+    ): void {
         if (!($extendedClassMetadata instanceof ClassMetadata)) {
             throw new RuntimeException(sprintf(
                 'Expected metadata of class "%s", got "%s"',

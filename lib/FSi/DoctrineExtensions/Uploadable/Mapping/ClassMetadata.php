@@ -45,6 +45,8 @@ class ClassMetadata extends AbstractClassMetadata
 
     /**
      * Returns array of all uploadable properties indexed by property.
+     *
+     * @return array
      */
     public function getUploadableProperties(): array
     {

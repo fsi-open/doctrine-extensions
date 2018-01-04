@@ -71,9 +71,6 @@ class UploadableListener extends MappedEventSubscriber
      */
     protected $toDelete = [];
 
-    /**
-     * @param FilesystemMap[]|FilesystemMap $filesystems
-     */
     public function __construct($filesystems, FileHandlerInterface $fileHandler)
     {
         $this->setFilesystems($filesystems);
@@ -122,9 +119,6 @@ class UploadableListener extends MappedEventSubscriber
         return $this->filesystems;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getSubscribedEvents()
     {
         return ['preFlush', 'postLoad', 'postPersist', 'postFlush', 'postRemove'];
@@ -141,6 +135,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
+     * @return Filesystem
      * @throws RuntimeException
      */
     public function getDefaultFilesystem(): Filesystem
@@ -158,6 +153,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param string $id
+     * @return Filesystem
      * @throws RuntimeException
      */
     public function getFilesystem(string $id): Filesystem
@@ -171,6 +168,8 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * After loading the entity load file if any.
+     *
+     * @param LifecycleEventArgs $eventArgs
      */
     public function postLoad(LifecycleEventArgs $eventArgs)
     {
@@ -206,6 +205,8 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * Check and eventually update files keys.
+     *
+     * @param PreFlushEventArgs $eventArgs
      */
     public function preFlush(PreFlushEventArgs $eventArgs)
     {
@@ -244,6 +245,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param int $length
+     * @return void
      * @throws RuntimeException
      */
     public function setDefaultKeyLength(int $length): void
@@ -260,9 +263,6 @@ class UploadableListener extends MappedEventSubscriber
         return $this->defaultKeyLength;
     }
 
-    /**
-     * @throws RuntimeException
-     */
     public function setDefaultKeymaker(KeymakerInterface $keymaker): void
     {
         $this->defaultKeymaker = $keymaker;
@@ -274,6 +274,7 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
+     * @return KeymakerInterface
      * @throws RuntimeException
      */
     public function getDefaultKeymaker(): KeymakerInterface
@@ -298,7 +299,10 @@ class UploadableListener extends MappedEventSubscriber
     /**
      * Load object files and attach observers for key fields.
      *
+     * @param EntityManagerInterface $entityManager
      * @param object $object
+     * @param UploadableClassMetadata $uploadableMeta
+     * @return void
      */
     protected function loadFiles(
         EntityManagerInterface $entityManager,
@@ -321,7 +325,9 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param object $object
+     * @param UploadableClassMetadata $uploadableMeta
      * @throws RuntimeException
      */
     protected function updateFiles(
@@ -389,8 +395,10 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
      * @param object $object
-     * @throws RuntimeException
+     * @param UploadableClassMetadata $uploadableMeta
+     * @return void
      */
     protected function deleteFiles(
         EntityManagerInterface $entityManager,
@@ -407,7 +415,11 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * {@inheritdoc}
+     * @param ClassMetadata $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
+     * @return void
+     * @throws InvalidArgumentException
+     * @throws MappingException
      */
     protected function validateExtendedMetadata(
         ClassMetadata $baseClassMetadata,
@@ -496,9 +508,6 @@ class UploadableListener extends MappedEventSubscriber
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getNamespace(): string
     {
         return __NAMESPACE__;
@@ -528,11 +537,16 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * Algorithm to transform names from name.txt to name_i.txt and name_i.txt into name_{i++}.txt
-     * when given key already exists and can't be reused.
-     *
+     * @param KeymakerInterface $keymaker
      * @param object $object
+     * @param string $property
      * @param int|string $id
+     * @param string $fileName
+     * @param int $keyLength
+     * @param string|null $keyPattern
+     * @param Filesystem $filesystem
+     * @return string|null
+     * @throws RuntimeException
      */
     private function generateNewKey(
         KeymakerInterface $keymaker,
@@ -577,8 +591,9 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
-     * Extracts identifiers from object or proxy.
+     * @param EntityManagerInterface $em
      * @param object $object
+     * @return array
      */
     private function extractIdentifier(EntityManagerInterface $em, $object): array
     {
@@ -604,6 +619,9 @@ class UploadableListener extends MappedEventSubscriber
 
     /**
      * Returns PropertyManipulator for specified ObjectManager
+     *
+     * @param EntityManagerInterface $entityManager
+     * @return PropertyManipulator
      */
     private function getPropertyManipulator(EntityManagerInterface $entityManager): PropertyManipulator
     {
@@ -616,6 +634,8 @@ class UploadableListener extends MappedEventSubscriber
     }
 
     /**
+     * @param mixed $object
+     * @return void
      * @throws InvalidArgumentException
      */
     private function assertIsObject($object): void

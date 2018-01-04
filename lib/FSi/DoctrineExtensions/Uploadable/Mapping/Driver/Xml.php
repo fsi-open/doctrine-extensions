@@ -19,9 +19,6 @@ use RuntimeException;
 
 class Xml extends AbstractXmlDriver
 {
-    /**
-     * {@inheritdoc}
-     */
     protected function loadExtendedClassMetadata(
         ClassMetadataInfo $baseClassMetadata,
         ClassMetadataInterface $extendedClassMetadata

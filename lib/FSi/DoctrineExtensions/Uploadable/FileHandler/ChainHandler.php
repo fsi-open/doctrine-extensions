@@ -21,6 +21,7 @@ class ChainHandler extends AbstractHandler
     protected $handlers = [];
 
     /**
+     * @param array $handlers
      * @throws RuntimeException
      */
     public function __construct(array $handlers = [])
@@ -41,9 +42,6 @@ class ChainHandler extends AbstractHandler
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getContent($file): string
     {
         foreach ($this->handlers as $handler) {
@@ -55,9 +53,6 @@ class ChainHandler extends AbstractHandler
         throw $this->generateNotSupportedException($file);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName($file): string
     {
         foreach ($this->handlers as $handler) {
@@ -69,9 +64,6 @@ class ChainHandler extends AbstractHandler
         throw $this->generateNotSupportedException($file);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function supports($file): bool
     {
         foreach ($this->handlers as $handler) {

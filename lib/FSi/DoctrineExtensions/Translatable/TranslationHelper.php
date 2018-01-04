@@ -34,8 +34,11 @@ class TranslationHelper
     }
 
     /**
+     * @param ClassTranslationContext $context
      * @param object $object
      * @param object $translation
+     * @param string $locale
+     * @return void
      */
     public function copyTranslationProperties(
         ClassTranslationContext $context,
@@ -61,7 +64,10 @@ class TranslationHelper
     }
 
     /**
+     * @param ClassTranslationContext $context
      * @param object $object
+     * @param string $defaultLocale
+     * @return void
      */
     public function copyPropertiesToTranslation(
         ClassTranslationContext $context,
@@ -107,7 +113,9 @@ class TranslationHelper
     }
 
     /**
+     * @param ClassTranslationContext $context
      * @param object $object
+     * @return void
      */
     public function removeEmptyTranslation(ClassTranslationContext $context, $object): void
     {
@@ -142,7 +150,9 @@ class TranslationHelper
     }
 
     /**
+     * @param \FSi\DoctrineExtensions\Translatable\ClassTranslationContext $context
      * @param object $object
+     * @return void
      */
     public function clearTranslatableProperties(ClassTranslationContext $context, $object): void
     {
@@ -160,7 +170,9 @@ class TranslationHelper
     }
 
     /**
+     * @param \FSi\DoctrineExtensions\Translatable\ClassTranslationContext $context
      * @param object $object
+     * @return bool
      */
     public function hasTranslatedProperties(ClassTranslationContext $context, $object): bool
     {
@@ -182,7 +194,9 @@ class TranslationHelper
     }
 
     /**
-     * @param $object
+     * @param \FSi\DoctrineExtensions\Translatable\ClassTranslationContext $context
+     * @param object $object
+     * @return string|null
      */
     public function getObjectLocale(ClassTranslationContext $context, $object): ?string
     {
@@ -193,16 +207,18 @@ class TranslationHelper
     }
 
     /**
+     * @param ClassMetadata $metadata
      * @param object $translation
-     * @param Collection|array $newCollection
+     * @param string $collectionField
+     * @param Collection|array $initialNewCollection
      */
     private function handleTranslationsCollection(
         ClassMetadata $metadata,
         $translation,
-        $collectionField,
-        $newCollection
-    ) {
-        $newCollection = $this->transformArrayToCollection($newCollection);
+        string $collectionField,
+        $initialNewCollection
+    ): void {
+        $newCollection = $this->transformArrayToCollection($initialNewCollection);
 
         /* @var $currentCollection Collection */
         $currentCollection = $this->propertyManipulator->getPropertyValue(
@@ -244,15 +260,18 @@ class TranslationHelper
     }
 
     /**
-     * @param object $collectionElement
-     * @param string|boolean $targetField
+     * @param int $relationType
+     * @param object $translation
+     * @param Collection|array $collectionElement
+     * @param string|bool $targetField
+     * @return void
      */
     private function removeFromRelation(
         int $relationType,
         $translation,
         $collectionElement,
         $targetField
-    ) {
+    ): void {
         if (!$targetField) {
             // one-sided relation, no property to set relation on
             return;
@@ -275,16 +294,18 @@ class TranslationHelper
     }
 
     /**
+     * @param int $relationType
      * @param object $translation
      * @param object $collectionElement
      * @param string|boolean $targetField
+     * @return void
      */
     private function addToRelation(
         int $relationType,
         $translation,
         $collectionElement,
         $targetField
-    ) {
+    ): void {
         if (!$targetField) {
             // one-sided relation, no property to set relation on
             return;
@@ -308,6 +329,7 @@ class TranslationHelper
 
     /**
      * @param Collection|array $collection
+     * @return Collection
      * @throws InvalidArgumentException
      */
     private function transformArrayToCollection($collection): Collection
@@ -327,7 +349,10 @@ class TranslationHelper
     }
 
     /**
+     * @param TranslatableClassMetadata $classMetadata
      * @param object $object
+     * @param string|null $locale
+     * @return void
      */
     private function setObjectLocale(
         TranslatableClassMetadata $classMetadata,

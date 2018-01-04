@@ -35,6 +35,11 @@ interface TranslatableRepositoryInterface
      * entity and constrained to current locale of TranslatableListener if it
      * has been set. It also adds second join to translation entity constrained
      * to default locale of TranslatableListener if it has been set.
+     *
+     * @param string $alias
+     * @param string|null $translationAlias
+     * @param string|null $defaultTranslationAlias
+     * @return QueryBuilder
      */
     public function createTranslatableQueryBuilder(
         string $alias,
@@ -46,6 +51,9 @@ interface TranslatableRepositoryInterface
      * Returns true if a translation entity for specified base entity and locale exists
      *
      * @param object $object
+     * @param string $locale
+     * @param string|null $translationAssociation
+     * @return bool
      */
     public function hasTranslation(
         $object,
@@ -58,7 +66,9 @@ interface TranslatableRepositoryInterface
      * entity and locale
      *
      * @param object $object
-     * @return object existing or new translation entity for specified locale
+     * @param string $locale
+     * @param string|null $translationAssociation
+     * @return object
      */
     public function getTranslation(
         $object,
@@ -68,6 +78,8 @@ interface TranslatableRepositoryInterface
 
     /**
      * @param object $object
+     * @param string|null $translationAssociation
+     * @return Collection
      */
     public function getTranslations(
         $object,
@@ -76,6 +88,8 @@ interface TranslatableRepositoryInterface
 
     /**
      * @param object $object
+     * @param string $locale
+     * @param string|null $translationAssociation
      */
     public function findTranslation(
         $object,

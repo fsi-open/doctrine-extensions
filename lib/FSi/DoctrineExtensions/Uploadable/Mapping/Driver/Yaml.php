@@ -21,7 +21,11 @@ use RuntimeException;
 class Yaml extends AbstractYamlDriver
 {
     /**
-     * {@inheritdoc}
+     * @param ClassMetadataInfo $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
+     * @return void
+     * @throws RuntimeException
+     * @throws MappingException
      */
     protected function loadExtendedClassMetadata(
         ClassMetadataInfo $baseClassMetadata,
@@ -51,28 +55,20 @@ class Yaml extends AbstractYamlDriver
                         ));
                     }
 
-                    $keyLength = $this->getValue($uploadable, 'keyLength');
+                    $keyLength = $uploadable['keyLength'] ?? null;
                     if (!is_null($keyLength)) {
                         $keyLength = (int) $keyLength;
                     }
                     $extendedClassMetadata->addUploadableProperty(
                         $field,
-                        $this->getValue($uploadable, 'targetField'),
-                        $this->getValue($uploadable, 'filesystem'),
-                        $this->getValue($uploadable, 'keymaker'),
+                        $uploadable['targetField'] ?? null,
+                        $uploadable['filesystem'] ?? null,
+                        $uploadable['keymaker'] ?? null,
                         $keyLength,
-                        $this->getValue($uploadable, 'keyPattern')
+                        $uploadable['keyPattern'] ?? null
                     );
                 }
             }
         }
-    }
-
-    /**
-     * @return mixed
-     */
-    private function getValue(array $array, string $key)
-    {
-        return isset($array[$key]) ? $array[$key] : null;
     }
 }

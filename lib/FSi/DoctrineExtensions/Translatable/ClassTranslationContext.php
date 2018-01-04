@@ -70,6 +70,7 @@ class ClassTranslationContext
     }
 
     /**
+     * @return TranslatableRepositoryInterface
      * @throws Exception\AnnotationException
      */
     public function getTranslatableRepository(): TranslatableRepositoryInterface

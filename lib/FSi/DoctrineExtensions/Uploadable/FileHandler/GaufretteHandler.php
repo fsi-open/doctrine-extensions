@@ -15,9 +15,6 @@ use Gaufrette\File;
 
 class GaufretteHandler extends AbstractHandler
 {
-    /**
-     * {@inheritdoc}
-     */
     public function getContent($file): string
     {
         if (!$this->supports($file)) {
@@ -27,9 +24,6 @@ class GaufretteHandler extends AbstractHandler
         return $file->getContent();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getName($file): string
     {
         if (!$this->supports($file)) {
@@ -39,9 +33,6 @@ class GaufretteHandler extends AbstractHandler
         return basename($file->getName());
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function supports($file): bool
     {
         return $file instanceof File;

@@ -28,6 +28,10 @@ class ClassMetadata extends AbstractClassMetadata
     /**
      * Add specified property as translatable. The real translation is stored in
      * $targetField inside $translationAssociation.
+     *
+     * @param string $translationAssociation
+     * @param string $property
+     * @param string|null $targetField
      */
     public function addTranslatableProperty(
         string $translationAssociation,
@@ -51,6 +55,8 @@ class ClassMetadata extends AbstractClassMetadata
     /**
      * Returns array of all translatable properties indexed by translation
      * association name and then by property name.
+     *
+     * @return array
      */
     public function getTranslatableProperties(): array
     {

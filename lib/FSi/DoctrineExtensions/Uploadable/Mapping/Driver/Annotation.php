@@ -19,11 +19,8 @@ use RuntimeException;
 
 class Annotation extends AbstractAnnotationDriver
 {
-    const UPLOADABLE = 'FSi\\DoctrineExtensions\\Uploadable\\Mapping\\Annotation\\Uploadable';
+    public const UPLOADABLE = 'FSi\\DoctrineExtensions\\Uploadable\\Mapping\\Annotation\\Uploadable';
 
-    /**
-     * {@inheritdoc}
-     */
     protected function loadExtendedClassMetadata(
         ClassMetadataInfo $baseClassMetadata,
         ClassMetadataInterface $extendedClassMetadata

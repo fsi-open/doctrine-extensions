@@ -12,13 +12,11 @@ declare(strict_types=1);
 namespace FSi\DoctrineExtensions\Uploadable;
 
 use Gaufrette\File as BaseFile;
+use Gaufrette\Filesystem;
 
 class File extends BaseFile
 {
-    /**
-     * @return \Gaufrette\Filesystem
-     */
-    public function getFilesystem()
+    public function getFilesystem(): Filesystem
     {
         return $this->filesystem;
     }

@@ -17,9 +17,6 @@ class Entity implements KeymakerInterface
 {
     const DEFAULT_PATTERN = '/{fqcn}/{property}/{id}/{original_name}';
 
-    /**
-     * {@inheritdoc}
-     */
     public function createKey(
         $object,
         string $property,

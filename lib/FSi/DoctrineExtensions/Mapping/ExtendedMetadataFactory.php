@@ -22,14 +22,13 @@ use FSi\DoctrineExtensions\Mapping\Driver\AbstractFileDriver;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverChain;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
+use FSi\DoctrineExtensions\Metadata\ClassMetadata;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use ReflectionClass;
 use Symfony\Component\PropertyAccess\Exception\InvalidArgumentException;
 
 final class ExtendedMetadataFactory
 {
-    const METADATA_CLASS = 'FSi\DoctrineExtensions\Metadata\ClassMetadata';
-
     /**
      * @var DriverInterface
      */
@@ -70,6 +69,13 @@ final class ExtendedMetadataFactory
      */
     private $annotationReader;
 
+    /**
+     * @param EntityManagerInterface $objectManager
+     * @param string $extensionNamespace
+     * @param Reader $annotationReader
+     * @throws RuntimeException
+     * @throws InvalidArgumentException
+     */
     public function __construct(
         EntityManagerInterface $objectManager,
         string $extensionNamespace,
@@ -82,38 +88,36 @@ final class ExtendedMetadataFactory
         if (is_null($metadataDriver)) {
             throw new RuntimeException('The entity manager did not return a metadata driver!');
         }
+
         $this->driver = $this->getDriver($metadataDriver);
         $this->driver->setBaseMetadataFactory($objectManager->getMetadataFactory());
 
         $cache = $this->objectManager->getMetadataFactory()->getCacheDriver();
-        if (isset($cache)) {
+        if ($cache) {
             $this->cache = $cache;
-            if (isset($extensionNamespace)) {
-                $this->cachePrefix = $extensionNamespace;
-            }
+            $this->cachePrefix = $extensionNamespace;
         }
 
-        if (class_exists($this->extensionNamespace . '\Mapping\ClassMetadata')) {
-            $metadataClassName = ltrim(
-                sprintf('%s\Mapping\ClassMetadata', $this->extensionNamespace),
-                '\\'
-            );
-            $metadataClassReflection = new ReflectionClass($metadataClassName);
-            if (!$metadataClassReflection->implementsInterface('FSi\DoctrineExtensions\Metadata\ClassMetadataInterface')) {
-                throw new InvalidArgumentException(
-                    'Metadata class must implement FSi\DoctrineExtensions\Metadata\ClassMetadataInterface'
-                );
-            }
-            $this->metadataClassName = $metadataClassName;
-        } else {
-            $this->metadataClassName = self::METADATA_CLASS;
+        // TODO this really should be done differently
+        $metadataClassName = ltrim(
+            sprintf('%s\Mapping\ClassMetadata', $this->extensionNamespace),
+            '\\'
+        );
+        if (!class_exists($metadataClassName)) {
+            throw new RuntimeException(sprintf('Metadata class "%s" does not exist!'));
         }
+
+        $metadataClassReflection = new ReflectionClass($metadataClassName);
+        if (!$metadataClassReflection->implementsInterface(ClassMetadataInterface::class)) {
+            throw new InvalidArgumentException(sprintf(
+                'Metadata class must implement %s',
+                ClassMetadataInterface::class
+            ));
+        }
+
+        $this->metadataClassName = $metadataClassName;
     }
 
-    /**
-     * Returns class metadata read by the driver. This method calls itself
-     * recursively for each ancestor class.
-     */
     public function getClassMetadata(string $class): ClassMetadataInterface
     {
         $class = ltrim($class, '\\');
@@ -123,8 +127,9 @@ final class ExtendedMetadataFactory
             return $this->loadedMetadata[$metadataIndex];
         }
 
-        if (isset($this->cache)) {
-            if (false !== ($metadata = $this->cache->fetch($metadataIndex))) {
+        if ($this->cache) {
+            $metadata = $metadata = $this->cache->fetch($metadataIndex);
+            if (false !== $metadata) {
                 return $metadata;
             }
         }
@@ -140,7 +145,7 @@ final class ExtendedMetadataFactory
         $metadata->setClassName($class);
         $this->driver->loadClassMetadata($metadata);
 
-        if (isset($this->cache)) {
+        if ($this->cache) {
             $this->cache->save($metadataIndex, $metadata);
         }
         $this->loadedMetadata[$metadataIndex] = $metadata;
@@ -148,18 +153,15 @@ final class ExtendedMetadataFactory
         return $metadata;
     }
 
-    /**
-     * Returns identifier used to store class metadata in cache
-     */
     private function getCacheId(string $class): string
     {
         return $this->cachePrefix . $this->metadataClassName . $class;
     }
 
     /**
-     * Get the extended driver instance which will read the metadata required by extension.
-     *
-     * @throws RuntimeException if driver was not found in extension or it is not compatible
+     * @param MappingDriver $omDriver
+     * @return DriverInterface
+     * @throws RuntimeException
      */
     private function getDriver(MappingDriver $omDriver): DriverInterface
     {
@@ -185,12 +187,12 @@ final class ExtendedMetadataFactory
             $driver = new $driverClassName();
             if (!$driver instanceof DriverInterface) {
                 throw new RuntimeException(sprintf(
-                    "Driver of class %s does not implement required FSi\DoctrineExtensions\Mapping\Driver\DriverInterface",
-                    get_class($driver)
+                    "Driver of class %s does not implement required %s",
+                    get_class($driver),
+                    DriverInterface::class
                 ));
             }
             if ($driver instanceof AbstractFileDriver && $omDriver instanceof FileDriver) {
-                /** @var $driver FileDriver */
                 $driver->setFileLocator($omDriver->getLocator());
             }
             if ($driver instanceof AbstractAnnotationDriver) {
