@@ -7,37 +7,40 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
 use Doctrine\ORM\Query\Expr;
+use FSi\DoctrineExtensions\Exception\InvalidArgumentException;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Article;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticlePage;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\ArticleTranslation;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Category;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Comment;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Section;
 use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder;
 
 class QueryBuilderTest extends BaseTranslatableTest
 {
     public function testJoinTranslationWithWrongJoinType()
     {
-        $this->setExpectedException(
-            'FSi\DoctrineExtensions\Exception\InvalidArgumentException',
-            'Unknown join type "RIGHT"'
-        );
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown join type "RIGHT"');
 
-        (new QueryBuilder($this->_em))->from(self::ARTICLE, 'a')->joinTranslations('a.translations', 'RIGHT');
+        $qb = new QueryBuilder($this->entityManager);
+        $qb->from(Article::class, 'a')->joinTranslations('a.translations', 'RIGHT');
     }
 
     public function testJoinTranslationWithAllDefaultArguments()
     {
-        $qb = new QueryBuilder($this->_em);
-        $qb->from(self::ARTICLE, 'a');
-        $qb->select('a');
-        $qb->joinTranslations('a.translations');
+        $qb = new QueryBuilder($this->entityManager);
+        $qb->select('a')->from(Article::class, 'a')->joinTranslations('a.translations');
 
         $this->assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
-                FROM %s a LEFT JOIN a.translations atranslations',
-                self::ARTICLE
+            $this->normalizeDql(sprintf(
+                'SELECT a FROM %s a LEFT JOIN a.translations atranslations',
+                Article::class
             )),
             $qb->getDQL()
         );
@@ -47,18 +50,18 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testJoinTranslationWithDefaultLocale()
     {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->joinTranslations('a.translations');
 
         $this->assertEquals(
             $this->normalizeDql(sprintf('
                 SELECT a
                 FROM %s a
-                    LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc',
-                self::ARTICLE
+                LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc',
+                Article::class
             )),
             $qb->getDQL()
         );
@@ -66,7 +69,7 @@ class QueryBuilderTest extends BaseTranslatableTest
         $this->assertNotNull($qb->getParameter('atranslationsenloc'));
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -75,18 +78,18 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testInnerJoinTranslationWithCustomLocale()
     {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
-        $qb->joinTranslations('a.translations', Expr\Join::INNER_JOIN, $this->_languagePl);
+        $qb->from(Article::class, 'a');
+        $qb->joinTranslations('a.translations', Expr\Join::INNER_JOIN, self::LANGUAGE_PL);
 
         $this->assertEquals(
             $this->normalizeDql(sprintf('
                 SELECT a
                 FROM %s a
                     INNER JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
@@ -94,7 +97,7 @@ class QueryBuilderTest extends BaseTranslatableTest
         $this->assertNotNull($qb->getParameter('atranslationsplloc'));
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
@@ -103,18 +106,18 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testJoinTranslationWithAllCustomParameters()
     {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
-        $qb->joinTranslations('a.translations', Expr\Join::INNER_JOIN, $this->_languagePl, 't', 'locale');
+        $qb->from(Article::class, 'a');
+        $qb->joinTranslations('a.translations', Expr\Join::INNER_JOIN, self::LANGUAGE_PL, 't', 'locale');
 
         $this->assertEquals(
             $this->normalizeDql(sprintf('
                 SELECT a
                 FROM %s a
                     INNER JOIN a.translations t WITH t.locale = :locale',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
@@ -122,7 +125,7 @@ class QueryBuilderTest extends BaseTranslatableTest
         $this->assertNotNull($qb->getParameter('locale'));
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('locale')->getValue()
         );
 
@@ -131,10 +134,10 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereWithCurrentLocale()
     {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'title', 'some title');
 
         $this->assertEquals(
@@ -143,13 +146,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 WHERE atranslationsen.title = :atitleval',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -158,11 +161,11 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereWithDefaultLocale()
     {
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'title', 'some title');
 
         $this->assertEquals(
@@ -172,18 +175,18 @@ class QueryBuilderTest extends BaseTranslatableTest
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 WHERE CASE WHEN atranslationspl.id IS NOT NULL THEN atranslationspl.title ELSE atranslationsen.title END = :atitleval',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -192,12 +195,12 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereWithCustomAndDefaultLocale()
     {
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
-        $qb->addTranslatableWhere('a', 'title', 'some title', $this->_languageDe);
+        $qb->from(Article::class, 'a');
+        $qb->addTranslatableWhere('a', 'title', 'some title', self::LANGUAGE_DE);
 
         $this->assertEquals(
             $this->normalizeDql(sprintf('
@@ -206,18 +209,18 @@ class QueryBuilderTest extends BaseTranslatableTest
                     LEFT JOIN a.translations atranslationsde WITH atranslationsde.locale = :atranslationsdeloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 WHERE CASE WHEN atranslationsde.id IS NOT NULL THEN atranslationsde.title ELSE atranslationsen.title END = :atitleval',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languageDe,
+            self::LANGUAGE_DE,
             $qb->getParameter('atranslationsdeloc')->getValue()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -226,11 +229,11 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereWithSameCurrentAndDefaultLocale()
     {
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'title', 'some title');
 
         $this->assertEquals(
@@ -239,13 +242,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 WHERE atranslationsen.title = :atitleval',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -254,11 +257,9 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableOrderByWithCurrentLocale()
     {
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $qb = new QueryBuilder($this->_em);
-        $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
-        $qb->addTranslatableOrderBY('a', 'title', 'ASC');
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $qb = new QueryBuilder($this->entityManager);
+        $qb->select('a')->from(Article::class, 'a')->addTranslatableOrderBY('a', 'title', 'ASC');
 
         $this->assertEquals(
             $this->normalizeDql(sprintf('
@@ -266,13 +267,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 ORDER BY atranslationsen.title ASC',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -281,11 +282,11 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableOrderByWithDefaultLocale()
     {
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableOrderBy('a', 'title', 'DESC');
 
         $this->assertEquals(
@@ -295,18 +296,18 @@ class QueryBuilderTest extends BaseTranslatableTest
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 ORDER BY atitle DESC',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -315,12 +316,12 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableOrderByWithCustomAndDefaultLocale()
     {
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
-        $qb->addTranslatableOrderBy('a', 'title', 'DESC', $this->_languageDe);
+        $qb->from(Article::class, 'a');
+        $qb->addTranslatableOrderBy('a', 'title', 'DESC', self::LANGUAGE_DE);
 
         $this->assertEquals(
             $this->normalizeDql(sprintf('
@@ -329,18 +330,18 @@ class QueryBuilderTest extends BaseTranslatableTest
                     LEFT JOIN a.translations atranslationsde WITH atranslationsde.locale = :atranslationsdeloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 ORDER BY atitle DESC',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languageDe,
+            self::LANGUAGE_DE,
             $qb->getParameter('atranslationsdeloc')->getValue()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -349,11 +350,11 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableOrderByWithSameCurrentAndDefaultLocale()
     {
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $qb = new QueryBuilder($this->_em);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableOrderBy('a', 'title', 'DESC');
 
         $this->assertEquals(
@@ -362,13 +363,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 ORDER BY atranslationsen.title DESC',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -377,11 +378,11 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithNull()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', null);
 
         $this->assertEquals(
@@ -390,13 +391,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                 WHERE SIZE(atranslationspl.comments) = 0',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
@@ -405,11 +406,11 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnCollectionWithNull()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'categories', null);
 
         $this->assertEquals(
@@ -417,7 +418,7 @@ class QueryBuilderTest extends BaseTranslatableTest
                 SELECT a
                 FROM %s a
                 WHERE SIZE(a.categories) = 0',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
@@ -427,14 +428,14 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithObject()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
 
         $comment = new Comment();
         $comment->setId(1);
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', $comment);
 
         $this->assertEquals(
@@ -443,13 +444,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                 WHERE :acommentsval MEMBER OF atranslationspl.comments',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
@@ -466,9 +467,9 @@ class QueryBuilderTest extends BaseTranslatableTest
         $category = new Category();
         $category->setId(1);
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'categories', $category);
 
         $this->assertEquals(
@@ -476,7 +477,7 @@ class QueryBuilderTest extends BaseTranslatableTest
                 SELECT a
                 FROM %s a
                 WHERE :acategoriesval MEMBER OF a.categories',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
@@ -491,7 +492,7 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithArray()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
 
         $comment1 = new Comment();
         $comment1->setId(1);
@@ -499,9 +500,9 @@ class QueryBuilderTest extends BaseTranslatableTest
         $comment2->setId(2);
         $whereComments = [$comment1, $comment2];
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', $whereComments);
 
         $this->assertEquals(
@@ -511,13 +512,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN atranslationspl.comments atranslationsplcommentsjoin
                 WHERE atranslationsplcommentsjoin IN(:acommentsval)',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
@@ -537,9 +538,9 @@ class QueryBuilderTest extends BaseTranslatableTest
         $category2->setId(2);
         $whereCategories = [$category1, $category2];
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'categories', $whereCategories);
 
         $this->assertEquals(
@@ -548,7 +549,7 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.categories acategoriesjoin
                 WHERE acategoriesjoin IN(:acategoriesval)',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
@@ -563,12 +564,12 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithNullAndSameDefaultLocale()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languagePl);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_PL);
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', null);
 
         $this->assertEquals(
@@ -577,13 +578,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                 WHERE SIZE(atranslationspl.comments) = 0',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
@@ -592,15 +593,15 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithObjectAndSameDefaultLocale()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languagePl);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_PL);
 
         $comment = new Comment();
         $comment->setId(1);
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', $comment);
 
         $this->assertEquals(
@@ -609,13 +610,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                 WHERE :acommentsval MEMBER OF atranslationspl.comments',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
@@ -629,8 +630,8 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithArrayAndSameDefaultLocale()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languagePl);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_PL);
 
         $comment1 = new Comment();
         $comment1->setId(1);
@@ -638,9 +639,9 @@ class QueryBuilderTest extends BaseTranslatableTest
         $comment2->setId(2);
         $whereComments = [$comment1, $comment2];
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', $whereComments);
 
         $this->assertEquals(
@@ -650,13 +651,13 @@ class QueryBuilderTest extends BaseTranslatableTest
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN atranslationspl.comments atranslationsplcommentsjoin
                 WHERE atranslationsplcommentsjoin IN(:acommentsval)',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
@@ -670,12 +671,12 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithNullAndDifferentDefaultLocale()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', null);
 
         $this->assertEquals(
@@ -689,18 +690,18 @@ class QueryBuilderTest extends BaseTranslatableTest
                     WHEN SIZE(atranslationsen.comments) = 0 THEN TRUE
                     ELSE FALSE
                 END = TRUE',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -709,15 +710,15 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithObjectAndDifferentDefaultLocale()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $comment = new Comment();
         $comment->setId(1);
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', $comment);
 
         $this->assertEquals(
@@ -731,18 +732,18 @@ class QueryBuilderTest extends BaseTranslatableTest
                     WHEN :acommentsval MEMBER OF atranslationsen.comments THEN TRUE
                     ELSE FALSE
                 END = TRUE',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -756,8 +757,8 @@ class QueryBuilderTest extends BaseTranslatableTest
 
     public function testTranslatableWhereOnTranslatableCollectionWithArrayAndDifferentDefaultLocale()
     {
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_translatableListener->setDefaultLocale($this->_languageEn);
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $comment1 = new Comment();
         $comment1->setId(1);
@@ -765,9 +766,9 @@ class QueryBuilderTest extends BaseTranslatableTest
         $comment2->setId(2);
         $whereComments = [$comment1, $comment2];
 
-        $qb = new QueryBuilder($this->_em);
+        $qb = new QueryBuilder($this->entityManager);
         $qb->select('a');
-        $qb->from(self::ARTICLE, 'a');
+        $qb->from(Article::class, 'a');
         $qb->addTranslatableWhere('a', 'comments', $whereComments);
 
         $this->assertEquals(
@@ -783,18 +784,18 @@ class QueryBuilderTest extends BaseTranslatableTest
                     WHEN atranslationsencommentsjoin IN(:acommentsval) THEN TRUE
                     ELSE FALSE
                 END = TRUE',
-                self::ARTICLE
+                Article::class
             )),
             $qb->getDQL()
         );
 
         $this->assertEquals(
-            $this->_languagePl,
+            self::LANGUAGE_PL,
             $qb->getParameter('atranslationsplloc')->getValue()
         );
 
         $this->assertEquals(
-            $this->_languageEn,
+            self::LANGUAGE_EN,
             $qb->getParameter('atranslationsenloc')->getValue()
         );
 
@@ -806,15 +807,15 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->getQuery()->execute();
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [
-            self::CATEGORY,
-            self::SECTION,
-            self::COMMENT,
-            self::ARTICLE,
-            self::ARTICLE_TRANSLATION,
-            self::ARTICLE_PAGE
+            Category::class,
+            Section::class,
+            Comment::class,
+            Article::class,
+            ArticleTranslation::class,
+            ArticlePage::class
         ];
     }
 

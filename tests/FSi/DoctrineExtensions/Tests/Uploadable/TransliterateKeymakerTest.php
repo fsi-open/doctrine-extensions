@@ -7,26 +7,28 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use FSi\DoctrineExtensions\Uploadable\Keymaker\TransliterateEntity;
-use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
-use PHPUnit_Framework_TestCase;
+use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
+use FSi\DoctrineExtensions\Uploadable\Keymaker\TransliterateEntity;
+use PHPUnit\Framework\TestCase;
 
-class TransliterateKeymakerTest extends PHPUnit_Framework_TestCase
+class TransliterateKeymakerTest extends TestCase
 {
-    const PROPERTY = 'property';
-    const ID = 1;
+    public const PROPERTY = 'property';
+    public const ID = 1;
 
-    const ORIGINAL_NAME_SPECIAL = '"[[<###$$or~ i+ginal,?;: \\\   /Na%*&^m!e#$!|>]}.txt"';
-    const PARSED_NAME_SPECIAL = 'or-iginal-name.txt';
+    public const ORIGINAL_NAME_SPECIAL = '"[[<###$$or~ i+ginal,?;: \\\   /Na%*&^m!e#$!|>]}.txt"';
+    public const PARSED_NAME_SPECIAL = 'or-iginal-name.txt';
 
-    const ORIGINAL_NAME_PL = '"ołrigiźćnaąślNaóęńme.txt"';
-    const PARSED_NAME_PL = 'olrigizcnaaslnaoenme.txt';
+    public const ORIGINAL_NAME_PL = '"ołrigiźćnaąślNaóęńme.txt"';
+    public const PARSED_NAME_PL = 'olrigizcnaaslnaoenme.txt';
 
-    const ORIGINAL_NAME_GER = 'örigiünälNÄÜméÖß.txt';
-    const PARSED_NAME_GER = 'origiunalnaumeoss.txt';
+    public const ORIGINAL_NAME_GER = 'örigiünälNÄÜméÖß.txt';
+    public const PARSED_NAME_GER = 'origiunalnaumeoss.txt';
 
     public function testCreation()
     {

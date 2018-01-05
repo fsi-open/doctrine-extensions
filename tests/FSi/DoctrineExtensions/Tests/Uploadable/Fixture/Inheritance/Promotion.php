@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * (c) FSi sp. z o.o. <info@fsi.pl>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -14,25 +23,19 @@ class Promotion extends ExcerptContentPage
     /**
      * @var string
      *
-     * @ORM\Column(name="intro_image_path", type="string", length=255, nullable=true)
+     * @ORM\Column(name="intro_image_path", nullable=true)
      * @Uploadable\Uploadable(targetField="introImage")
      */
     protected $introImagePath;
 
     protected $introImage;
 
-    /**
-     * @return string
-     */
-    public function getIntroImagePath()
+    public function getIntroImagePath(): ?string
     {
         return $this->introImagePath;
     }
 
-    /**
-     * @param string $introImagePath
-     */
-    public function setIntroImagePath($introImagePath)
+    public function setIntroImagePath(?string $introImagePath): void
     {
         $this->introImagePath = $introImagePath;
     }

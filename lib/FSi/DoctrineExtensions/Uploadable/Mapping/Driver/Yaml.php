@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\Mapping\Driver;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -19,23 +21,31 @@ use RuntimeException;
 class Yaml extends AbstractYamlDriver
 {
     /**
-     * {@inheritdoc}
+     * @param ClassMetadataInfo $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
+     * @return void
+     * @throws RuntimeException
+     * @throws MappingException
      */
-    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
-    {
+    protected function loadExtendedClassMetadata(
+        ClassMetadataInfo $baseClassMetadata,
+        ClassMetadataInterface $extendedClassMetadata
+    ): void {
         if (!($extendedClassMetadata instanceof ClassMetadata)) {
             throw new RuntimeException(sprintf(
                 'Expected metadata of class "%s", got "%s"',
-                '\FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata',
+                ClassMetadata::class,
                 get_class($extendedClassMetadata)
             ));
         }
 
         $mapping = $this->getFileMapping($extendedClassMetadata);
-
         if (isset($mapping['type']) && isset($mapping['fields']) && is_array($mapping['fields'])) {
             foreach ($mapping['fields'] as $field => $config) {
-                if (isset($config['fsi']) && is_array($config['fsi']) && isset($config['fsi']['uploadable'])) {
+                if (isset($config['fsi'])
+                    && is_array($config['fsi'])
+                    && isset($config['fsi']['uploadable'])
+                ) {
                     $uploadable = $config['fsi']['uploadable'];
                     if (!is_array($uploadable)) {
                         throw new MappingException(sprintf(
@@ -44,26 +54,21 @@ class Yaml extends AbstractYamlDriver
                             $extendedClassMetadata->getClassName()
                         ));
                     }
+
+                    $keyLength = $uploadable['keyLength'] ?? null;
+                    if (!is_null($keyLength)) {
+                        $keyLength = (int) $keyLength;
+                    }
                     $extendedClassMetadata->addUploadableProperty(
                         $field,
-                        $this->getValue($uploadable, 'targetField'),
-                        $this->getValue($uploadable, 'filesystem'),
-                        $this->getValue($uploadable, 'keymaker'),
-                        $this->getValue($uploadable, 'keyLength'),
-                        $this->getValue($uploadable, 'keyPattern')
+                        $uploadable['targetField'] ?? null,
+                        $uploadable['filesystem'] ?? null,
+                        $uploadable['keymaker'] ?? null,
+                        $keyLength,
+                        $uploadable['keyPattern'] ?? null
                     );
                 }
             }
         }
-    }
-
-    /**
-     * @param array $array
-     * @param string $key
-     * @return mixed
-     */
-    private function getValue(array $array, $key)
-    {
-        return isset($array[$key]) ? $array[$key] : null;
     }
 }

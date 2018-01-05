@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Translatable\Mapping\Driver;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -23,8 +25,10 @@ class Xml extends AbstractXmlDriver
     /**
      * {@inheritdoc}
      */
-    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
-    {
+    protected function loadExtendedClassMetadata(
+        ClassMetadataInfo $baseClassMetadata,
+        ClassMetadataInterface $extendedClassMetadata
+    ): void {
         if (!($extendedClassMetadata instanceof ClassMetadata)) {
             throw new RuntimeException(sprintf(
                 'Expected metadata of class "%s", got "%s"',

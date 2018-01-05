@@ -7,12 +7,15 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Translatable;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\Common\Persistence\ObjectManager;
 use FSi\DoctrineExtensions\Translatable\Mapping\TranslationAssociationMetadata;
 use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
+use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 
 /**
  * @internal
@@ -44,34 +47,22 @@ class ClassTranslationContext
         $this->associationMetadata = $associationMetadata;
     }
 
-    /**
-     * @return ClassMetadata
-     */
-    public function getClassMetadata()
+    public function getClassMetadata(): ClassMetadata
     {
         return $this->classMetadata;
     }
 
-    /**
-     * @return Mapping\ClassMetadata
-     */
-    public function getTranslatableMetadata()
+    public function getTranslatableMetadata(): TranslatableClassMetadata
     {
         return $this->associationMetadata->getClassMetadata();
     }
 
-    /**
-     * @return TranslationAssociationMetadata
-     */
-    public function getAssociationMetadata()
+    public function getAssociationMetadata(): TranslationAssociationMetadata
     {
         return $this->associationMetadata;
     }
 
-    /**
-     * @return ClassMetadata
-     */
-    public function getTranslationMetadata()
+    public function getTranslationMetadata(): ClassMetadata
     {
         $associationName = $this->associationMetadata->getAssociationName();
         $translationClass = $this->classMetadata->getAssociationTargetClass($associationName);
@@ -82,26 +73,23 @@ class ClassTranslationContext
      * @return TranslatableRepositoryInterface
      * @throws Exception\AnnotationException
      */
-    public function getTranslatableRepository()
+    public function getTranslatableRepository(): TranslatableRepositoryInterface
     {
         $repository = $this->objectManager->getRepository($this->classMetadata->getName());
 
         if (!($repository instanceof TranslatableRepositoryInterface)) {
             throw new Exception\AnnotationException(sprintf(
-                'Entity "%s" has "%s" as its "repositoryClass" which does not implement '
-                . '\FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface',
+                'Entity "%s" has "%s" as its "repositoryClass" which does not implement "%s"',
                 $this->classMetadata->getName(),
-                get_class($repository)
+                get_class($repository),
+                TranslatableRepositoryInterface::class
             ));
         }
 
         return $repository;
     }
 
-    /**
-     * @return ObjectManager
-     */
-    public function getObjectManager()
+    public function getObjectManager(): ObjectManager
     {
         return $this->objectManager;
     }

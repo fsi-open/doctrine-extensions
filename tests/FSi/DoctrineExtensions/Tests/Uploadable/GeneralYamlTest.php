@@ -7,59 +7,79 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User1;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User2;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User3;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User4;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User6;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User7;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
+use TypeError;
 
 class GeneralYamlTest extends GeneralTest
 {
-    const USER = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\User';
-    const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Common\\';
-
     /**
-     * @dataProvider wrongClasses
+     * @dataProvider wrongMappings
      */
     public function testWrongMapping($class)
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\MappingException');
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+        $this->expectException(MappingException::class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
-    public static function wrongClasses()
+    /**
+     * @dataProvider wrongTypes()
+     */
+    public function testWrongTypes(string $class)
     {
-        $classes = [];
-        for ($i = 1; $i < 8; $i++) {
-            $classes[] = [self::BASE . 'User' . $i];
-        }
-        return $classes;
+        $this->expectException(TypeError::class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
+    }
+
+    public function wrongMappings()
+    {
+        return [
+            [User1::class],
+            [User4::class],
+            [User6::class],
+            [User7::class]
+        ];
+    }
+
+    public function wrongTypes()
+    {
+        return [
+            [User2::class],
+            [User3::class],
+            [User5::class]
+        ];
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function getMetadataDriverImplementation()
+    protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new YamlDriver(__DIR__.'/Fixture/Yaml/config');
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return \FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\User
+     * @return User
      */
     protected function getUser()
     {
         return new User();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getUsedEntityFixtures()
     {
-        return [
-            self::USER,
-        ];
+        return [User::class];
     }
 }

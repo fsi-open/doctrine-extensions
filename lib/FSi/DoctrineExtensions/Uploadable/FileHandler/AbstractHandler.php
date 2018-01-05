@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
@@ -15,10 +17,13 @@ abstract class AbstractHandler implements FileHandlerInterface
 {
     /**
      * @param mixed $file
-     * @return \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @return RuntimeException
      */
-    protected function generateNotSupportedException($file)
+    protected function generateNotSupportedException($file): RuntimeException
     {
-        return new RuntimeException(sprintf('Resource "%s" not supported.', is_object($file) ? get_class($file) : gettype($file)));
+        return new RuntimeException(sprintf(
+            'Resource "%s" not supported.',
+            is_object($file) ? get_class($file) : gettype($file)
+        ));
     }
 }

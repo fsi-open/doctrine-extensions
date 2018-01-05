@@ -7,8 +7,11 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 
+use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\ChainHandler;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
 
@@ -27,19 +30,23 @@ class ChainHandlerTest extends BaseHandlerTest
 
     public function testInitializableWithoutHandlers()
     {
-        new ChainHandler();
-        new ChainHandler([]);
+        $handler = new ChainHandler();
+        $this->assertInstanceof(ChainHandler::class, $handler);
+        $handler = new ChainHandler([]);
+        $this->assertInstanceof(ChainHandler::class, $handler);
+
     }
 
     public function testIsNotInitializableWithWrongHandlers2()
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\RuntimeException');
-        new ChainHandler(['not handler']);
+        $this->expectException(RuntimeException::class);
+        new ChainHandler(['not a handler']);
     }
 
     public function testIsInitializableWithHandlers()
     {
-        new ChainHandler([$this->getHandlerMock()]);
+        $handler = new ChainHandler([$this->getHandlerMock()]);
+        $this->assertInstanceof(ChainHandler::class, $handler);
     }
 
     public function testPassesCallToHandlersInProperOrder()
@@ -125,8 +132,8 @@ class ChainHandlerTest extends BaseHandlerTest
         $this->assertEquals($result, $handler->getContent($input));
     }
 
-    protected function getHandlerMock()
+    protected function getHandlerMock(): FileHandlerInterface
     {
-        return $this->createMock('FSi\\DoctrineExtensions\\Uploadable\\FileHandler\\FileHandlerInterface');
+        return $this->createMock(FileHandlerInterface::class);
     }
 }

@@ -7,50 +7,72 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User1;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User2;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User3;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User4;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User6;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User7;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User8;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User9;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Annotation\User10;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
+use TypeError;
 
 class GeneralAnnotationTest extends GeneralTest
 {
-    const USER = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\User';
-    const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Annotation\\';
-
     /**
-     * @dataProvider wrongClasses
+     * @dataProvider wrongAnnotations()
      */
-    public function testWrongAnnotations($class)
+    public function testWrongAnnotations(string $class)
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\MappingException');
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
-    }
-
-    public static function wrongClasses()
-    {
-        $classes = [];
-        for ($i = 1; $i < 11; $i++) {
-            $classes[] = [self::BASE . 'User' . $i];
-        }
-        return $classes;
+        $this->expectException(MappingException::class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return \FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User
+     * @dataProvider wrongTypes()
      */
-    protected function getUser()
+    public function testWrongTypes(string $class)
+    {
+        $this->expectException(TypeError::class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
+    }
+
+    public function wrongAnnotations()
+    {
+        return [
+            [User2::class],
+            [User3::class],
+            [User4::class],
+            [User6::class],
+            [User7::class],
+        ];
+    }
+
+    public function wrongTypes()
+    {
+        return [
+            [User1::class],
+            [User8::class],
+            [User9::class],
+            [User10::class],
+            [User11::class],
+        ];
+    }
+
+    protected function getUser(): User
     {
         return new User();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getUsedEntityFixtures()
     {
-        return [
-            self::USER,
-        ];
+        return [User::class];
     }
 }

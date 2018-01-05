@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\FileHandler;
 
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
@@ -14,13 +16,13 @@ use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 class ChainHandler extends AbstractHandler
 {
     /**
-     * @var array
+     * @var FileHandlerInterface[]
      */
     protected $handlers = [];
 
     /**
      * @param array $handlers
-     * @throws \FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException
+     * @throws RuntimeException
      */
     public function __construct(array $handlers = [])
     {
@@ -28,7 +30,8 @@ class ChainHandler extends AbstractHandler
         foreach ($handlers as $handler) {
             if (!$handler instanceof FileHandlerInterface) {
                 throw new RuntimeException(sprintf(
-                    'Handlers must be instances of FSi\\DoctrineExtensions\\Uploadable\\FileHandler\\FileHandlerInterface, "%s" given at position "%d"',
+                    'Handlers must be instances of "%s", "%s" given at position "%d"',
+                    FileHandlerInterface::class,
                     is_object($handler) ? get_class($handler) : gettype($handler),
                     $i
                 ));
@@ -39,42 +42,36 @@ class ChainHandler extends AbstractHandler
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getContent($file)
+    public function getContent($file): string
     {
         foreach ($this->handlers as $handler) {
             if ($handler->supports($file)) {
                 return $handler->getContent($file);
             }
         }
+
         throw $this->generateNotSupportedException($file);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName($file)
+    public function getName($file): string
     {
         foreach ($this->handlers as $handler) {
             if ($handler->supports($file)) {
                 return $handler->getName($file);
             }
         }
+
         throw $this->generateNotSupportedException($file);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function supports($file)
+    public function supports($file): bool
     {
         foreach ($this->handlers as $handler) {
             if ($handler->supports($file)) {
                 return true;
             }
         }
+
         return false;
     }
 }

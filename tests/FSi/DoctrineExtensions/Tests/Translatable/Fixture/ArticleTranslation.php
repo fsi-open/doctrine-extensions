@@ -7,9 +7,12 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Traits\SubtitleTranslationTrait;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
@@ -25,7 +28,7 @@ class ArticleTranslation
     use SubtitleTranslationTrait;
 
     /**
-     * @ORM\Column(name="id", type="bigint")
+     * @ORM\Column(type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @var integer $id
@@ -71,7 +74,7 @@ class ArticleTranslation
     protected $introImage;
 
     /**
-     * @var ArrayCollection|Comment[]
+     * @var Collection|Comment[]
      *
      * @ORM\OneToMany(
      *      targetEntity="Comment",
@@ -114,13 +117,12 @@ class ArticleTranslation
         $this->pages = new ArrayCollection();
     }
 
-    public function setTitle($title)
+    public function setTitle(?string $title): void
     {
         $this->title = $title;
-        return $this;
     }
 
-    public function getTitle()
+    public function getTitle(): ?string
     {
         return $this->title;
     }
@@ -141,40 +143,32 @@ class ArticleTranslation
         $this->introduction = $introduction;
     }
 
-    public function setContents($contents)
+    public function setContents(?string $contents): void
     {
         $this->contents = $contents;
-        return $this;
     }
 
-    public function getContents()
+    public function getContents(): ?string
     {
         return $this->contents;
     }
 
-    public function setLocale($locale)
+    public function setLocale(?string $locale): void
     {
         $this->locale = (string) $locale;
-        return $this;
     }
 
-    public function getLocale()
+    public function getLocale(): ?string
     {
         return $this->locale;
     }
 
-    /**
-     * @return string
-     */
-    public function getIntroImagePath()
+    public function getIntroImagePath(): ?string
     {
         return $this->introImagePath;
     }
 
-    /**
-     * @param string $introImagePath
-     */
-    public function setIntroImagePath($introImagePath)
+    public function setIntroImagePath(?string $introImagePath): void
     {
         $this->introImagePath = $introImagePath;
     }
@@ -189,94 +183,61 @@ class ArticleTranslation
         $this->introImage = $introImage;
     }
 
-    /**
-     * @return ArrayCollection|Comment[]
-     */
-    public function getComments()
+    public function getComments(): Collection
     {
         return $this->comments;
     }
 
-    /**
-     * @param Comment $comment
-     */
-    public function addComment(Comment $comment)
+    public function addComment(Comment $comment): void
     {
         $comment->setArticleTranslation($this);
         $this->comments->add($comment);
     }
 
-    /**
-     * @param Comment $comment
-     */
-    public function removeComment(Comment $comment)
+    public function removeComment(Comment $comment): void
     {
         $this->comments->removeElement($comment);
         $comment->setArticleTranslation(null);
     }
 
-    /**
-     * @return ArrayCollection|Comment[]
-     */
-    public function getSpecialComments()
+    public function getSpecialComments(): Collection
     {
         return $this->specialComments;
     }
 
-    /**
-     * @param Comment $comment
-     */
-    public function addSpecialComment(Comment $comment)
+    public function addSpecialComment(Comment $comment): void
     {
         $this->specialComments->add($comment);
     }
 
-    /**
-     * @param Comment $comment
-     */
-    public function removeSpecialComment(Comment $comment)
+    public function removeSpecialComment(Comment $comment): void
     {
         $this->specialComments->removeElement($comment);
     }
 
-    /**
-     * @return Article
-     */
-    public function getArticle()
+    public function getArticle(): ?Article
     {
         return $this->article;
     }
 
-    /**
-     * @param Article $article
-     */
-    public function setArticle($article)
+    public function setArticle(?Article $article): void
     {
         $this->article = $article;
     }
 
-    /**
-     * @return Collection|ArticlePage[]
-     */
-    public function getPages()
+    public function getPages(): Collection
     {
         return $this->pages;
     }
 
-    /**
-     * @param ArticlePage $page
-     */
-    public function addPage(ArticlePage $page)
+    public function addPage(ArticlePage $page): void
     {
         if (!$this->pages->contains($page)) {
             $this->pages->add($page);
         }
     }
 
-    /**
-     * @param ArticlePage $page
-     */
-    public function removePage(ArticlePage $page)
+    public function removePage(ArticlePage $page): void
     {
         $this->pages->removeElement($page);
     }

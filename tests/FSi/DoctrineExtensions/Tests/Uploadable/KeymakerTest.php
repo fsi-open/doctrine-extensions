@@ -7,17 +7,20 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
-use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use PHPUnit\Framework\TestCase;
 
-class KeymakerTest extends \PHPUnit_Framework_TestCase
+class KeymakerTest extends TestCase
 {
-    const PROPERTY = 'property';
-    const ID = 1;
-    const ORIGINAL_NAME = 'originalName.txt';
+    public const PROPERTY = 'property';
+    public const ID = 1;
+    public const ORIGINAL_NAME = 'originalName.txt';
 
     public function testCreation()
     {

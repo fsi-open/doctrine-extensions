@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Translatable\Mapping\Driver;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -18,14 +20,20 @@ use RuntimeException;
 
 class Annotation extends AbstractAnnotationDriver
 {
-    const TRANSLATABLE = 'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation\\Translatable';
-    const LOCALE = 'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation\\Locale';
+    public const TRANSLATABLE = 'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation\\Translatable';
+    public const LOCALE = 'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation\\Locale';
 
     /**
-     * {@inheritDoc}
+     * @param ClassMetadataInfo $baseClassMetadata
+     * @param ClassMetadataInterface $extendedClassMetadata
+     * @return void
+     * @throws RuntimeException
+     * @throws AnnotationException
      */
-    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
-    {
+    protected function loadExtendedClassMetadata(
+        ClassMetadataInfo $baseClassMetadata,
+        ClassMetadataInterface $extendedClassMetadata
+    ): void {
         if (!($extendedClassMetadata instanceof ClassMetadata)) {
             throw new RuntimeException(sprintf(
                 'Expected metadata of class "%s", got "%s"',

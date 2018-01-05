@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions;
 
 use Closure;
@@ -29,8 +31,9 @@ class PropertyManipulator
      * @param object $object
      * @param string $property
      * @param mixed $value
+     * @return void
      */
-    public function setAndSaveValue($object, $property, $value)
+    public function setAndSaveValue($object, string $property, $value): void
     {
         $this->setPropertyValue($object, $property, $value);
         $this->saveValue($object, $property);
@@ -41,7 +44,7 @@ class PropertyManipulator
      * @param string $property
      * @return mixed
      */
-    public function getPropertyValue($object, $property)
+    public function getPropertyValue($object, string $property)
     {
         $this->assertIsObject($object);
 
@@ -54,8 +57,9 @@ class PropertyManipulator
      * @param object $object
      * @param string $property
      * @param mixed $value
+     * @return void
      */
-    public function setPropertyValue($object, $property, $value)
+    public function setPropertyValue($object, string $property, $value): void
     {
         $this->assertIsObject($object);
 
@@ -67,9 +71,9 @@ class PropertyManipulator
     /**
      * @param object $object
      * @param string $property
-     * @return boolean
+     * @return bool
      */
-    public function hasSavedValue($object, $property)
+    public function hasSavedValue($object, string $property): bool
     {
         $this->assertIsObject($object);
 
@@ -83,10 +87,10 @@ class PropertyManipulator
     /**
      * @param object $object
      * @param string $property
-     * @param boolean $notSavedAsNull
-     * @return boolean
+     * @param bool $notSavedAsNull
+     * @return bool
      */
-    public function hasChangedValue($object, $property, $notSavedAsNull = false)
+    public function hasChangedValue($object, string $property, bool $notSavedAsNull = false): bool
     {
         $currentValue = $this->getPropertyValue($object, $property);
 
@@ -101,9 +105,9 @@ class PropertyManipulator
      * @param object $object
      * @param string $property
      * @return mixed
-     * @throws BadMethodCallException
+     * @throws RuntimeException
      */
-    public function getSavedValue($object, $property)
+    public function getSavedValue($object, string $property)
     {
         $this->assertIsObject($object);
 
@@ -121,8 +125,9 @@ class PropertyManipulator
     /**
      * @param object $object
      * @param string $property
+     * @return void
      */
-    public function saveValue($object, $property)
+    public function saveValue($object, string $property): void
     {
         $oid = spl_object_hash($object);
         if (!isset($this->savedValues[$oid])) {
@@ -133,10 +138,12 @@ class PropertyManipulator
     }
 
     /**
+     * @param object $object
      * @param string $property
      * @return object|string
+     * @throws RuntimeException
      */
-    private function getSourceObjectForProperty($object, $property)
+    private function getSourceObjectForProperty($object, string $property)
     {
         $source = $object;
         while (!property_exists($source, $property) && get_parent_class($source) !== false) {
@@ -155,10 +162,11 @@ class PropertyManipulator
     }
 
     /**
-     * @param $object
+     * @param object $object
      * @throws InvalidArgumentException
+     * @return void
      */
-    private function assertIsObject($object)
+    private function assertIsObject($object): void
     {
         if (is_object($object)) {
             return;

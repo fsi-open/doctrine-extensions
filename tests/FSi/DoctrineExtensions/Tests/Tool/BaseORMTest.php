@@ -7,15 +7,21 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Tool;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Logging\DebugStack;
+use Doctrine\DBAL\Logging\SQLLogger;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
@@ -26,54 +32,49 @@ use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 use FSi\DoctrineExtensions\Uploadable\UploadableListener;
 use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * This is the base test class for other Doctrine related tests.
  */
-abstract class BaseORMTest extends PHPUnit_Framework_TestCase
+abstract class BaseORMTest extends TestCase
 {
     /**
      * @var EntityManagerInterface
      */
-    protected $_em;
+    protected $entityManager;
 
     /**
      * @var TranslatableListener
      */
-    protected $_translatableListener;
+    protected $translatableListener;
 
     /**
      * @var UploadableListener
      */
-    protected $_uploadableListener;
+    protected $uploadableListener;
 
     /**
-     * @var DebugStack
+     * @var SQLLogger
      */
-    protected $_logger;
-
-    /**
-     * @var Filesystem
-     */
-    protected $_filesystem1;
+    protected $logger;
 
     /**
      * @var Filesystem
      */
-    protected $_filesystem2;
+    protected $filesystem1;
+
+    /**
+     * @var Filesystem
+     */
+    protected $filesystem2;
 
     protected function setUp()
     {
-        $this->_em = $this->getEntityManager();
+        $this->entityManager = $this->getEntityManager();
     }
 
-    /**
-     * Creates default mapping driver.
-     *
-     * @return \Doctrine\ORM\Mapping\Driver\Driver
-     */
-    protected function getMetadataDriverImplementation()
+    protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new AnnotationDriver($_ENV['annotation_reader']);
     }
@@ -83,7 +84,7 @@ abstract class BaseORMTest extends PHPUnit_Framework_TestCase
      */
     protected function getMockAnnotatedConfig()
     {
-        $config = $this->createMock('Doctrine\ORM\Configuration');
+        $config = $this->createMock(Configuration::class);
         $config->expects($this->once())
             ->method('getProxyDir')
             ->will($this->returnValue(TESTS_TEMP_DIR))
@@ -101,7 +102,7 @@ abstract class BaseORMTest extends PHPUnit_Framework_TestCase
 
         $config->expects($this->once())
             ->method('getClassMetadataFactoryName')
-            ->will($this->returnValue('Doctrine\\ORM\\Mapping\\ClassMetadataFactory'))
+            ->will($this->returnValue(ClassMetadataFactory::class))
         ;
 
         $config->expects($this->any())
@@ -132,45 +133,42 @@ abstract class BaseORMTest extends PHPUnit_Framework_TestCase
 
         $config->expects($this->any())
             ->method('getDefaultRepositoryClassName')
-            ->will($this->returnValue('Doctrine\\ORM\\EntityRepository'))
+            ->will($this->returnValue(EntityRepository::class))
         ;
 
-        $this->_logger = new DebugStack();
-        $this->_logger->enabled = false;
+        $this->logger = new DebugStack();
+        $this->logger->enabled = false;
 
         $config->expects($this->any())
             ->method('getSQLLogger')
-            ->will($this->returnValue($this->_logger))
+            ->will($this->returnValue($this->logger))
         ;
 
         return $config;
     }
 
-    /**
-     * @return EntityManagerInterface
-     */
-    protected function getEntityManager()
+    protected function getEntityManager(): EntityManagerInterface
     {
-        $evm = new EventManager;
+        $evm = new EventManager();
 
-        $this->_translatableListener = new TranslatableListener();
-        $evm->addEventSubscriber($this->_translatableListener);
+        $this->translatableListener = new TranslatableListener();
+        $evm->addEventSubscriber($this->translatableListener);
 
-        $this->_filesystem1 = new Filesystem(new Local(FILESYSTEM1));
-        $this->_filesystem2 = new Filesystem(new Local(FILESYSTEM2));
+        $this->filesystem1 = new Filesystem(new Local(FILESYSTEM1));
+        $this->filesystem2 = new Filesystem(new Local(FILESYSTEM2));
 
         $handler = new FileHandler\ChainHandler([
             new FileHandler\GaufretteHandler(),
             new FileHandler\SplFileInfoHandler(),
         ]);
         $keymaker = new Entity();
-        $this->_uploadableListener = new UploadableListener(
-            ['one' => $this->_filesystem1, 'two' => $this->_filesystem2],
+        $this->uploadableListener = new UploadableListener(
+            ['one' => $this->filesystem1, 'two' => $this->filesystem2],
             $handler
         );
-        $this->_uploadableListener->setDefaultFilesystem($this->_filesystem1);
-        $this->_uploadableListener->setDefaultKeymaker($keymaker);
-        $evm->addEventSubscriber($this->_uploadableListener);
+        $this->uploadableListener->setDefaultFilesystem($this->filesystem1);
+        $this->uploadableListener->setDefaultKeymaker($keymaker);
+        $evm->addEventSubscriber($this->uploadableListener);
 
         $config = $this->getMockAnnotatedConfig();
         $conn = DriverManager::getConnection(

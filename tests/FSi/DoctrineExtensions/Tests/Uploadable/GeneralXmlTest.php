@@ -7,43 +7,67 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User1;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User2;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User3;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User4;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User6;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User7;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
+use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\Car;
+use FSi\DoctrineExtensions\Uploadable\Exception\MappingException;
+use TypeError;
 
 class GeneralXmlTest extends GeneralTest
 {
-    const USER = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\User';
-    const BASE = 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Common\\';
-
     /**
-     * @dataProvider wrongClasses
+     * @dataProvider wrongMappings
      */
     public function testWrongMapping($class)
     {
-        $this->setExpectedException('FSi\\DoctrineExtensions\\Uploadable\\Exception\\MappingException');
-        $this->_uploadableListener->getExtendedMetadata($this->_em, $class);
+        $this->expectException(MappingException::class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
-    public static function wrongClasses()
+    /**
+     * @dataProvider wrongTypes()
+     */
+    public function testWrongTypes(string $class)
     {
-        $classes = [];
-        for ($i = 1; $i < 8; $i++) {
-            $classes[] = [self::BASE . 'User' . $i];
-        }
-        return $classes;
+        $this->expectException(TypeError::class);
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
+    }
+
+    public function wrongMappings()
+    {
+        return [
+            [User1::class],
+            [User2::class],
+            [User3::class],
+            [User4::class],
+            [User7::class],
+        ];
+    }
+
+    public function wrongTypes()
+    {
+        return [
+            [User6::class],
+        ];
     }
 
     public function testMappingWithOtherNamespaces()
     {
-        $this->_uploadableListener->getExtendedMetadata($this->_em, 'FSi\\DoctrineExtensions\\Tests\\Uploadable\\Fixture\\Xml\\Car');
+        $this->uploadableListener->getExtendedMetadata($this->entityManager, Car::class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getMetadataDriverImplementation()
+    protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new XmlDriver(__DIR__.'/Fixture/Xml/config');
     }
@@ -51,7 +75,7 @@ class GeneralXmlTest extends GeneralTest
     /**
      * {@inheritdoc}
      *
-     * @return \FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Xml\User
+     * @return User
      */
     protected function getUser()
     {
@@ -63,8 +87,6 @@ class GeneralXmlTest extends GeneralTest
      */
     protected function getUsedEntityFixtures()
     {
-        return [
-            self::USER,
-        ];
+        return [User::class];
     }
 }

@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -47,34 +49,34 @@ class ArticlePage
         $this->title = $title;
     }
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getTitle()
+    public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    public function setTitle($title)
+    public function setTitle(?string $title): void
     {
         $this->title = $title;
     }
 
-    public function getArticles()
+    public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(ArticleTranslation $article)
+    public function addArticle(ArticleTranslation $article): void
     {
         if (!$this->articles->contains($article)) {
             $this->articles->add($article);
         }
     }
 
-    public function removeArticle(ArticleTranslation $article)
+    public function removeArticle(ArticleTranslation $article): void
     {
         $this->articles->remove($article);
     }

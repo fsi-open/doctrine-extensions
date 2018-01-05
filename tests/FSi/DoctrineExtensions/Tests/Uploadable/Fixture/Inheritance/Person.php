@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Inheritance;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -42,17 +44,17 @@ class Person
      */
     private $file;
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getFilePath()
+    public function getFilePath(): ?string
     {
         return $this->filePath;
     }
 
-    public function setFilePath($filePath)
+    public function setFilePath(?string $filePath): void
     {
         $this->filePath = $filePath;
     }

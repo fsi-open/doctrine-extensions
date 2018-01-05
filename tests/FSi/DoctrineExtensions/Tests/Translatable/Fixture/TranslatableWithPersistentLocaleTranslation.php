@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -18,7 +20,7 @@ use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 class TranslatableWithPersistentLocaleTranslation
 {
     /**
-     * @ORM\Column(name="id", type="bigint")
+     * @ORM\Column(type="integer")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      * @var integer $id
@@ -50,35 +52,32 @@ class TranslatableWithPersistentLocaleTranslation
      */
     private $translatable;
 
-    public function setTitle($title)
+    public function setTitle(?string $title): void
     {
         $this->title = $title;
-        return $this;
     }
 
-    public function getTitle()
+    public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    public function setContents($contents)
+    public function setContents(?string $contents): void
     {
         $this->contents = $contents;
-        return $this;
     }
 
-    public function getContents()
+    public function getContents(): ?string
     {
         return $this->contents;
     }
 
-    public function setLocale($locale)
+    public function setLocale(?string $locale): void
     {
-        $this->locale = (string)$locale;
-        return $this;
+        $this->locale = (string) $locale;
     }
 
-    public function getLocale()
+    public function getLocale(): ?string
     {
         return $this->locale;
     }

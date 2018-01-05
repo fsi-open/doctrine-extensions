@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Translatable\Mapping;
 
 use FSi\DoctrineExtensions\Metadata\AbstractClassMetadata;
@@ -24,15 +26,18 @@ class ClassMetadata extends AbstractClassMetadata
     protected $translatableProperties = [];
 
     /**
-     * Add specified property as translatable. The real translation is stored in $targetField inside
-     * $translationAssociation.
+     * Add specified property as translatable. The real translation is stored in
+     * $targetField inside $translationAssociation.
      *
      * @param string $translationAssociation
      * @param string $property
      * @param string|null $targetField
      */
-    public function addTranslatableProperty($translationAssociation, $property, $targetField = null)
-    {
+    public function addTranslatableProperty(
+        string $translationAssociation,
+        string $property,
+        ?string $targetField = null
+    ) {
         if (!isset($targetField)) {
             $targetField = $property;
         }
@@ -42,22 +47,18 @@ class ClassMetadata extends AbstractClassMetadata
         $this->translatableProperties[$translationAssociation][$property] = $targetField;
     }
 
-    /**
-     * Returns true if associated class has any translatable properties.
-     *
-     * @return boolean
-     */
-    public function hasTranslatableProperties()
+    public function hasTranslatableProperties(): bool
     {
         return !empty($this->translatableProperties);
     }
 
     /**
-     * Returns array of all translatable properties indexed by translation association name and then by property name
+     * Returns array of all translatable properties indexed by translation
+     * association name and then by property name.
      *
      * @return array
      */
-    public function getTranslatableProperties()
+    public function getTranslatableProperties(): array
     {
         return $this->translatableProperties;
     }
@@ -65,7 +66,7 @@ class ClassMetadata extends AbstractClassMetadata
     /**
      * @return TranslationAssociationMetadata[]
      */
-    public function getTranslationAssociationMetadatas()
+    public function getTranslationAssociationMetadatas(): array
     {
         $metadatas = [];
 

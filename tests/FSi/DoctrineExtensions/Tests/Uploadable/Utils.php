@@ -7,18 +7,15 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use DirectoryIterator;
 
 class Utils
 {
-    /**
-     * Clears given directory.
-     *
-     * @param string $path
-     */
-    public static function deleteRecursive($path)
+    public static function deleteRecursive(string $path)
     {
         foreach (new DirectoryIterator($path) as $file) {
             if ($file->isDot()) {

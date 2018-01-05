@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
@@ -27,11 +29,6 @@ class DriverChain implements DriverInterface
      */
     private $drivers = [];
 
-    /**
-     * Accepts an array of DriverInterface instances indexed by class namespace
-     *
-     * @param \FSi\DoctrineExtensions\Metadata\Driver\DriverInterface[] $drivers
-     */
     public function __construct(array $drivers = [])
     {
         foreach ($drivers as $namespace => $driver) {
@@ -39,49 +36,36 @@ class DriverChain implements DriverInterface
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory)
+    public function setBaseMetadataFactory(ClassMetadataFactory $metadataFactory): void
     {
         foreach ($this->drivers as $drivers) {
             foreach ($drivers as $driver) {
                 $driver->setBaseMetadataFactory($metadataFactory);
             }
         }
+
         $this->baseMetadataFactory = $metadataFactory;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getBaseMetadataFactory()
+    public function getBaseMetadataFactory(): ClassMetadataFactory
     {
         if (!isset($this->baseMetadataFactory)) {
             throw new RuntimeException('Required base metadata factory has not been set on this driver.');
         }
+
         return $this->baseMetadataFactory;
     }
 
-    /**
-     * @param \FSi\DoctrineExtensions\Metadata\Driver\DriverInterface $driver
-     * @param string $namespace
-     * @return \FSi\DoctrineExtensions\Metadata\Driver\DriverChain
-     */
-    public function addDriver(DriverInterface $driver, $namespace)
+    public function addDriver(DriverInterface $driver, string $namespace): void
     {
         if (!isset($this->drivers[$namespace])) {
             $this->drivers[$namespace] = [];
         }
-        $this->drivers[$namespace][] = $driver;
 
-        return $this;
+        $this->drivers[$namespace][] = $driver;
     }
 
-    /**
-     * @param \FSi\DoctrineExtensions\Mapping\Driver\ClassMetadataInterface $metadata
-     */
-    public function loadClassMetadata(ClassMetadataInterface $metadata)
+    public function loadClassMetadata(ClassMetadataInterface $metadata): void
     {
         $className = $metadata->getClassName();
         foreach ($this->drivers as $namespace => $drivers) {

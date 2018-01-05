@@ -7,36 +7,37 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\Page;
+use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\PageTranslation;
 
 class YAMLTest extends BaseTranslatableTest
 {
-    const PAGE = 'FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Common\\Page';
-    const PAGE_TRANSLATION = 'FSi\\DoctrineExtensions\\Tests\\Translatable\\Fixture\\Common\\PageTranslation';
-
     public function testYAMLMapping()
     {
-        $this->_logger->enabled = true;
+        $this->logger->enabled = true;
 
         $page = new Page();
-        $page->setLocale($this->_languagePl);
+        $page->setLocale(self::LANGUAGE_PL);
         $page->setContent(self::POLISH_CONTENTS_1);
-        $this->_translatableListener->setLocale($this->_languagePl);
-        $this->_em->persist($page);
-        $this->_em->flush();
+        $this->translatableListener->setLocale(self::LANGUAGE_PL);
+        $this->entityManager->persist($page);
+        $this->entityManager->flush();
 
-        $page->setLocale($this->_languageEn);
+        $page->setLocale(self::LANGUAGE_EN);
         $page->setContent(self::ENGLISH_CONTENTS_1);
-        $this->_translatableListener->setLocale($this->_languageEn);
-        $this->_em->flush();
-        $this->_em->refresh($page);
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+        $this->entityManager->flush();
+        $this->entityManager->refresh($page);
 
         $this->assertEquals(
             9,
-            count($this->_logger->queries),
+            count($this->logger->queries),
             'Flushing executed wrong number of queries'
         );
 
@@ -50,23 +51,23 @@ class YAMLTest extends BaseTranslatableTest
         $this->assertAttributeEquals(
             self::POLISH_CONTENTS_1,
             'content',
-            $page->getTranslation($this->_languagePl)
+            $page->getTranslation(self::LANGUAGE_PL)
         );
 
         $this->assertAttributeEquals(
             self::ENGLISH_CONTENTS_1,
             'content',
-            $page->getTranslation($this->_languageEn)
+            $page->getTranslation(self::LANGUAGE_EN)
         );
     }
 
-    protected function getMetadataDriverImplementation()
+    protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new YamlDriver(sprintf('%s/Fixture/YAML/config', __DIR__));
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
-        return [self::PAGE, self::PAGE_TRANSLATION];
+        return [Page::class, PageTranslation::class];
     }
 }

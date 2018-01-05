@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\Mapping\Driver;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -17,21 +19,19 @@ use RuntimeException;
 
 class Xml extends AbstractXmlDriver
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
-    {
+    protected function loadExtendedClassMetadata(
+        ClassMetadataInfo $baseClassMetadata,
+        ClassMetadataInterface $extendedClassMetadata
+    ): void {
         if (!($extendedClassMetadata instanceof ClassMetadata)) {
             throw new RuntimeException(sprintf(
                 'Expected metadata of class "%s", got "%s"',
-                '\FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata',
+                ClassMetadata::class,
                 get_class($extendedClassMetadata)
             ));
         }
 
         $mapping = $this->getFileMapping($extendedClassMetadata);
-
         if (isset($mapping->field)) {
             foreach ($mapping->field as $fieldMapping) {
                 $fieldMappingDoctrine = $fieldMapping;

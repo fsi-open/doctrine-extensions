@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Uploadable\Mapping\Driver;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -17,17 +19,16 @@ use RuntimeException;
 
 class Annotation extends AbstractAnnotationDriver
 {
-    const UPLOADABLE = 'FSi\\DoctrineExtensions\\Uploadable\\Mapping\\Annotation\\Uploadable';
+    public const UPLOADABLE = 'FSi\\DoctrineExtensions\\Uploadable\\Mapping\\Annotation\\Uploadable';
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function loadExtendedClassMetadata(ClassMetadataInfo $baseClassMetadata, ClassMetadataInterface $extendedClassMetadata)
-    {
+    protected function loadExtendedClassMetadata(
+        ClassMetadataInfo $baseClassMetadata,
+        ClassMetadataInterface $extendedClassMetadata
+    ): void {
         if (!($extendedClassMetadata instanceof ClassMetadata)) {
             throw new RuntimeException(sprintf(
                 'Expected metadata of class "%s", got "%s"',
-                '\FSi\DoctrineExtensions\Uploadable\Mapping\ClassMetadata',
+                ClassMetadata::class,
                 get_class($extendedClassMetadata)
             ));
         }
@@ -42,7 +43,10 @@ class Annotation extends AbstractAnnotationDriver
                 continue;
             }
 
-            $uploadableAnnotation = $this->getAnnotationReader()->getPropertyAnnotation($property, self::UPLOADABLE);
+            $uploadableAnnotation = $this->getAnnotationReader()->getPropertyAnnotation(
+                $property,
+                self::UPLOADABLE
+            );
             if ($uploadableAnnotation) {
                 $extendedClassMetadata->addUploadableProperty(
                     $property->getName(),

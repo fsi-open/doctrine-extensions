@@ -7,28 +7,35 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-class DriversTest extends \PHPUnit_Framework_TestCase
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\Annotation;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\SimplifiedXml;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\SimplifiedYaml;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\Xml;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Driver\Yaml;
+use PHPUnit\Framework\TestCase;
+
+class DriversTest extends TestCase
 {
     /**
      * @dataProvider drivers
      */
-    public function testDrivers($class)
+    public function testDrivers(string $class)
     {
         $this->assertTrue(class_exists($class));
     }
 
     public static function drivers()
     {
-        $base = 'FSi\\DoctrineExtensions\\Uploadable\\Mapping\\Driver\\';
-
         return [
-            [$base . 'Xml'],
-            [$base . 'Yaml'],
-            [$base . 'Annotation'],
-            [$base . 'SimplifiedXml'],
-            [$base . 'SimplifiedYaml'],
+            [Xml::class],
+            [Yaml::class],
+            [Annotation::class],
+            [SimplifiedXml::class],
+            [SimplifiedYaml::class],
         ];
     }
 }

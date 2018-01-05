@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Translatable\Mapping;
 
 class TranslationAssociationMetadata
@@ -26,33 +28,24 @@ class TranslationAssociationMetadata
      */
     private $properties;
 
-    public function __construct(ClassMetadata $classMetadata, $association, $properties)
+    public function __construct(ClassMetadata $classMetadata, string $association, array $properties)
     {
         $this->classMetadata = $classMetadata;
         $this->association = $association;
         $this->properties = $properties;
     }
 
-    /**
-     * @return ClassMetadata
-     */
-    public function getClassMetadata()
+    public function getClassMetadata(): ClassMetadata
     {
         return $this->classMetadata;
     }
 
-    /**
-     * @return string
-     */
-    public function getAssociationName()
+    public function getAssociationName(): string
     {
         return $this->association;
     }
 
-    /**
-     * @return array
-     */
-    public function getProperties()
+    public function getProperties(): array
     {
         return $this->properties;
     }

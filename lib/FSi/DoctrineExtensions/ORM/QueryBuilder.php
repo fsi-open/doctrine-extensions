@@ -7,6 +7,8 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\ORM;
 
 use Doctrine\ORM\Query as BaseQuery;
@@ -14,7 +16,7 @@ use Doctrine\ORM\QueryBuilder as BaseQueryBuilder;
 
 class QueryBuilder extends BaseQueryBuilder
 {
-    public function getQuery()
+    public function getQuery(): BaseQuery
     {
         $query = parent::getQuery();
         $query->setHint(BaseQuery::HINT_INCLUDE_META_COLUMNS, true);

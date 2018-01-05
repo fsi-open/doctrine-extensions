@@ -7,16 +7,21 @@
  * file that was distributed with this source code.
  */
 
+declare(strict_types=1);
+
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
 use FSi\DoctrineExtensions\Uploadable\File;
+use Gaufrette\File as GaufretteFile;
+use Gaufrette\Filesystem;
+use PHPUnit\Framework\TestCase;
 
-class FileTest extends \PHPUnit_Framework_TestCase
+class FileTest extends TestCase
 {
     public function testIsInstanceOfGaufretteFile()
     {
         $file = new File('key', $this->getFilesystemMock());
-        $this->assertTrue($file instanceof \Gaufrette\File);
+        $this->assertTrue($file instanceof GaufretteFile);
     }
 
     public function testFileIsAbleToReturnItsFilesystem()
@@ -29,6 +34,6 @@ class FileTest extends \PHPUnit_Framework_TestCase
 
     protected function getFilesystemMock()
     {
-        return $this->getMockBuilder('Gaufrette\\Filesystem')->disableOriginalConstructor()->getMock();
+        return $this->getMockBuilder(Filesystem::class)->disableOriginalConstructor()->getMock();
     }
 }
