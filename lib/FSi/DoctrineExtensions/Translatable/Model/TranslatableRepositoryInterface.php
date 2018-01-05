@@ -43,8 +43,8 @@ interface TranslatableRepositoryInterface
      */
     public function createTranslatableQueryBuilder(
         string $alias,
-        ?string $translationAlias = 't',
-        ?string $defaultTranslationAlias = 'dt'
+        string $translationAlias = 't',
+        string $defaultTranslationAlias = 'dt'
     ): QueryBuilder;
 
     /**
@@ -58,7 +58,7 @@ interface TranslatableRepositoryInterface
     public function hasTranslation(
         $object,
         string $locale,
-        ?string $translationAssociation = 'translations'
+        string $translationAssociation = 'translations'
     ): bool;
 
     /**
@@ -73,7 +73,7 @@ interface TranslatableRepositoryInterface
     public function getTranslation(
         $object,
         string $locale,
-        ?string $translationAssociation = 'translations'
+        string $translationAssociation = 'translations'
     );
 
     /**
@@ -83,7 +83,7 @@ interface TranslatableRepositoryInterface
      */
     public function getTranslations(
         $object,
-        ?string $translationAssociation = 'translations'
+        string $translationAssociation = 'translations'
     ): Collection;
 
     /**
@@ -94,6 +94,6 @@ interface TranslatableRepositoryInterface
     public function findTranslation(
         $object,
         string $locale,
-        ?string $translationAssociation = 'translations'
+        string $translationAssociation = 'translations'
     );
 }

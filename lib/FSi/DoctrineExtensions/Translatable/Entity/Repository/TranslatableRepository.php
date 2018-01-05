@@ -15,7 +15,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\Mapping\MappingException;
 use Doctrine\ORM\QueryBuilder as BaseQueryBuilder;
 use Doctrine\ORM\Query\Expr;
 use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
@@ -80,8 +79,8 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
 
     public function createTranslatableQueryBuilder(
         string $alias,
-        ?string $translationAlias = 't',
-        ?string $defaultTranslationAlias = 'dt'
+        string $translationAlias = 't',
+        string $defaultTranslationAlias = 'dt'
     ): BaseQueryBuilder {
         $qb = new QueryBuilder($this->getEntityManager());
         $qb->select($alias)->from($this->getEntityName(), $alias);
@@ -107,21 +106,19 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     public function hasTranslation(
         $object,
         string $locale,
-        ?string $translationAssociation = 'translations'
+        string $translationAssociation = 'translations'
     ): bool {
-        $translation = $this->findTranslation(
+        return null !== $this->findTranslation(
             $object,
             $locale,
             $translationAssociation
         );
-
-        return ($translation !== null);
     }
 
     public function getTranslation(
         $object,
         string $locale,
-        ?string $translationAssociation = 'translations'
+        string $translationAssociation = 'translations'
     ) {
         $this->validateObject($object);
         $this->validateTranslationAssociation($translationAssociation);
@@ -132,23 +129,21 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
             $translationAssociation
         );
 
-        if (isset($translation)) {
+        if (null !== $translation) {
             return $translation;
         }
 
-        $translation = $this->createTranslation(
+        return $this->createTranslation(
             $object,
             $translationAssociation,
             $locale
         );
-
-        return $translation;
     }
 
     public function findTranslation(
         $object,
         string $locale,
-        ?string $translationAssociation = 'translations'
+        string $translationAssociation = 'translations'
     ) {
         $this->validateObject($object);
         $this->validateTranslationAssociation($translationAssociation);
@@ -172,7 +167,7 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
      */
     public function getTranslations(
         $object,
-        ?string $translationAssociation = 'translations'
+        string $translationAssociation = 'translations'
     ): Collection {
         $translations = $this->getClassMetadata()->getFieldValue($object, $translationAssociation);
 
@@ -218,18 +213,11 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
     ) {
         $translation = $this->getTranslationMetadata($translationAssociation)
             ->getReflectionClass()
-            ->newInstance();
+            ->newInstance()
+        ;
 
-        $this->setTranslationObject(
-            $translationAssociation,
-            $translation,
-            $object
-        );
-        $this->setTranslationLocale(
-            $translationAssociation,
-            $translation,
-            $locale
-        );
+        $this->setTranslationObject($translationAssociation, $translation, $object);
+        $this->setTranslationLocale($translationAssociation, $translation, $locale);
 
         if ($this->areTranslationsIndexedByLocale($translationAssociation)) {
             $this->getTranslations($object, $translationAssociation)->set($locale, $translation);
@@ -246,7 +234,7 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
      */
     protected function getTranslatableListener(): TranslatableListener
     {
-        if (!isset($this->listener)) {
+        if (!$this->listener) {
             $evm = $this->getEntityManager()->getEventManager();
             foreach ($evm->getListeners() as $listeners) {
                 foreach ($listeners as $listener) {
@@ -257,21 +245,20 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
             }
         }
 
-        if (isset($this->listener)) {
-            return $this->listener;
+        if (null === $this->listener) {
+            throw new RuntimeException('Cannot find TranslatableListener in EntityManager\'s EventManager');
         }
 
-        throw new RuntimeException('Cannot find TranslatableListener in EntityManager\'s EventManager');
+        return $this->listener;
     }
 
     protected function getExtendedMetadata(): TranslatableMetadata
     {
         if (!isset($this->extendedMetadata)) {
-            $this->extendedMetadata = $this->getTranslatableListener()
-                ->getExtendedMetadata(
-                    $this->getEntityManager(),
-                    $this->getClassName()
-                );
+            $this->extendedMetadata = $this->getTranslatableListener()->getExtendedMetadata(
+                $this->getEntityManager(),
+                $this->getClassName()
+            );
         }
 
         return $this->extendedMetadata;
@@ -291,20 +278,17 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         return $this->translationMetadata[$translationAssociation];
     }
 
-    protected function getTranslationExtendedMetadata(
-        string $translationAssociation
-    ): TranslatableMetadata {
-        if (!isset($this->translationExtendedMetadata[$translationAssociation])) {
-            $listener = $this->getTranslatableListener();
-
-            $this->translationExtendedMetadata[$translationAssociation] =
-                $listener->getExtendedMetadata(
+    protected function getTranslationExtendedMetadata(string $association): TranslatableMetadata
+    {
+        if (!isset($this->translationExtendedMetadata[$association])) {
+            $this->translationExtendedMetadata[$association] =
+                $this->getTranslatableListener()->getExtendedMetadata(
                     $this->getEntityManager(),
-                    $this->getClassMetadata()->getAssociationTargetClass($translationAssociation)
+                    $this->getClassMetadata()->getAssociationTargetClass($association)
                 );
         }
 
-        return $this->translationExtendedMetadata[$translationAssociation];
+        return $this->translationExtendedMetadata[$association];
     }
 
     /**
@@ -352,7 +336,7 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         }
 
         $translationExtendedMeta = $this->getTranslationExtendedMetadata($translationAssociation);
-        return ($translationAssociationMapping['indexBy'] == $translationExtendedMeta->localeProperty);
+        return $translationAssociationMapping['indexBy'] == $translationExtendedMeta->localeProperty;
     }
 
     /**
@@ -430,10 +414,10 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
             }
         }
 
-        if (isset($limit)) {
+        if (null !== $limit) {
             $qb->setMaxResults($limit);
         }
-        if (isset($offset)) {
+        if (null !== $offset) {
             return $qb->setFirstResult($offset);
         }
 
