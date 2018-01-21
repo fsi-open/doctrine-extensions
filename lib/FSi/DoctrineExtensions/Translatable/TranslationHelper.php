@@ -182,7 +182,7 @@ class TranslationHelper
         foreach ($properties as $property => $translationField) {
             $value = $this->propertyManipulator->getPropertyValue($object, $property);
             if ($translationMeta->isCollectionValuedAssociation($translationField)
-                && count($value)
+                && (is_iterable($value) && count($value))
                 || !$translationMeta->isCollectionValuedAssociation($translationField)
                 && null !== $value
             ) {
