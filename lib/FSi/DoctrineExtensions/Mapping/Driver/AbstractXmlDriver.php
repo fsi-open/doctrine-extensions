@@ -98,8 +98,10 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
                 continue;
             }
 
-            foreach ($dom->getElementsByTagNameNS($xmlns->nodeValue, '*') as $elem) {
-                $elem->parentNode->removeChild($elem);
+            $domNodeList = $dom->getElementsByTagNameNS($xmlns->nodeValue, '*');
+            for ($i = $domNodeList->length; --$i >= 0; ) {
+                $element = $domNodeList->item($i);
+                $element->parentNode->removeChild($element);
             }
         }
 
