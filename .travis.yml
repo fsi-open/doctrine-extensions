@@ -10,6 +10,7 @@ matrix:
 sudo: false
 
 before_script:
-  - composer update $COMPOSER_FLAGS
+    - composer validate
+    - composer update $COMPOSER_FLAGS
 
 script: bin/phpunit
