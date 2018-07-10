@@ -31,6 +31,9 @@
         "doctrine/orm": "~2.4",
         "phpunit/phpunit": "3.7.*"
     },
+    "conflict": {
+        "phpunit/php-file-iterator": ">=2.0.0"
+    },
     "autoload": {
         "psr-4": {
             "FSi\\DoctrineExtensions\\": "lib/FSi/DoctrineExtensions/"

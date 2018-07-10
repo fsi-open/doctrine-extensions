@@ -395,10 +395,10 @@ class UploadableListener extends MappedEventSubscriber
                 $filesystem = $this->computeFilesystem($config);
 
                 // Since file has changed, the old one should be removed.
-                if ($oldKey = $accessor->getValue($object, $property)) {
-                    if ($oldFile = $propertyObserver->getSavedValue($object, $config['targetField'])) {
-                        $this->addToDelete($oldFile);
-                    }
+                if ($accessor->getValue($object, $property)
+                    && $propertyObserver->hasSavedValue($object, $config['targetField'])
+                    && $oldFile = $propertyObserver->getSavedValue($object, $config['targetField'])) {
+                    $this->addToDelete($oldFile);
                 }
 
                 if (empty($file)) {
