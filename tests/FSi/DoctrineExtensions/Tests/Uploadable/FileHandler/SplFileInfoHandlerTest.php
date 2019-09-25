@@ -41,6 +41,14 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
         $this->assertEquals(self::CONTENT, $content);
     }
 
+    public function testGetContentOnEmptyFile()
+    {
+        $emptyFile = new SplTempFileObject();
+
+        $content = $this->handler->getContent($emptyFile);
+        $this->assertEquals('', $content);
+    }
+
     public function testGetContentOnTempFile()
     {
         $input = new SplTempFileObject();
