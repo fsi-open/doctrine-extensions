@@ -120,6 +120,10 @@ class SplFileInfoHandler extends AbstractHandler
 
     private function tryReadFile(SplFileObject $fileObject, int $length): string
     {
+        if ($length === 0) {
+            return '';
+        }
+
         $content = $fileObject->fread($length);
 
         if (false === $content) {
