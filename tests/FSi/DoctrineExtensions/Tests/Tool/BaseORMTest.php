@@ -33,6 +33,9 @@ use FSi\DoctrineExtensions\Uploadable\UploadableListener;
 use Gaufrette\Adapter\Local;
 use Gaufrette\Filesystem;
 use PHPUnit\Framework\TestCase;
+use const FILESYSTEM1;
+use const FILESYSTEM2;
+use const TESTS_TEMP_DIR;
 
 /**
  * This is the base test class for other Doctrine related tests.

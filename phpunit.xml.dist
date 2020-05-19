@@ -9,6 +9,10 @@
          stopOnFailure="false"
          bootstrap="tests/bootstrap.php"
 >
+    <php>
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak" />
+    </php>
+
     <testsuites>
         <testsuite name="FSi Doctrine Extensions">
             <directory suffix=".php">tests/FSi/DoctrineExtensions/Tests/</directory>

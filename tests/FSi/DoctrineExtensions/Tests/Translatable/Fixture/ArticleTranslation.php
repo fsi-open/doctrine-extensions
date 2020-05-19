@@ -117,6 +117,11 @@ class ArticleTranslation
         $this->pages = new ArrayCollection();
     }
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
     public function setTitle(?string $title): void
     {
         $this->title = $title;

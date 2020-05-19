@@ -119,7 +119,7 @@ class UploadableListener extends MappedEventSubscriber
         return $this->filesystems;
     }
 
-    public function getSubscribedEvents()
+    public function getSubscribedEvents(): array
     {
         return ['preFlush', 'postLoad', 'postPersist', 'postFlush', 'postRemove'];
     }
@@ -352,7 +352,9 @@ class UploadableListener extends MappedEventSubscriber
                 $filesystem = $this->computeFilesystem($config);
 
                 // Since file has changed, the old one should be removed.
-                if (null !== $propertyManipulator->getPropertyValue($object, $property)) {
+                if (null !== $propertyManipulator->getPropertyValue($object, $property)
+                    && true === $propertyManipulator->hasSavedValue($object, $config['targetField'])
+                ) {
                     $oldFile = $propertyManipulator->getSavedValue($object, $config['targetField']);
                     if (null !== $oldFile) {
                         $this->addToDelete($oldFile);
