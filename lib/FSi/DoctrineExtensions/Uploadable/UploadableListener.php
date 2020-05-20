@@ -83,7 +83,7 @@ class UploadableListener extends MappedEventSubscriber
      */
     public function setFilesystems($filesystems)
     {
-        if (!is_array($filesystems) && !($filesystems instanceof FilesystemMap)) {
+        if (false === is_array($filesystems) && false === $filesystems instanceof FilesystemMap) {
             throw new RuntimeException(sprintf(
                 'Option "filesystems" must be an array or "%s", "%s" given.',
                 FilesystemMap::class,
@@ -91,7 +91,7 @@ class UploadableListener extends MappedEventSubscriber
             ));
         }
 
-        if ($filesystems instanceof FilesystemMap) {
+        if (true === $filesystems instanceof FilesystemMap) {
             $this->filesystems = $filesystems->all();
         } else {
             $this->filesystems = [];
@@ -119,7 +119,7 @@ class UploadableListener extends MappedEventSubscriber
         return $this->filesystems;
     }
 
-    public function getSubscribedEvents()
+    public function getSubscribedEvents(): array
     {
         return ['preFlush', 'postLoad', 'postPersist', 'postFlush', 'postRemove'];
     }
@@ -140,7 +140,7 @@ class UploadableListener extends MappedEventSubscriber
      */
     public function getDefaultFilesystem(): Filesystem
     {
-        if (!$this->hasDefaultFilesystem()) {
+        if (false === $this->hasDefaultFilesystem()) {
             throw new RuntimeException('There\'s no default filesystem set.');
         }
 
@@ -159,7 +159,7 @@ class UploadableListener extends MappedEventSubscriber
      */
     public function getFilesystem(string $id): Filesystem
     {
-        if (!$this->hasFilesystem($id)) {
+        if (false === $this->hasFilesystem($id)) {
             throw new RuntimeException(sprintf('There is no filesystem for id "%s".', $id));
         }
 
@@ -177,7 +177,7 @@ class UploadableListener extends MappedEventSubscriber
         $object = $eventArgs->getEntity();
         $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
 
-        if ($uploadableMeta->hasUploadableProperties()) {
+        if (true === $uploadableMeta->hasUploadableProperties()) {
             $this->loadFiles($entityManager, $object, $uploadableMeta);
         }
     }
@@ -188,7 +188,7 @@ class UploadableListener extends MappedEventSubscriber
         $object = $eventArgs->getEntity();
         $meta = $entityManager->getClassMetadata(get_class($object));
         $uploadableMeta = $this->getExtendedMetadata($entityManager, $meta->name);
-        if (!($uploadableMeta instanceof UploadableClassMetadata)) {
+        if (false === $uploadableMeta instanceof UploadableClassMetadata) {
             throw new InvalidArgumentException(sprintf(
                 'Expected class metadata "%s" got "%s"',
                 UploadableClassMetadata::class,
@@ -196,7 +196,7 @@ class UploadableListener extends MappedEventSubscriber
             ));
         }
 
-        if ($uploadableMeta->hasUploadableProperties()) {
+        if (true === $uploadableMeta->hasUploadableProperties()) {
             $this->updateFiles($entityManager, $object, $uploadableMeta);
             $uow = $entityManager->getUnitOfWork();
             $uow->computeChangeSet($meta, $object);
@@ -216,9 +216,10 @@ class UploadableListener extends MappedEventSubscriber
         foreach ($unitOfWork->getIdentityMap() as $entities) {
             foreach ($entities as $object) {
                 $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
-                if (!$uploadableMeta->hasUploadableProperties()) {
+                if (false === $uploadableMeta->hasUploadableProperties()) {
                     continue;
                 }
+
                 $this->updateFiles($entityManager, $object, $uploadableMeta);
             }
         }
@@ -227,7 +228,7 @@ class UploadableListener extends MappedEventSubscriber
     public function postFlush(PostFlushEventArgs $eventArgs)
     {
         foreach ($this->toDelete as $file) {
-            if ($file->exists()) {
+            if (true === $file->exists()) {
                 $file->delete();
             }
         }
@@ -239,7 +240,7 @@ class UploadableListener extends MappedEventSubscriber
         $object = $eventArgs->getEntity();
         $uploadableMeta = $this->getObjectExtendedMetadata($entityManager, $object);
 
-        if ($uploadableMeta->hasUploadableProperties()) {
+        if (true === $uploadableMeta->hasUploadableProperties()) {
             $this->deleteFiles($entityManager, $object, $uploadableMeta);
         }
     }
@@ -270,7 +271,7 @@ class UploadableListener extends MappedEventSubscriber
 
     public function hasDefaultKeymaker(): bool
     {
-        return isset($this->defaultKeymaker);
+        return $this->defaultKeymaker instanceof KeymakerInterface;
     }
 
     /**
@@ -279,7 +280,7 @@ class UploadableListener extends MappedEventSubscriber
      */
     public function getDefaultKeymaker(): KeymakerInterface
     {
-        if (!$this->hasDefaultKeymaker()) {
+        if (false === $this->hasDefaultKeymaker()) {
             throw new RuntimeException('There is no default keymaker set.');
         }
 
@@ -313,14 +314,15 @@ class UploadableListener extends MappedEventSubscriber
         $propertyManipulator = $this->getPropertyManipulator($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             $key = $propertyManipulator->getPropertyValue($object, $property);
-
-            if (!empty($key)) {
-                $propertyManipulator->setAndSaveValue(
-                    $object,
-                    $config['targetField'],
-                    new File($key, $this->computeFilesystem($config))
-                );
+            if (null === $key) {
+                continue;
             }
+
+            $propertyManipulator->setAndSaveValue(
+                $object,
+                $config['targetField'],
+                new File($key, $this->computeFilesystem($config))
+            );
         }
     }
 
@@ -334,36 +336,38 @@ class UploadableListener extends MappedEventSubscriber
         EntityManagerInterface $entityManager,
         $object,
         UploadableClassMetadata $uploadableMeta
-    ) {
+    ): void {
         $this->assertIsObject($object);
-        if ($object instanceof Proxy) {
+        if (true === $object instanceof Proxy) {
             $object->__load();
         }
 
         $id = implode('-', $this->extractIdentifier($entityManager, $object));
         $propertyManipulator = $this->getPropertyManipulator($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
-            if (!$propertyManipulator->hasSavedValue($object, $config['targetField'])
-                || $propertyManipulator->hasChangedValue($object, $config['targetField'])
+            if (false === $propertyManipulator->hasSavedValue($object, $config['targetField'])
+                || true === $propertyManipulator->hasChangedValue($object, $config['targetField'])
             ) {
                 $file = $propertyManipulator->getPropertyValue($object, $config['targetField']);
                 $filesystem = $this->computeFilesystem($config);
 
                 // Since file has changed, the old one should be removed.
-                if ($propertyManipulator->getPropertyValue($object, $property)) {
+                if (null !== $propertyManipulator->getPropertyValue($object, $property)
+                    && true === $propertyManipulator->hasSavedValue($object, $config['targetField'])
+                ) {
                     $oldFile = $propertyManipulator->getSavedValue($object, $config['targetField']);
-                    if ($oldFile) {
+                    if (null !== $oldFile) {
                         $this->addToDelete($oldFile);
                     }
                 }
 
-                if (empty($file)) {
+                if (null === $file) {
                     $propertyManipulator->setPropertyValue($object, $property, null);
                     $propertyManipulator->saveValue($object, $config['targetField']);
                     continue;
                 }
 
-                if (!$this->getFileHandler()->supports($file)) {
+                if (false === $this->getFileHandler()->supports($file)) {
                     throw new RuntimeException(sprintf(
                         'Can\'t handle resource of type "%s".',
                         is_object($file) ? get_class($file) : gettype($file)
@@ -408,7 +412,7 @@ class UploadableListener extends MappedEventSubscriber
         $propertyManipulator = $this->getPropertyManipulator($entityManager);
         foreach ($uploadableMeta->getUploadableProperties() as $property => $config) {
             $oldKey = $propertyManipulator->getPropertyValue($object, $property);
-            if ($oldKey) {
+            if (null !== $oldKey) {
                 $this->addToDelete(new File($oldKey, $this->computeFilesystem($config)));
             }
         }
@@ -425,7 +429,7 @@ class UploadableListener extends MappedEventSubscriber
         ClassMetadata $baseClassMetadata,
         ClassMetadataInterface $extendedClassMetadata
     ): void {
-        if (!($extendedClassMetadata instanceof UploadableClassMetadata)) {
+        if (false === $extendedClassMetadata instanceof UploadableClassMetadata) {
             throw new InvalidArgumentException(sprintf(
                 'Expected metadata of class "%s", got "%s"',
                 UploadableClassMetadata::class,
@@ -435,7 +439,7 @@ class UploadableListener extends MappedEventSubscriber
 
         foreach ($extendedClassMetadata->getUploadableProperties() as $field => $options) {
             $className = $baseClassMetadata->getName();
-            if (empty($options['targetField'])) {
+            if (false === $this->arrayKeyNotBlank('targetField', $options)) {
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" does not '
                     . 'have required "targetField" attribute, or attribute is empty.',
@@ -444,7 +448,7 @@ class UploadableListener extends MappedEventSubscriber
                 ));
             }
 
-            if (!$this->propertyExistsInClassTree($className, $options['targetField'])) {
+            if (false === $this->propertyExistsInClassTree($className, $options['targetField'])) {
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" has "targetField"'
                     . ' set to "%s", which doesn\'t exist.',
@@ -454,7 +458,7 @@ class UploadableListener extends MappedEventSubscriber
                 ));
             }
 
-            if ($baseClassMetadata->hasField($options['targetField'])) {
+            if (true === $baseClassMetadata->hasField($options['targetField'])) {
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" have "targetField"'
                     . ' that points at already mapped field ("%s").',
@@ -464,7 +468,7 @@ class UploadableListener extends MappedEventSubscriber
                 ));
             }
 
-            if (!$baseClassMetadata->hasField($field)) {
+            if (false === $baseClassMetadata->hasField($field)) {
                 throw new MappingException(sprintf(
                     'Property "%s" of class "%s" have mapping "Uploadable" but isn\'t'
                     . ' mapped as Doctrine\'s column.',
@@ -474,7 +478,7 @@ class UploadableListener extends MappedEventSubscriber
                 ));
             }
 
-            if (!is_null($options['keyLength']) && !is_numeric($options['keyLength'])) {
+            if (null !== $options['keyLength'] && false === is_numeric($options['keyLength'])) {
                 throw new MappingException(sprintf(
                     'Property "%s" of class "%s" have mapping "Uploadable" with key'
                     . ' length is not a number.',
@@ -484,7 +488,7 @@ class UploadableListener extends MappedEventSubscriber
                 ));
             }
 
-            if (!is_null($options['keyLength']) && $options['keyLength'] < 1) {
+            if (null !== $options['keyLength'] && 1 > $options['keyLength']) {
                 throw new MappingException(sprintf(
                     'Property "%s" of class "%s" have mapping "Uploadable" with'
                     . ' key length less than 1.',
@@ -494,7 +498,7 @@ class UploadableListener extends MappedEventSubscriber
                 ));
             }
 
-            if (!is_null($options['keymaker']) && !$options['keymaker'] instanceof KeymakerInterface) {
+            if (null !== $options['keymaker'] && false === $options['keymaker'] instanceof KeymakerInterface) {
                 throw new MappingException(sprintf(
                     'Mapping "Uploadable" in property "%s" of class "%s" does have '
                     . 'keymaker that isn\'t instance of expected "%s"'
@@ -520,7 +524,7 @@ class UploadableListener extends MappedEventSubscriber
 
     private function computeFilesystem(array $config): Filesystem
     {
-        return !empty($config['filesystem'])
+        return true === $this->arrayKeyNotBlank('filesystem', $config)
             ? $this->getFilesystem($config['filesystem'])
             : $this->getDefaultFilesystem()
         ;
@@ -528,12 +532,27 @@ class UploadableListener extends MappedEventSubscriber
 
     private function computeKeymaker(array $config): KeymakerInterface
     {
-        return !empty($config['keymaker']) ? $config['keymaker'] : $this->getDefaultKeymaker();
+        if (true === array_key_exists('keymaker', $config)
+            && true === $config['keymaker'] instanceof KeymakerInterface
+        ) {
+            $keymaker = $config['keymaker'];
+        } else {
+            $keymaker = $this->getDefaultKeymaker();
+        }
+
+        return $keymaker;
     }
 
     private function computeKeyLength(array $config): int
     {
-        return !empty($config['keyLength']) ? $config['keyLength'] : $this->getDefaultKeyLength();
+        $keyLength = $this->getDefaultKeyLength();
+        if (true === $this->arrayKeyNotNull('keyLength', $config)) {
+            if (0 < $config['keyLength']) {
+                $keyLength = $config['keyLength'];
+            }
+        }
+
+        return $keyLength;
     }
 
     /**
@@ -561,16 +580,16 @@ class UploadableListener extends MappedEventSubscriber
         while ($filesystem->has($newKey = $keymaker->createKey($object, $property, $id, $fileName, $keyPattern))) {
             $matches = [];
             $match = preg_match('/(.*)_(\d+)(\.[^\.]*)?$/', $fileName, $matches);
-            if ($match) {
+            if (1 === $match) {
                 $fileName = sprintf(
                     '%s_%s%s',
                     $matches[1],
                     strval($matches[2] + 1),
-                    isset($matches[3]) ? $matches[3] : ''
+                    true === $this->arrayKeyNotNull(3, $matches) ? $matches[3] : ''
                 );
             } else {
                 $fileParts = explode('.', $fileName);
-                if (count($fileParts) > 1) {
+                if (1 < count($fileParts)) {
                     $fileParts[count($fileParts)  - 2] .= '_1';
                     $fileName = implode('.', $fileParts);
                 } else {
@@ -579,7 +598,7 @@ class UploadableListener extends MappedEventSubscriber
             }
         }
 
-        if (mb_strlen($newKey) > $keyLength) {
+        if ($keyLength < mb_strlen($newKey)) {
             throw new RuntimeException(sprintf(
                 'Generated key exceeded limit of %d characters (had %d characters).',
                 $keyLength,
@@ -597,7 +616,7 @@ class UploadableListener extends MappedEventSubscriber
      */
     private function extractIdentifier(EntityManagerInterface $em, $object): array
     {
-        return $object instanceof Proxy
+        return true === $object instanceof Proxy
             ? $em->getUnitOfWork()->getEntityIdentifier($object)
             : $em->getClassMetadata(get_class($object))->getIdentifierValues($object)
         ;
@@ -605,12 +624,12 @@ class UploadableListener extends MappedEventSubscriber
 
     private function propertyExistsInClassTree(string $class, string $property): bool
     {
-        if (property_exists($class, $property)) {
+        if (true === property_exists($class, $property)) {
             return true;
         }
 
         $parentClass = get_parent_class($class);
-        if ($parentClass !== false) {
+        if (false !== $parentClass) {
             return $this->propertyExistsInClassTree($parentClass, $property);
         }
 
@@ -626,7 +645,7 @@ class UploadableListener extends MappedEventSubscriber
     private function getPropertyManipulator(EntityManagerInterface $entityManager): PropertyManipulator
     {
         $oid = spl_object_hash($entityManager);
-        if (!isset($this->propertyManipulators[$oid])) {
+        if (false === $this->arrayKeyNotNull($oid, $this->propertyManipulators)) {
             $this->propertyManipulators[$oid] = new PropertyManipulator();
         }
 
@@ -640,13 +659,24 @@ class UploadableListener extends MappedEventSubscriber
      */
     private function assertIsObject($object): void
     {
-        if (is_object($object)) {
-            return;
+        if (false === is_object($object)) {
+            throw new InvalidArgumentException(sprintf(
+                'Expected an object, got "%s"',
+                gettype($object)
+            ));
         }
+    }
 
-        throw new InvalidArgumentException(sprintf(
-            'Expected an object, got "%s"',
-            gettype($object)
-        ));
+    private function arrayKeyNotNull($key, array $array): bool
+    {
+        return true === array_key_exists($key, $array) && null !== $array[$key];
+    }
+
+    private function arrayKeyNotBlank($key, array $array): bool
+    {
+        return true === array_key_exists($key, $array)
+            && null !== $array[$key]
+            && '' !== $array[$key]
+        ;
     }
 }

@@ -18,7 +18,7 @@ use RuntimeException;
 /**
  * @internal
  */
-class PropertyManipulator
+final class PropertyManipulator
 {
     /**
      * Internal value storage
@@ -78,9 +78,9 @@ class PropertyManipulator
         $this->assertIsObject($object);
 
         $oid = spl_object_hash($object);
-
-        return isset($this->savedValues[$oid])
-            && array_key_exists($property, $this->savedValues[$oid])
+        return true === array_key_exists($oid, $this->savedValues)
+            && null !== $this->savedValues[$oid]
+            && true === array_key_exists($property, $this->savedValues[$oid])
         ;
     }
 
@@ -93,9 +93,8 @@ class PropertyManipulator
     public function hasChangedValue($object, string $property, bool $notSavedAsNull = false): bool
     {
         $currentValue = $this->getPropertyValue($object, $property);
-
-        if ($notSavedAsNull && !$this->hasSavedValue($object, $property)) {
-            return isset($currentValue);
+        if (true === $notSavedAsNull && false === $this->hasSavedValue($object, $property)) {
+            return null !== $currentValue;
         }
 
         return $this->getSavedValue($object, $property) !== $currentValue;
@@ -112,7 +111,10 @@ class PropertyManipulator
         $this->assertIsObject($object);
 
         $oid = spl_object_hash($object);
-        if (!isset($this->savedValues[$oid]) || !array_key_exists($property, $this->savedValues[$oid])) {
+        if (false === array_key_exists($oid, $this->savedValues)
+            || null === $this->savedValues[$oid]
+            || false === array_key_exists($property, $this->savedValues[$oid])
+        ) {
             throw new RuntimeException(sprintf(
                 'Value of property "%s" from specified object was not previously saved',
                 $property
@@ -130,7 +132,7 @@ class PropertyManipulator
     public function saveValue($object, string $property): void
     {
         $oid = spl_object_hash($object);
-        if (!isset($this->savedValues[$oid])) {
+        if (false === array_key_exists($oid, $this->savedValues) || null === $this->savedValues[$oid]) {
             $this->savedValues[$oid] = [];
         }
 
@@ -146,11 +148,11 @@ class PropertyManipulator
     private function getSourceObjectForProperty($object, string $property)
     {
         $source = $object;
-        while (!property_exists($source, $property) && get_parent_class($source) !== false) {
+        while (false === property_exists($source, $property) && false !== get_parent_class($source)) {
             $source = get_parent_class($source);
         }
 
-        if (!property_exists($source, $property)) {
+        if (false === property_exists($source, $property)) {
             throw new RuntimeException(sprintf(
                 'Property "%s" does not exist in class "%s" or any of it\'s parents.',
                 $property,
@@ -168,7 +170,7 @@ class PropertyManipulator
      */
     private function assertIsObject($object): void
     {
-        if (is_object($object)) {
+        if (true === is_object($object)) {
             return;
         }
 

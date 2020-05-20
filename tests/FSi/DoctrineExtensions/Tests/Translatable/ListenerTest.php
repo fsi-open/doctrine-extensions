@@ -554,18 +554,25 @@ class ListenerTest extends BaseTranslatableTest
      */
     public function testTranslatableUplodableProperties()
     {
+        $this->translatableListener->setDefaultLocale(self::LANGUAGE_PL);
+
         $article = $this->createArticle();
         $article->setIntroImage(new SplFileInfo(TESTS_PATH . self::TEST_FILE1));
+
         $this->entityManager->persist($article);
         $this->entityManager->flush();
+        $this->entityManager->clear();
 
+        $this->translatableListener->setLocale(self::LANGUAGE_EN);
+
+        $article = $this->entityManager->find(Article::class, $article->getId());
         $article->setLocale(self::LANGUAGE_EN);
         $article->setTitle(self::ENGLISH_TITLE_1);
         $article->setContents(self::ENGLISH_CONTENTS_1);
         $article->setIntroImage(new SplFileInfo(TESTS_PATH . self::TEST_FILE2));
         $this->entityManager->flush();
-
         $this->entityManager->clear();
+
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $article = $this->entityManager->find(Article::class, $article->getId());
 
