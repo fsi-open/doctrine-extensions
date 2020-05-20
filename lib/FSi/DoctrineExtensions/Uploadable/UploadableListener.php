@@ -119,7 +119,7 @@ class UploadableListener extends MappedEventSubscriber
         return $this->filesystems;
     }
 
-    public function getSubscribedEvents(): array
+    public function getSubscribedEvents()
     {
         return ['preFlush', 'postLoad', 'postPersist', 'postFlush', 'postRemove'];
     }
