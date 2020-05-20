@@ -18,6 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Traits\SubtitleTrait;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 use FSi\DoctrineExtensions\Uploadable\File;
+use FSi\DoctrineExtensions\Uploadable\Mapping\Annotation as Uploadable;
 use SplFileInfo;
 
 /**
@@ -69,6 +70,19 @@ class Article
      * @var SplFileInfo|File
      */
     private $introImage;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="image_path", nullable=true)
+     * @Uploadable\Uploadable(targetField="image")
+     */
+    private $imagePath;
+
+    /**
+     * @var SplFileInfo|File
+     */
+    private $image;
 
     /**
      * @var Section
@@ -172,6 +186,26 @@ class Article
     public function setIntroImage($introImage)
     {
         $this->introImage = $introImage;
+    }
+
+    public function getImagePath(): string
+    {
+        return $this->imagePath;
+    }
+
+    public function setImagePath(string $imagePath): void
+    {
+        $this->imagePath = $imagePath;
+    }
+
+    public function getImage()
+    {
+        return $this->image;
+    }
+
+    public function setImage($image): void
+    {
+        $this->image = $image;
     }
 
     public function setLocale(?string $locale): void

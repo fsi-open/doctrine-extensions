@@ -20,7 +20,7 @@ use Gaufrette\Filesystem;
 use Gaufrette\FilesystemMap;
 use PHPUnit\Framework\TestCase;
 
-class UploadableTest extends TestCase
+final class UploadableTest extends TestCase
 {
     public const TEST_FILE1 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/penguins.jpg';
     public const TEST_FILE2 = '/FSi/DoctrineExtensions/Tests/Uploadable/Fixture/lighthouse.jpg';
@@ -228,7 +228,7 @@ class UploadableTest extends TestCase
 
     private function getFilesystemMock(): Filesystem
     {
-        return $this->getMockBuilder(Filesystem::class)->disableOriginalConstructor()->getMock();
+        return $this->createMock(Filesystem::class);
     }
 
     private function getFileHandlerMock(): FileHandlerInterface
