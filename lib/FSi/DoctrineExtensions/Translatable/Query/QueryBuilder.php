@@ -18,6 +18,7 @@ use FSi\DoctrineExtensions\ORM\QueryBuilder as BaseQueryBuilder;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata as TranslatableClassMetadata;
 use FSi\DoctrineExtensions\Translatable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
+use function sprintf;
 
 class QueryBuilder extends BaseQueryBuilder
 {
@@ -532,6 +533,8 @@ class QueryBuilder extends BaseQueryBuilder
         if (isset($this->translationsAliases[$join][$locale])) {
             return $this->translationsAliases[$join][$locale];
         }
+
+        return null;
     }
 
     private function getTranslationField(string $alias, string $property): string
@@ -546,7 +549,11 @@ class QueryBuilder extends BaseQueryBuilder
             }
         }
 
-        $this->throwUnknownTranslatablePropertyException($alias, $property);
+        throw new RuntimeException(sprintf(
+            'Unknown translatable property "%s" in class "%s"',
+            $property,
+            $this->getClassByAlias($alias)
+        ));
     }
 
     private function getTranslationAssociation(string $alias, string $property): string
@@ -561,7 +568,11 @@ class QueryBuilder extends BaseQueryBuilder
             }
         }
 
-        $this->throwUnknownTranslatablePropertyException($alias, $property);
+        throw new RuntimeException(sprintf(
+            'Unknown translatable property "%s" in class "%s"',
+            $property,
+            $this->getClassByAlias($alias)
+        ));
     }
 
     private function joinCurrentTranslationsOnce(
@@ -621,21 +632,6 @@ class QueryBuilder extends BaseQueryBuilder
             $this->joinTranslations($join, $joinType, $locale, $alias, $localeParameter);
             $this->addSelect($alias);
         }
-    }
-
-    /**
-     * @param string $alias
-     * @param string $property
-     * @return void
-     * @throws RuntimeException
-     */
-    private function throwUnknownTranslatablePropertyException(string $alias, string $property): void
-    {
-        throw new RuntimeException(sprintf(
-            'Unknown translatable property "%s" in class "%s"',
-            $property,
-            $this->getClassByAlias($alias)
-        ));
     }
 
     private function hasDefaultLocaleDifferentThanCurrentLocale(?string $locale): bool
@@ -751,7 +747,7 @@ class QueryBuilder extends BaseQueryBuilder
             $this->andWhere($collectionExpr);
         } elseif (is_array($value)) {
             if ($this->isTranslatableProperty($alias, $field)) {
-                $fieldExpr = $this->expr()->in('%s', $parameter);
+                $fieldExpr = (string) $this->expr()->in('%s', $parameter);
                 $collectionExpr = $this->getTranslatableCollectionExpr($alias, $field, $fieldExpr, true, $locale);
                 $this->andWhere($collectionExpr);
             } else {

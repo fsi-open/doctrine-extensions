@@ -28,7 +28,7 @@ abstract class GeneralTest extends BaseORMTest
      */
     abstract protected function getUser();
 
-    public function testInsertSplFileInfo()
+    public function testInsertSplFileInfo(): void
     {
         $user = $this->getUser();
         $file = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
@@ -128,7 +128,7 @@ abstract class GeneralTest extends BaseORMTest
         $this->assertTrue(file_exists(FILESYSTEM1 . $key2));
     }
 
-    public function testDelete()
+    public function testDelete(): void
     {
         $user = $this->getUser();
         $file1 = new SplFileInfo(TESTS_PATH . self::TEST_FILE1);
@@ -333,7 +333,7 @@ abstract class GeneralTest extends BaseORMTest
         $this->assertNotNull($user->getFileKey());
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Utils::deleteRecursive(FILESYSTEM1);
         Utils::deleteRecursive(FILESYSTEM2);

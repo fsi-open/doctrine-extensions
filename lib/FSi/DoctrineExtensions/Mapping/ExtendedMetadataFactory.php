@@ -13,19 +13,19 @@ namespace FSi\DoctrineExtensions\Mapping;
 
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\Cache;
-use Doctrine\Common\Persistence\Mapping\Driver\FileDriver;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\Mapping\Driver\FileDriver;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractAnnotationDriver;
 use FSi\DoctrineExtensions\Mapping\Driver\AbstractFileDriver;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverChain;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
-use FSi\DoctrineExtensions\Metadata\ClassMetadata;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use ReflectionClass;
 use Symfony\Component\PropertyAccess\Exception\InvalidArgumentException;
+use function class_exists;
 
 final class ExtendedMetadataFactory
 {
@@ -104,7 +104,9 @@ final class ExtendedMetadataFactory
             '\\'
         );
         if (!class_exists($metadataClassName)) {
-            throw new RuntimeException(sprintf('Metadata class "%s" does not exist!'));
+            throw new RuntimeException(
+                sprintf('Metadata class "%s" does not exist!', class_exists($metadataClassName))
+            );
         }
 
         $metadataClassReflection = new ReflectionClass($metadataClassName);

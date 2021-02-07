@@ -13,7 +13,6 @@ namespace FSi\DoctrineExtensions\Tests\Tool;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Logging\DebugStack;
 use Doctrine\DBAL\Logging\SQLLogger;
@@ -26,6 +25,7 @@ use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
 use FSi\DoctrineExtensions\Uploadable\FileHandler;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
@@ -72,7 +72,7 @@ abstract class BaseORMTest extends TestCase
      */
     protected $filesystem2;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->entityManager = $this->getEntityManager();
     }
@@ -82,70 +82,25 @@ abstract class BaseORMTest extends TestCase
         return new AnnotationDriver($_ENV['annotation_reader']);
     }
 
-    /**
-     * @return Configuration
-     */
-    protected function getMockAnnotatedConfig()
+    protected function getMockAnnotatedConfig(): Configuration
     {
         $config = $this->createMock(Configuration::class);
-        $config->expects($this->once())
-            ->method('getProxyDir')
-            ->will($this->returnValue(TESTS_TEMP_DIR))
-        ;
-
-        $config->expects($this->once())
-            ->method('getProxyNamespace')
-            ->will($this->returnValue('Proxy'))
-        ;
-
-        $config->expects($this->once())
-            ->method('getAutoGenerateProxyClasses')
-            ->will($this->returnValue(true))
-        ;
-
-        $config->expects($this->once())
-            ->method('getClassMetadataFactoryName')
-            ->will($this->returnValue(ClassMetadataFactory::class))
-        ;
-
-        $config->expects($this->any())
-            ->method('getMetadataCacheImpl')
-            ->will($this->returnValue(new ArrayCache()))
-        ;
-
-        $config->expects($this->any())
-            ->method('getQuoteStrategy')
-            ->will($this->returnValue(new DefaultQuoteStrategy()))
-        ;
-
-        $config->expects($this->any())
-            ->method('getDefaultQueryHints')
-            ->will($this->returnValue([]));
-
-        $config->expects($this->any())
-            ->method('getRepositoryFactory')
-            ->will($this->returnValue(new DefaultRepositoryFactory()))
-        ;
+        $config->expects(self::once())->method('getProxyDir')->willReturn(TESTS_TEMP_DIR);
+        $config->expects(self::once())->method('getProxyNamespace')->willReturn('Proxy');
+        $config->expects(self::once())->method('getAutoGenerateProxyClasses')->willReturn(true);
+        $config->expects(self::once())->method('getClassMetadataFactoryName')->willReturn(ClassMetadataFactory::class);
+        $config->method('getMetadataCacheImpl')->willReturn(new ArrayCache());
+        $config->method('getQuoteStrategy')->willReturn(new DefaultQuoteStrategy());
+        $config->method('getDefaultQueryHints')->willReturn([]);
+        $config->method('getRepositoryFactory')->willReturn(new DefaultRepositoryFactory());
 
         $mappingDriver = $this->getMetadataDriverImplementation();
-
-        $config->expects($this->any())
-            ->method('getMetadataDriverImpl')
-            ->will($this->returnValue($mappingDriver))
-        ;
-
-        $config->expects($this->any())
-            ->method('getDefaultRepositoryClassName')
-            ->will($this->returnValue(EntityRepository::class))
-        ;
+        $config->method('getMetadataDriverImpl')->willReturn($mappingDriver);
+        $config->method('getDefaultRepositoryClassName')->willReturn(EntityRepository::class);
 
         $this->logger = new DebugStack();
         $this->logger->enabled = false;
-
-        $config->expects($this->any())
-            ->method('getSQLLogger')
-            ->will($this->returnValue($this->logger))
-        ;
+        $config->method('getSQLLogger')->willReturn($this->logger);
 
         return $config;
     }
@@ -174,16 +129,15 @@ abstract class BaseORMTest extends TestCase
         $evm->addEventSubscriber($this->uploadableListener);
 
         $config = $this->getMockAnnotatedConfig();
-        $conn = DriverManager::getConnection(
-            ['driver' => 'pdo_sqlite', 'memory' => true],
-            $config,
-            $evm
-        );
+        $conn = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config, $evm);
         $em = EntityManager::create($conn, $config, $evm);
 
-        $schema = array_map(function($class) use ($em) {
-            return $em->getClassMetadata($class);
-        }, (array) $this->getUsedEntityFixtures());
+        $schema = array_map(
+            static function($class) use ($em) {
+                return $em->getClassMetadata($class);
+            },
+            $this->getUsedEntityFixtures()
+        );
 
         $schemaTool = new SchemaTool($em);
         $schemaTool->dropSchema($schema);
@@ -192,10 +146,5 @@ abstract class BaseORMTest extends TestCase
         return $em;
     }
 
-    /**
-     * Get array of classes of entities used in test.
-     *
-     * @return array
-     */
-    abstract protected function getUsedEntityFixtures();
+    abstract protected function getUsedEntityFixtures(): array;
 }

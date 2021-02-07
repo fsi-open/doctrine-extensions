@@ -15,7 +15,7 @@ use DirectoryIterator;
 
 class Utils
 {
-    public static function deleteRecursive(string $path)
+    public static function deleteRecursive(string $path): void
     {
         foreach (new DirectoryIterator($path) as $file) {
             if ($file->isDot()) {

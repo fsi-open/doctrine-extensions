@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Translatable\Fixture;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use FSi\DoctrineExtensions\Translatable\Mapping\Annotation as Translatable;
 

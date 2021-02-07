@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User1;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User2;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User3;
@@ -85,7 +85,7 @@ class GeneralXmlTest extends GeneralTest
     /**
      * {@inheritdoc}
      */
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [User::class];
     }

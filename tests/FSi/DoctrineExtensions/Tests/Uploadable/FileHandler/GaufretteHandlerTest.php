@@ -19,7 +19,7 @@ use Gaufrette\Filesystem;
 
 class GaufretteHandlerTest extends BaseHandlerTest
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->handler = new GaufretteHandler();
     }
@@ -27,30 +27,30 @@ class GaufretteHandlerTest extends BaseHandlerTest
     /**
      * @dataProvider goodInputs
      */
-    public function testSupports($input)
+    public function testSupports($input): void
     {
-        $this->assertTrue($this->handler->supports($input));
+        self::assertTrue($this->handler->supports($input));
     }
 
     /**
      * @dataProvider goodInputs
      */
-    public function testGetContent($input)
+    public function testGetContent($input): void
     {
         $content = $this->handler->getContent($input);
-        $this->assertEquals(self::CONTENT, $content);
+        self::assertEquals(self::CONTENT, $content);
     }
 
     /**
      * @dataProvider goodInputs
      */
-    public function testGetName($input)
+    public function testGetName($input): void
     {
         $name = $this->handler->getName($input);
-        $this->assertEquals($input->getName(), $name);
+        self::assertEquals($input->getName(), $name);
     }
 
-    public static function goodInputs()
+    public static function goodInputs(): array
     {
         $filesystem1 = new Filesystem(new Local(FILESYSTEM1));
 

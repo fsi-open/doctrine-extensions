@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User1;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User2;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User3;
@@ -58,7 +58,6 @@ class GeneralYamlTest extends GeneralTest
         return [
             [User2::class],
             [User3::class],
-            [User5::class]
         ];
     }
 
@@ -78,7 +77,7 @@ class GeneralYamlTest extends GeneralTest
         return new User();
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [User::class];
     }

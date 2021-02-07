@@ -39,24 +39,22 @@ abstract class BaseTranslatableTest extends BaseORMTest
     public const LANGUAGE_EN = 'en';
     public const LANGUAGE_DE = 'de';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
+
         $this->entityManager = $this->getEntityManager();
     }
 
-    /**
-     * @return Article
-     */
     protected function createArticle(
-        $title = self::POLISH_TITLE_1,
-        $subtitle = self::POLISH_SUBTITLE,
-        $contents = self::POLISH_CONTENTS_1,
-        $locale = null
-    ) {
+        string $title = self::POLISH_TITLE_1,
+        string $subtitle = self::POLISH_SUBTITLE,
+        string $contents = self::POLISH_CONTENTS_1,
+        ?string $locale = null
+    ): Article {
         $article = new Article();
         $article->setDate(new DateTime());
-        $article->setLocale($locale ? $locale : self::LANGUAGE_PL);
+        $article->setLocale($locale ?: self::LANGUAGE_PL);
         $article->setTitle($title);
         $article->setSubtitle($subtitle);
         $article->setContents($contents);
@@ -67,7 +65,7 @@ abstract class BaseTranslatableTest extends BaseORMTest
     /**
      * @param object $object
      */
-    protected function persistAndFlush($object)
+    protected function persistAndFlush($object): void
     {
         $this->entityManager->persist($object);
         $this->entityManager->flush();

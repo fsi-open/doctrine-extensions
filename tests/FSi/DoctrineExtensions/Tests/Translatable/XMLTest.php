@@ -11,14 +11,14 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Translatable;
 
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\Page;
 use FSi\DoctrineExtensions\Tests\Translatable\Fixture\Common\PageTranslation;
 
 class XMLTest extends BaseTranslatableTest
 {
-    public function testXMLMapping()
+    public function testXMLMapping(): void
     {
         $this->logger->enabled = true;
 
@@ -35,30 +35,10 @@ class XMLTest extends BaseTranslatableTest
         $this->entityManager->flush();
         $this->entityManager->refresh($page);
 
-        $this->assertEquals(
-            9,
-            count($this->logger->queries),
-            'Flushing executed wrong number of queries'
-        );
-
-        $translationCount = count($page->getTranslations());
-        $this->assertEquals(
-            2,
-            $translationCount,
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'content',
-            $page->getTranslation(self::LANGUAGE_PL)
-        );
-
-        $this->assertAttributeEquals(
-            self::ENGLISH_CONTENTS_1,
-            'content',
-            $page->getTranslation(self::LANGUAGE_EN)
-        );
+        self::assertCount(9, $this->logger->queries, 'Flushing executed wrong number of queries');
+        self::assertCount(2, $page->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::POLISH_CONTENTS_1, $page->getTranslation(self::LANGUAGE_PL)->getContent());
+        self::assertEquals(self::ENGLISH_CONTENTS_1, $page->getTranslation(self::LANGUAGE_EN)->getContent());
     }
 
     protected function getMetadataDriverImplementation(): MappingDriver

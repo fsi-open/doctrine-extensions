@@ -23,12 +23,12 @@ class DriversTest extends TestCase
     /**
      * @dataProvider drivers
      */
-    public function testDrivers(string $class)
+    public function testDrivers(string $class): void
     {
-        $this->assertTrue(class_exists($class));
+        self::assertTrue(class_exists($class));
     }
 
-    public static function drivers()
+    public static function drivers(): array
     {
         return [
             [Xml::class],

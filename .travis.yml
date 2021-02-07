@@ -9,9 +9,14 @@ matrix:
     - php: 7.4
       env:
         - SYMFONY_DEPRECATIONS_HELPER=weak
+    - php: 8.0
+      env:
+        - SYMFONY_DEPRECATIONS_HELPER=weak
 
 before_script:
     - composer validate
     - composer update $COMPOSER_FLAGS
 
-script: vendor/bin/phpunit
+script:
+    - vendor/bin/phpstan analyze -c phpstan.neon
+    - vendor/bin/phpunit
