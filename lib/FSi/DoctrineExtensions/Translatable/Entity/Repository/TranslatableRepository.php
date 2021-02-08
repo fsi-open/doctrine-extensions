@@ -88,16 +88,8 @@ class TranslatableRepository extends EntityRepository implements TranslatableRep
         $translatableProperties = $this->getExtendedMetadata()->getTranslatableProperties();
         foreach (array_keys($translatableProperties) as $translationAssociation) {
             $join = sprintf('%s.%s', $alias, $translationAssociation);
-            $qb->joinAndSelectCurrentTranslations(
-                $join, Expr\Join::LEFT_JOIN,
-                $translationAlias,
-                'locale'
-            );
-            $qb->joinAndSelectDefaultTranslations(
-                $join, Expr\Join::LEFT_JOIN,
-                $defaultTranslationAlias,
-                'deflocale'
-            );
+            $qb->joinAndSelectCurrentTranslations($join, Expr\Join::LEFT_JOIN, $translationAlias, 'locale');
+            $qb->joinAndSelectDefaultTranslations($join, Expr\Join::LEFT_JOIN, $defaultTranslationAlias, 'deflocale');
         }
 
         return $qb;

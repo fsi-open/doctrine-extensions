@@ -133,7 +133,7 @@ abstract class BaseORMTest extends TestCase
         $em = EntityManager::create($conn, $config, $evm);
 
         $schema = array_map(
-            static function($class) use ($em) {
+            static function ($class) use ($em) {
                 return $em->getClassMetadata($class);
             },
             $this->getUsedEntityFixtures()

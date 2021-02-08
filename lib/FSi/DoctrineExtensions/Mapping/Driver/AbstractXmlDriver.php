@@ -71,7 +71,8 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
     {
         // Schemas for validation.
         $schemaLocations = [
-            'http://fsi.pl/schemas/orm/doctrine-extensions-mapping' => realpath(__DIR__ . '/../../../../../doctrine-extensions-mapping.xsd'),
+            'http://fsi.pl/schemas/orm/doctrine-extensions-mapping'
+                => dirname(__DIR__, 5) . '/doctrine-extensions-mapping.xsd',
             'http://doctrine-project.org/schemas/orm/doctrine-mapping' => $this->getDoctrineSchemePath(),
         ];
 
@@ -89,7 +90,7 @@ abstract class AbstractXmlDriver extends AbstractFileDriver
             }
 
             $domNodeList = $dom->getElementsByTagNameNS($xmlns->nodeValue, '*');
-            for ($i = $domNodeList->length; --$i >= 0; ) {
+            for ($i = $domNodeList->length; --$i >= 0;) {
                 $element = $domNodeList->item($i);
                 $element->parentNode->removeChild($element);
             }

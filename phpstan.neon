@@ -1,7 +1,7 @@
 parameters:
     bootstrapFiles:
         - tests/bootstrap.php
-    level: 0
+    level: 1
     paths:
         - lib
         - tests

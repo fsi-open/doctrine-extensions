@@ -57,8 +57,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->joinTranslations('a.translations');
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                 LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc',
                 Article::class
@@ -81,8 +81,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->joinTranslations('a.translations', Expr\Join::INNER_JOIN, self::LANGUAGE_PL);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     INNER JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc',
                 Article::class
@@ -105,8 +105,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->joinTranslations('a.translations', Expr\Join::INNER_JOIN, self::LANGUAGE_PL, 't', 'locale');
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     INNER JOIN a.translations t WITH t.locale = :locale',
                 Article::class
@@ -129,8 +129,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'title', 'some title');
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 WHERE atranslationsen.title = :atitleval',
@@ -154,12 +154,15 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'title', 'some title');
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
-                WHERE CASE WHEN atranslationspl.id IS NOT NULL THEN atranslationspl.title ELSE atranslationsen.title END = :atitleval',
+                WHERE CASE
+                    WHEN atranslationspl.id IS NOT NULL THEN atranslationspl.title
+                    ELSE atranslationsen.title
+                END = :atitleval',
                 Article::class
             )),
             $qb->getDQL()
@@ -181,12 +184,15 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'title', 'some title', self::LANGUAGE_DE);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationsde WITH atranslationsde.locale = :atranslationsdeloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
-                WHERE CASE WHEN atranslationsde.id IS NOT NULL THEN atranslationsde.title ELSE atranslationsen.title END = :atitleval',
+                WHERE CASE
+                    WHEN atranslationsde.id IS NOT NULL THEN atranslationsde.title
+                    ELSE atranslationsen.title
+                END = :atitleval',
                 Article::class
             )),
             $qb->getDQL()
@@ -208,8 +214,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'title', 'some title');
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 WHERE atranslationsen.title = :atitleval',
@@ -230,8 +236,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->select('a')->from(Article::class, 'a')->addTranslatableOrderBY('a', 'title', 'ASC');
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 ORDER BY atranslationsen.title ASC',
@@ -255,8 +261,11 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableOrderBy('a', 'title', 'DESC');
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a, CASE WHEN atranslationspl.id IS NOT NULL THEN atranslationspl.title ELSE atranslationsen.title END HIDDEN atitle
+            $this->normalizeDql(sprintf(
+                'SELECT a, CASE
+                    WHEN atranslationspl.id IS NOT NULL THEN atranslationspl.title
+                    ELSE atranslationsen.title
+                END HIDDEN atitle
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
@@ -282,8 +291,11 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableOrderBy('a', 'title', 'DESC', self::LANGUAGE_DE);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a, CASE WHEN atranslationsde.id IS NOT NULL THEN atranslationsde.title ELSE atranslationsen.title END HIDDEN atitle
+            $this->normalizeDql(sprintf(
+                'SELECT a, CASE
+                    WHEN atranslationsde.id IS NOT NULL THEN atranslationsde.title
+                    ELSE atranslationsen.title
+                END HIDDEN atitle
                 FROM %s a
                     LEFT JOIN a.translations atranslationsde WITH atranslationsde.locale = :atranslationsdeloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
@@ -309,8 +321,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableOrderBy('a', 'title', 'DESC');
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
                 ORDER BY atranslationsen.title DESC',
@@ -334,8 +346,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', null);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                 WHERE SIZE(atranslationspl.comments) = 0',
@@ -359,8 +371,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'categories', null);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                 WHERE SIZE(a.categories) = 0',
                 Article::class
@@ -384,8 +396,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', $comment);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                 WHERE :acommentsval MEMBER OF atranslationspl.comments',
@@ -411,8 +423,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'categories', $category);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                 WHERE :acategoriesval MEMBER OF a.categories',
                 Article::class
@@ -441,8 +453,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', $whereComments);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN atranslationspl.comments atranslationsplcommentsjoin
@@ -472,8 +484,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'categories', $whereCategories);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.categories acategoriesjoin
                 WHERE acategoriesjoin IN(:acategoriesval)',
@@ -498,8 +510,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', null);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                 WHERE SIZE(atranslationspl.comments) = 0',
@@ -527,8 +539,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', $comment);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                 WHERE :acommentsval MEMBER OF atranslationspl.comments',
@@ -560,8 +572,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', $whereComments);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN atranslationspl.comments atranslationsplcommentsjoin
@@ -588,8 +600,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', null);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
@@ -623,8 +635,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', $comment);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc
@@ -662,8 +674,8 @@ class QueryBuilderTest extends BaseTranslatableTest
         $qb->addTranslatableWhere('a', 'comments', $whereComments);
 
         self::assertEquals(
-            $this->normalizeDql(sprintf('
-                SELECT a
+            $this->normalizeDql(sprintf(
+                'SELECT a
                 FROM %s a
                     LEFT JOIN a.translations atranslationspl WITH atranslationspl.locale = :atranslationsplloc
                     LEFT JOIN a.translations atranslationsen WITH atranslationsen.locale = :atranslationsenloc

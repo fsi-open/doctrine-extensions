@@ -139,7 +139,8 @@ class ListenerTest extends BaseTranslatableTest
     }
 
     /**
-     * Test simple entity creation with two translation and check its state after $em->clear(), change default locale and load
+     * Test simple entity creation with two translation and check its state after $em->clear(),
+     * change default locale and load
      */
     public function testInsertWithTwoTranslationsClearAndLoad(): void
     {
@@ -345,8 +346,8 @@ class ListenerTest extends BaseTranslatableTest
     }
 
     /**
-     * Test entity creation with two translation and check its state after $em->clear(), change default locale and load with some
-     * specific translation
+     * Test entity creation with two translation and check its state after $em->clear(),
+     * change default locale and load with some specific translation
      */
     public function testInsertWithTwoTranslationsClearAndLoadTranslation(): void
     {

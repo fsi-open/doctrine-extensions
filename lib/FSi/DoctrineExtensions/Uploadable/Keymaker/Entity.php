@@ -45,4 +45,3 @@ class Entity implements KeymakerInterface
         );
     }
 }
-

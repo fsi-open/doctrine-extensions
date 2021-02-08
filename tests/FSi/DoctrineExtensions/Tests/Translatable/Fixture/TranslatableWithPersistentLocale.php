@@ -43,7 +43,11 @@ class TranslatableWithPersistentLocale
     private $contents;
 
     /**
-     * @ORM\OneToMany(targetEntity="TranslatableWithPersistentLocaleTranslation", mappedBy="translatable", indexBy="locale")
+     * @ORM\OneToMany(
+     *     targetEntity="TranslatableWithPersistentLocaleTranslation",
+     *     mappedBy="translatable",
+     *     indexBy="locale"
+     * )
      * @var \Doctrine\Common\Collections\ArrayCollection
      */
     private $translations;

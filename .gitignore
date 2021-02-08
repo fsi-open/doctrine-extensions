@@ -1,5 +1,5 @@
 /vendor
 /tests/temp
 composer.lock
-composer.phar
+.phpcs-cache
 .phpunit.result.cache

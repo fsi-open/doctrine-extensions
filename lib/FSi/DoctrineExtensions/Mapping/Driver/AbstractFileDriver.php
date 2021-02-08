@@ -54,7 +54,10 @@ abstract class AbstractFileDriver implements DriverInterface
             return;
         }
 
-        $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
+        $this->loadExtendedClassMetadata(
+            $this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()),
+            $metadata
+        );
     }
 
     public function setFileLocator(FileLocator $locator): void

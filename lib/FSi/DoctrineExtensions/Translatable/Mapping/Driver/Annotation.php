@@ -17,11 +17,13 @@ use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\Translatable\Exception\AnnotationException;
 use FSi\DoctrineExtensions\Translatable\Mapping\ClassMetadata;
 use RuntimeException;
+use FSi\DoctrineExtensions\Translatable\Mapping\Annotation\Translatable;
+use FSi\DoctrineExtensions\Translatable\Mapping\Annotation\Locale;
 
 class Annotation extends AbstractAnnotationDriver
 {
-    public const TRANSLATABLE = 'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation\\Translatable';
-    public const LOCALE = 'FSi\\DoctrineExtensions\\Translatable\\Mapping\\Annotation\\Locale';
+    public const TRANSLATABLE = Translatable::class;
+    public const LOCALE = Locale::class;
 
     /**
      * @param ClassMetadataInfo $baseClassMetadata
@@ -52,7 +54,8 @@ class Annotation extends AbstractAnnotationDriver
                 continue;
             }
 
-            $translatableAnnotation = $this->getAnnotationReader()->getPropertyAnnotation($property, self::TRANSLATABLE);
+            $translatableAnnotation = $this->getAnnotationReader()
+                ->getPropertyAnnotation($property, self::TRANSLATABLE);
             if ($translatableAnnotation) {
                 if (!isset($translatableAnnotation->mappedBy)) {
                     throw new AnnotationException(

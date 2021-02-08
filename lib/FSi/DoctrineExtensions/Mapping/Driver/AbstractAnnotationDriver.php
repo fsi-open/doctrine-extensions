@@ -50,7 +50,10 @@ abstract class AbstractAnnotationDriver implements DriverInterface
             return;
         }
 
-        $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
+        $this->loadExtendedClassMetadata(
+            $this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()),
+            $metadata
+        );
     }
 
     public function setAnnotationReader(Reader $reader): void

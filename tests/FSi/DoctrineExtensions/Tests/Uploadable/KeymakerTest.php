@@ -15,6 +15,7 @@ use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\User;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\Entity;
 use FSi\DoctrineExtensions\Uploadable\Keymaker\KeymakerInterface;
 use PHPUnit\Framework\TestCase;
+use function implode;
 
 class KeymakerTest extends TestCase
 {
@@ -48,11 +49,26 @@ class KeymakerTest extends TestCase
     public static function inputs()
     {
         return [
-            [null, '/FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::PROPERTY . '/' . self::ID . '/' . self::ORIGINAL_NAME],
+            [
+                null,
+                implode(
+                    '/',
+                    ['/FSiDoctrineExtensionsTestsUploadableFixtureUser', self::PROPERTY, self::ID, self::ORIGINAL_NAME]
+                ),
+            ],
             ['{fqcn}/{id}/constant', 'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::ID . '/constant'],
             [
                 '{fqcn}/{property}/{wrong_tag}/{id}/{original_name}',
-                'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::PROPERTY . '/{wrong_tag}/' . self::ID . '/' . self::ORIGINAL_NAME
+                implode(
+                    '/',
+                    [
+                        'FSiDoctrineExtensionsTestsUploadableFixtureUser',
+                        self::PROPERTY,
+                        '{wrong_tag}',
+                        self::ID,
+                        self::ORIGINAL_NAME,
+                    ]
+                )
             ],
         ];
     }

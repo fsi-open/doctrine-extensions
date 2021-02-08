@@ -81,5 +81,4 @@ class TranslatableWithPersistentLocaleTranslation
     {
         return $this->locale;
     }
-
 }

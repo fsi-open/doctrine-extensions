@@ -68,7 +68,7 @@ class ChainHandlerTest extends BaseHandlerTest
         $one->method('supports')
             ->with($input)
             ->willReturnCallback(
-                static function () use (&$counter, $that) {
+                static function () use (&$counter) {
                     $counter++;
                     self::assertEquals(1, $counter % 3);
 
@@ -80,7 +80,7 @@ class ChainHandlerTest extends BaseHandlerTest
         $two->method('supports')
             ->with($input)
             ->willReturnCallback(
-                static function () use (&$counter, $that) {
+                static function () use (&$counter) {
                     $counter++;
                     self::assertEquals(2, $counter % 3);
 
@@ -92,7 +92,7 @@ class ChainHandlerTest extends BaseHandlerTest
         $three->method('supports')
             ->with($input)
             ->willReturnCallback(
-                static function () use (&$counter, $that, $result) {
+                static function () use (&$counter) {
                     $counter++;
                     self::assertEquals(0, $counter % 3);
 
@@ -104,7 +104,7 @@ class ChainHandlerTest extends BaseHandlerTest
             ->method('getName')
             ->with($input)
             ->willReturnCallback(
-                static function () use (&$nameCounter, $that, &$name) {
+                static function () use (&$nameCounter, &$name) {
                     $nameCounter++;
                     self::assertEquals(1, $nameCounter);
 
@@ -116,7 +116,7 @@ class ChainHandlerTest extends BaseHandlerTest
             ->method('getContent')
             ->with($input)
             ->willReturnCallback(
-                static function () use (&$contentCounter, $that, &$result) {
+                static function () use (&$contentCounter, &$result) {
                     $contentCounter++;
                     self::assertEquals(1, $contentCounter);
 
