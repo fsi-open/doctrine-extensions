@@ -20,6 +20,7 @@ use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
@@ -133,7 +134,7 @@ abstract class BaseORMTest extends TestCase
         $em = EntityManager::create($conn, $config, $evm);
 
         $schema = array_map(
-            static function ($class) use ($em) {
+            static function (string $class) use ($em): ClassMetadata {
                 return $em->getClassMetadata($class);
             },
             $this->getUsedEntityFixtures()

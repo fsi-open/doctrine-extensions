@@ -54,7 +54,7 @@ abstract class BaseTranslatableTest extends BaseORMTest
     ): Article {
         $article = new Article();
         $article->setDate(new DateTime());
-        $article->setLocale($locale ?: self::LANGUAGE_PL);
+        $article->setLocale($locale ?? self::LANGUAGE_PL);
         $article->setTitle($title);
         $article->setSubtitle($subtitle);
         $article->setContents($contents);

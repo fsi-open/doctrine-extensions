@@ -12,7 +12,9 @@ declare(strict_types=1);
 namespace FSi\DoctrineExtensions\Uploadable\Keymaker;
 
 use Doctrine\Common\Util\ClassUtils;
+use function preg_replace;
 use function transliterator_transliterate;
+use function trim;
 
 class TransliterateEntity implements KeymakerInterface
 {
