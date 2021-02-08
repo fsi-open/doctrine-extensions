@@ -63,7 +63,6 @@ class ChainHandlerTest extends BaseHandlerTest
         $counter = 0;
         $nameCounter = 0;
         $contentCounter = 0;
-        $that = $this;
 
         $one->method('supports')
             ->with($input)

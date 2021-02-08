@@ -54,7 +54,7 @@ abstract class BaseHandlerTest extends TestCase
      */
     public function testNotSupports($input)
     {
-        $this->assertFalse($this->handler->supports($input));
+        self::assertFalse($this->handler->supports($input));
     }
 
     protected function tearDown(): void

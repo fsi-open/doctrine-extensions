@@ -29,7 +29,7 @@ class GeneralXmlTest extends GeneralTest
     /**
      * @dataProvider wrongMappings
      */
-    public function testWrongMapping($class)
+    public function testWrongMapping($class): void
     {
         $this->expectException(MappingException::class);
         $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
@@ -38,13 +38,13 @@ class GeneralXmlTest extends GeneralTest
     /**
      * @dataProvider wrongTypes()
      */
-    public function testWrongTypes(string $class)
+    public function testWrongTypes(string $class): void
     {
         $this->expectException(TypeError::class);
         $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
-    public function wrongMappings()
+    public function wrongMappings(): array
     {
         return [
             [User1::class],
@@ -55,14 +55,14 @@ class GeneralXmlTest extends GeneralTest
         ];
     }
 
-    public function wrongTypes()
+    public function wrongTypes(): array
     {
         return [
             [User6::class],
         ];
     }
 
-    public function testMappingWithOtherNamespaces()
+    public function testMappingWithOtherNamespaces(): void
     {
         $this->uploadableListener->getExtendedMetadata($this->entityManager, Car::class);
     }
@@ -72,19 +72,11 @@ class GeneralXmlTest extends GeneralTest
         return new XmlDriver(__DIR__.'/Fixture/Xml/config');
     }
 
-    /**
-     * {@inheritdoc}
-     *
-     * @return User
-     */
-    protected function getUser()
+    protected function getUser(): User
     {
         return new User();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getUsedEntityFixtures(): array
     {
         return [User::class];

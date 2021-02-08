@@ -28,7 +28,7 @@ class GeneralYamlTest extends GeneralTest
     /**
      * @dataProvider wrongMappings
      */
-    public function testWrongMapping($class)
+    public function testWrongMapping($class): void
     {
         $this->expectException(MappingException::class);
         $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
@@ -37,13 +37,13 @@ class GeneralYamlTest extends GeneralTest
     /**
      * @dataProvider wrongTypes()
      */
-    public function testWrongTypes(string $class)
+    public function testWrongTypes(string $class): void
     {
         $this->expectException(TypeError::class);
         $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
-    public function wrongMappings()
+    public function wrongMappings(): array
     {
         return [
             [User1::class],
@@ -53,7 +53,7 @@ class GeneralYamlTest extends GeneralTest
         ];
     }
 
-    public function wrongTypes()
+    public function wrongTypes(): array
     {
         return [
             [User2::class],
@@ -61,18 +61,12 @@ class GeneralYamlTest extends GeneralTest
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new YamlDriver(__DIR__.'/Fixture/Yaml/config');
     }
 
-    /**
-     * @return User
-     */
-    protected function getUser()
+    protected function getUser(): User
     {
         return new User();
     }

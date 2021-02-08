@@ -23,30 +23,27 @@ class KeymakerTest extends TestCase
     public const ID = 1;
     public const ORIGINAL_NAME = 'originalName.txt';
 
-    public function testCreation()
+    public function testCreation(): void
     {
         $keyMaker = new Entity();
-        $this->assertTrue($keyMaker instanceof KeymakerInterface);
+        self::assertInstanceOf(KeymakerInterface::class, $keyMaker);
     }
 
     /**
      * @dataProvider inputs
      */
-    public function testKeyGeneration($pattern, $expected)
+    public function testKeyGeneration(?string $pattern, string $expected): void
     {
         $keyMaker = new Entity();
         $user = new User();
 
-        $this->assertEquals(
+        self::assertEquals(
             $expected,
             $keyMaker->createKey($user, self::PROPERTY, self::ID, self::ORIGINAL_NAME, $pattern)
         );
     }
 
-    /**
-     * @return array
-     */
-    public static function inputs()
+    public static function inputs(): array
     {
         return [
             [

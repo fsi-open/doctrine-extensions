@@ -30,16 +30,16 @@ class TransliterateKeymakerTest extends TestCase
     public const ORIGINAL_NAME_GER = 'örigiünälNÄÜméÖß.txt';
     public const PARSED_NAME_GER = 'origiunalnaumeoss.txt';
 
-    public function testCreation()
+    public function testCreation(): void
     {
         $keyMaker = new TransliterateEntity();
-        $this->assertTrue($keyMaker instanceof KeymakerInterface);
+        self::assertInstanceOf(KeymakerInterface::class, $keyMaker);
     }
 
     /**
      * @dataProvider inputsSpecial
      */
-    public function testSpecialSignKeyGeneration($pattern, $expected)
+    public function testSpecialSignKeyGeneration(?string $pattern, string $expected): void
     {
         $this->assertKeyGeneration($pattern, $expected, self::ORIGINAL_NAME_SPECIAL);
     }
@@ -47,7 +47,7 @@ class TransliterateKeymakerTest extends TestCase
     /**
      * @dataProvider inputsPolish
      */
-    public function testPolishKeyGeneration($pattern, $expected)
+    public function testPolishKeyGeneration(?string $pattern, string $expected): void
     {
         $this->assertKeyGeneration($pattern, $expected, self::ORIGINAL_NAME_PL);
     }
@@ -55,41 +55,32 @@ class TransliterateKeymakerTest extends TestCase
     /**
      * @dataProvider inputsGerman
      */
-    public function testGermanKeyGeneration($pattern, $expected)
+    public function testGermanKeyGeneration(?string $pattern, string $expected): void
     {
         $this->assertKeyGeneration($pattern, $expected, self::ORIGINAL_NAME_GER);
     }
 
-    /**
-     * @return array
-     */
-    public static function inputsSpecial()
+    public static function inputsSpecial(): array
     {
         return self::getInputs(self::PARSED_NAME_SPECIAL);
     }
 
-    /**
-     * @return array
-     */
-    public static function inputsPolish()
+    public static function inputsPolish(): array
     {
         return self::getInputs(self::PARSED_NAME_PL);
     }
 
-    /**
-     * @return array
-     */
-    public static function inputsGerman()
+    public static function inputsGerman(): array
     {
         return self::getInputs(self::PARSED_NAME_GER);
     }
 
-    private function assertKeyGeneration($pattern, $expected, $original)
+    private function assertKeyGeneration(?string $pattern, string $expected, string $original): void
     {
         $keyMaker = new TransliterateEntity();
         $user = new User();
 
-        $this->assertEquals(
+        self::assertEquals(
             $expected,
             $keyMaker->createKey(
                 $user,
@@ -101,27 +92,20 @@ class TransliterateKeymakerTest extends TestCase
         );
     }
 
-    /**
-     * @param string $name
-     * @return array
-     */
-    public static function getInputs($name)
+    public static function getInputs(string $name): array
     {
         $testSets = [
             [
                 '{fqcn}/{id}/constant',
-                'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::ID
-                . '/constant'
+                'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::ID . '/constant'
             ],
             [
                 null,
-                '/FSiDoctrineExtensionsTestsUploadableFixtureUser/'
-                . self::PROPERTY . '/' . self::ID . '/%s'
+                '/FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::PROPERTY . '/' . self::ID . '/%s'
             ],
             [
                 '{fqcn}/{property}/{wrong_tag}/{id}/{original_name}',
-                'FSiDoctrineExtensionsTestsUploadableFixtureUser/'
-                . self::PROPERTY . '/{wrong_tag}/' . self::ID . '/%s'
+                'FSiDoctrineExtensionsTestsUploadableFixtureUser/' . self::PROPERTY . '/{wrong_tag}/' . self::ID . '/%s'
             ]
         ];
         $inputs = [];
