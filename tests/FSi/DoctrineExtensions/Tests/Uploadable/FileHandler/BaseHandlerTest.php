@@ -26,27 +26,27 @@ abstract class BaseHandlerTest extends TestCase
      */
     protected $handler;
 
-    public function testImplementation()
+    public function testImplementation(): void
     {
-        $this->assertTrue($this->handler instanceof FileHandlerInterface);
+        self::assertInstanceOf(FileHandlerInterface::class, $this->handler);
     }
 
     /**
      * @dataProvider wrongInputs
      */
-    public function testGetContentForWrongInputs($input)
+    public function testGetContentForWrongInputs($input): void
     {
         $this->expectException(RuntimeException::class);
-        $this->assertNull($this->handler->getContent($input));
+        self::assertNull($this->handler->getContent($input));
     }
 
     /**
      * @dataProvider wrongInputs
      */
-    public function testGetNameForWrongInput($input)
+    public function testGetNameForWrongInput($input): void
     {
         $this->expectException(RuntimeException::class);
-        $this->assertNull($this->handler->getName($input));
+        self::assertNull($this->handler->getName($input));
     }
 
     /**
@@ -54,16 +54,16 @@ abstract class BaseHandlerTest extends TestCase
      */
     public function testNotSupports($input)
     {
-        $this->assertFalse($this->handler->supports($input));
+        self::assertFalse($this->handler->supports($input));
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Utils::deleteRecursive(FILESYSTEM1);
         Utils::deleteRecursive(FILESYSTEM2);
     }
 
-    public static function wrongInputs()
+    public static function wrongInputs(): array
     {
         return [
             ['not file'],

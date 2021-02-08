@@ -14,42 +14,42 @@ namespace FSi\DoctrineExtensions\Tests\Uploadable\FileHandler;
 use FSi\DoctrineExtensions\Uploadable\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\ChainHandler;
 use FSi\DoctrineExtensions\Uploadable\FileHandler\FileHandlerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class ChainHandlerTest extends BaseHandlerTest
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->handler = new ChainHandler();
     }
 
-    public function testImplementation()
+    public function testImplementation(): void
     {
         $handler = new ChainHandler();
-        $this->assertTrue($handler instanceof FileHandlerInterface);
+        self::assertInstanceOf(FileHandlerInterface::class, $handler);
     }
 
-    public function testInitializableWithoutHandlers()
+    public function testInitializableWithoutHandlers(): void
     {
         $handler = new ChainHandler();
-        $this->assertInstanceof(ChainHandler::class, $handler);
+        self::assertInstanceof(ChainHandler::class, $handler);
         $handler = new ChainHandler([]);
-        $this->assertInstanceof(ChainHandler::class, $handler);
-
+        self::assertInstanceof(ChainHandler::class, $handler);
     }
 
-    public function testIsNotInitializableWithWrongHandlers2()
+    public function testIsNotInitializableWithWrongHandlers2(): void
     {
         $this->expectException(RuntimeException::class);
         new ChainHandler(['not a handler']);
     }
 
-    public function testIsInitializableWithHandlers()
+    public function testIsInitializableWithHandlers(): void
     {
         $handler = new ChainHandler([$this->getHandlerMock()]);
-        $this->assertInstanceof(ChainHandler::class, $handler);
+        self::assertInstanceof(ChainHandler::class, $handler);
     }
 
-    public function testPassesCallToHandlersInProperOrder()
+    public function testPassesCallToHandlersInProperOrder(): void
     {
         $one = $this->getHandlerMock();
         $two = $this->getHandlerMock();
@@ -63,75 +63,79 @@ class ChainHandlerTest extends BaseHandlerTest
         $counter = 0;
         $nameCounter = 0;
         $contentCounter = 0;
-        $that = $this;
 
-        $one->expects($this->any())
-            ->method('supports')
+        $one->method('supports')
             ->with($input)
-            ->will($this->returnCallback(
-                function() use (&$counter, $that) {
+            ->willReturnCallback(
+                static function () use (&$counter) {
                     $counter++;
-                    $that->assertEquals(1, $counter % 3);
+                    self::assertEquals(1, $counter % 3);
+
                     return false;
                 }
-            ))
+            )
         ;
 
-        $two->expects($this->any())
-            ->method('supports')
+        $two->method('supports')
             ->with($input)
-            ->will($this->returnCallback(
-                function() use (&$counter, $that) {
+            ->willReturnCallback(
+                static function () use (&$counter) {
                     $counter++;
-                    $that->assertEquals(2, $counter % 3);
+                    self::assertEquals(2, $counter % 3);
+
                     return false;
                 }
-            ))
+            )
         ;
 
-        $three->expects($this->any())
-            ->method('supports')
+        $three->method('supports')
             ->with($input)
-            ->will($this->returnCallback(
-                function() use (&$counter, $that, $result) {
+            ->willReturnCallback(
+                static function () use (&$counter) {
                     $counter++;
-                    $that->assertEquals(0, $counter % 3);
+                    self::assertEquals(0, $counter % 3);
+
                     return true;
                 }
-            ))
+            )
         ;
-        $three->expects($this->once())
+        $three->expects(self::once())
             ->method('getName')
             ->with($input)
-            ->will($this->returnCallback(
-                function() use (&$nameCounter, $that, &$name) {
+            ->willReturnCallback(
+                static function () use (&$nameCounter, &$name) {
                     $nameCounter++;
-                    $that->assertEquals(1, $nameCounter);
+                    self::assertEquals(1, $nameCounter);
+
                     return $name;
                 }
-            ))
+            )
         ;
-        $three->expects($this->once())
+        $three->expects(self::once())
             ->method('getContent')
             ->with($input)
-            ->will($this->returnCallback(
-                function() use (&$contentCounter, $that, &$result) {
+            ->willReturnCallback(
+                static function () use (&$contentCounter, &$result) {
                     $contentCounter++;
-                    $that->assertEquals(1, $contentCounter);
+                    self::assertEquals(1, $contentCounter);
+
                     return $result;
                 }
-            ))
+            )
         ;
 
         // Fourth handler should never be reached, since third supports input.
-        $four->expects($this->never())->method($this->anything());
+        $four->expects(self::never())->method(self::anything());
 
         $handler = new ChainHandler([$one, $two, $three, $four]);
-        $this->assertTrue($handler->supports($input));
-        $this->assertEquals($name, $handler->getName($input));
-        $this->assertEquals($result, $handler->getContent($input));
+        self::assertTrue($handler->supports($input));
+        self::assertEquals($name, $handler->getName($input));
+        self::assertEquals($result, $handler->getContent($input));
     }
 
+    /**
+     * @return FileHandlerInterface&MockObject
+     */
     protected function getHandlerMock(): FileHandlerInterface
     {
         return $this->createMock(FileHandlerInterface::class);

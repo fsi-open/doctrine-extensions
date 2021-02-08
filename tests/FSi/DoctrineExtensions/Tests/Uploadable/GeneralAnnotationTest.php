@@ -29,7 +29,7 @@ class GeneralAnnotationTest extends GeneralTest
     /**
      * @dataProvider wrongAnnotations()
      */
-    public function testWrongAnnotations(string $class)
+    public function testWrongAnnotations(string $class): void
     {
         $this->expectException(MappingException::class);
         $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
@@ -38,13 +38,13 @@ class GeneralAnnotationTest extends GeneralTest
     /**
      * @dataProvider wrongTypes()
      */
-    public function testWrongTypes(string $class)
+    public function testWrongTypes(string $class): void
     {
         $this->expectException(TypeError::class);
         $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
-    public function wrongAnnotations()
+    public function wrongAnnotations(): array
     {
         return [
             [User2::class],
@@ -55,14 +55,13 @@ class GeneralAnnotationTest extends GeneralTest
         ];
     }
 
-    public function wrongTypes()
+    public function wrongTypes(): array
     {
         return [
             [User1::class],
             [User8::class],
             [User9::class],
             [User10::class],
-            [User11::class],
         ];
     }
 
@@ -71,7 +70,7 @@ class GeneralAnnotationTest extends GeneralTest
         return new User();
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [User::class];
     }

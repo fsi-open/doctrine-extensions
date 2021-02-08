@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Uploadable;
 
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User1;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User2;
 use FSi\DoctrineExtensions\Tests\Uploadable\Fixture\Common\User3;
@@ -28,7 +28,7 @@ class GeneralYamlTest extends GeneralTest
     /**
      * @dataProvider wrongMappings
      */
-    public function testWrongMapping($class)
+    public function testWrongMapping($class): void
     {
         $this->expectException(MappingException::class);
         $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
@@ -37,13 +37,13 @@ class GeneralYamlTest extends GeneralTest
     /**
      * @dataProvider wrongTypes()
      */
-    public function testWrongTypes(string $class)
+    public function testWrongTypes(string $class): void
     {
         $this->expectException(TypeError::class);
         $this->uploadableListener->getExtendedMetadata($this->entityManager, $class);
     }
 
-    public function wrongMappings()
+    public function wrongMappings(): array
     {
         return [
             [User1::class],
@@ -53,32 +53,25 @@ class GeneralYamlTest extends GeneralTest
         ];
     }
 
-    public function wrongTypes()
+    public function wrongTypes(): array
     {
         return [
             [User2::class],
             [User3::class],
-            [User5::class]
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function getMetadataDriverImplementation(): MappingDriver
     {
         return new YamlDriver(__DIR__.'/Fixture/Yaml/config');
     }
 
-    /**
-     * @return User
-     */
-    protected function getUser()
+    protected function getUser(): User
     {
         return new User();
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [User::class];
     }

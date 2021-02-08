@@ -2,7 +2,7 @@
 
 define('TESTS_PATH', __DIR__);
 define('TESTS_TEMP_DIR', __DIR__.'/temp');
-define('VENDOR_PATH', realpath(__DIR__ . '/../vendor'));
+define('VENDOR_PATH', dirname(__DIR__) . '/vendor');
 define('FILESYSTEM1', TESTS_TEMP_DIR . '/filesystem1');
 define('FILESYSTEM2', TESTS_TEMP_DIR . '/filesystem2');
 

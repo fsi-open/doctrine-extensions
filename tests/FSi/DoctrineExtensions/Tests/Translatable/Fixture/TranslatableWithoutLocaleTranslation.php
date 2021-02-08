@@ -66,5 +66,4 @@ class TranslatableWithoutLocaleTranslation
     {
         return $this->locale;
     }
-
 }

@@ -12,6 +12,9 @@ declare(strict_types=1);
 namespace FSi\DoctrineExtensions\Uploadable\Keymaker;
 
 use Doctrine\Common\Util\ClassUtils;
+use function preg_replace;
+use function transliterator_transliterate;
+use function trim;
 
 class TransliterateEntity implements KeymakerInterface
 {
@@ -52,9 +55,6 @@ class TransliterateEntity implements KeymakerInterface
             $originalName
         );
 
-        return trim(preg_replace(
-            '/[-\s]+/', '-',
-            preg_replace('/[^\da-z.\-\s]+/', '', $transliteratedName)
-        ));
+        return trim(preg_replace('/[-\s]+/', '-', preg_replace('/[^\da-z.\-\s]+/', '', $transliteratedName)));
     }
 }

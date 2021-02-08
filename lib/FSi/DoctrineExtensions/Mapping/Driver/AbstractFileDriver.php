@@ -11,9 +11,9 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
-use Doctrine\Common\Persistence\Mapping\Driver\FileLocator;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\Persistence\Mapping\ClassMetadataFactory;
+use Doctrine\Persistence\Mapping\Driver\FileLocator;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
@@ -54,7 +54,10 @@ abstract class AbstractFileDriver implements DriverInterface
             return;
         }
 
-        $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
+        $this->loadExtendedClassMetadata(
+            $this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()),
+            $metadata
+        );
     }
 
     public function setFileLocator(FileLocator $locator): void

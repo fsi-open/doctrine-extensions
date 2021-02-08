@@ -11,12 +11,12 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Uploadable;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Proxy\Proxy;
+use Doctrine\Persistence\Mapping\ClassMetadata;
 use FSi\DoctrineExtensions\Mapping\MappedEventSubscriber;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 use FSi\DoctrineExtensions\PropertyManipulator;
@@ -470,31 +470,25 @@ class UploadableListener extends MappedEventSubscriber
 
             if (false === $baseClassMetadata->hasField($field)) {
                 throw new MappingException(sprintf(
-                    'Property "%s" of class "%s" have mapping "Uploadable" but isn\'t'
-                    . ' mapped as Doctrine\'s column.',
+                    'Property "%s" of class "%s" have mapping "Uploadable" but isn\'t mapped as Doctrine\'s column.',
                     $field,
-                    $className,
-                    $options['targetField']
+                    $className
                 ));
             }
 
             if (null !== $options['keyLength'] && false === is_numeric($options['keyLength'])) {
                 throw new MappingException(sprintf(
-                    'Property "%s" of class "%s" have mapping "Uploadable" with key'
-                    . ' length is not a number.',
+                    'Property "%s" of class "%s" have mapping "Uploadable" with key length is not a number.',
                     $field,
-                    $className,
-                    $options['targetField']
+                    $className
                 ));
             }
 
             if (null !== $options['keyLength'] && 1 > $options['keyLength']) {
                 throw new MappingException(sprintf(
-                    'Property "%s" of class "%s" have mapping "Uploadable" with'
-                    . ' key length less than 1.',
+                    'Property "%s" of class "%s" have mapping "Uploadable" with key length less than 1.',
                     $field,
-                    $className,
-                    $options['targetField']
+                    $className
                 ));
             }
 

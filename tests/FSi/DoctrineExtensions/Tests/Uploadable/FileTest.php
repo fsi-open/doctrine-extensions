@@ -14,25 +14,29 @@ namespace FSi\DoctrineExtensions\Tests\Uploadable;
 use FSi\DoctrineExtensions\Uploadable\File;
 use Gaufrette\File as GaufretteFile;
 use Gaufrette\Filesystem;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class FileTest extends TestCase
 {
-    public function testIsInstanceOfGaufretteFile()
+    public function testIsInstanceOfGaufretteFile(): void
     {
         $file = new File('key', $this->getFilesystemMock());
-        $this->assertTrue($file instanceof GaufretteFile);
+        self::assertInstanceOf(GaufretteFile::class, $file);
     }
 
-    public function testFileIsAbleToReturnItsFilesystem()
+    public function testFileIsAbleToReturnItsFilesystem(): void
     {
         $filesystem = $this->getFilesystemMock();
         $file = new File('key', $filesystem);
 
-        $this->assertSame($filesystem, $file->getFilesystem());
+        self::assertSame($filesystem, $file->getFilesystem());
     }
 
-    protected function getFilesystemMock()
+    /**
+     * @return Filesystem&MockObject
+     */
+    protected function getFilesystemMock(): Filesystem
     {
         return $this->getMockBuilder(Filesystem::class)->disableOriginalConstructor()->getMock();
     }

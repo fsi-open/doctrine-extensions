@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
-use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
+use Doctrine\Persistence\Mapping\ClassMetadataFactory;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
 
 interface DriverInterface

@@ -79,13 +79,13 @@ class InheritanceTest extends BaseORMTest
         $this->assertNotNull($employee->getFile());
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Utils::deleteRecursive(FILESYSTEM1);
         Utils::deleteRecursive(FILESYSTEM2);
     }
 
-    protected function getUsedEntityFixtures()
+    protected function getUsedEntityFixtures(): array
     {
         return [
             CustomContentPage::class,

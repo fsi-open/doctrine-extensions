@@ -26,7 +26,7 @@ class RepositoryTest extends BaseTranslatableTest
     /**
      * Test if call to getTranslation creates non existent translations
      */
-    public function testCreatingNonExistentTranslationThroughRepository()
+    public function testCreatingNonExistentTranslationThroughRepository(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $repository = $this->entityManager->getRepository(Article::class);
@@ -36,21 +36,21 @@ class RepositoryTest extends BaseTranslatableTest
         $this->entityManager->flush();
 
         $translationEn = $repository->getTranslation($article, self::LANGUAGE_EN);
-        $this->assertTrue($article->getTranslations()->contains($translationEn));
+        self::assertTrue($article->getTranslations()->contains($translationEn));
 
         $translationPl = $repository->getTranslation($article, self::LANGUAGE_PL);
-        $this->assertTrue($article->getTranslations()->contains($translationPl));
+        self::assertTrue($article->getTranslations()->contains($translationPl));
 
-        $this->assertSame($translationEn, $article->getTranslations()->get(self::LANGUAGE_EN));
-        $this->assertSame($translationPl, $article->getTranslations()->get(self::LANGUAGE_PL));
-        $this->assertSame($translationPl, $repository->getTranslation($article, self::LANGUAGE_PL));
+        self::assertSame($translationEn, $article->getTranslations()->get(self::LANGUAGE_EN));
+        self::assertSame($translationPl, $article->getTranslations()->get(self::LANGUAGE_PL));
+        self::assertSame($translationPl, $repository->getTranslation($article, self::LANGUAGE_PL));
     }
 
     /**
      * Test if call to hasTranslation returns true for existing translations
      * and false otherwise
      */
-    public function testCheckingIfTranslationExistsThroughRepository()
+    public function testCheckingIfTranslationExistsThroughRepository(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $repository = $this->entityManager->getRepository(Article::class);
@@ -65,11 +65,11 @@ class RepositoryTest extends BaseTranslatableTest
         $this->entityManager->clear();
 
         $article = $repository->find($article->getId());
-        $this->assertTrue($repository->hasTranslation($article, self::LANGUAGE_EN));
-        $this->assertFalse($repository->hasTranslation($article, self::LANGUAGE_PL));
+        self::assertTrue($repository->hasTranslation($article, self::LANGUAGE_EN));
+        self::assertFalse($repository->hasTranslation($article, self::LANGUAGE_PL));
     }
 
-    public function testNotOverwritingTranslationForNewObject()
+    public function testNotOverwritingTranslationForNewObject(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_EN);
         $repository = $this->entityManager->getRepository(Article::class);
@@ -90,43 +90,38 @@ class RepositoryTest extends BaseTranslatableTest
 
         $this->entityManager->refresh($article);
 
-        $this->assertEquals(
-            2,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(self::ENGLISH_TITLE_1, 'title', $article);
-        $this->assertAttributeEquals(self::ENGLISH_CONTENTS_1, 'contents', $article);
+        self::assertCount(2, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
     }
 
     /**
      * Test if query builder returned by translatable repository has join to translation entity
      * and is constrained to current locale
      */
-    public function testTranslatableRepositoryCreateQueryBuilder()
+    public function testTranslatableRepositoryCreateQueryBuilder(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $qb = $this->entityManager->getRepository(Article::class)->createTranslatableQueryBuilder('a', 't');
-        $this->assertEquals(
+        self::assertEquals(
             sprintf(
                 'SELECT a, t, dt FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale'
-                . ' LEFT JOIN a.translations dt WITH dt.locale = :deflocale',
+                    . ' LEFT JOIN a.translations dt WITH dt.locale = :deflocale',
                 Article::class
             ),
             $qb->getQuery()->getDql(),
             'Wrong DQL returned from QueryBuilder'
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             self::LANGUAGE_PL,
             $qb->getParameter('locale')->getValue(),
             'Parameter :locale has wrong value'
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             self::LANGUAGE_EN,
             $qb->getParameter('deflocale')->getValue(),
             'Parameter :deflocale has wrong value'
@@ -137,13 +132,13 @@ class RepositoryTest extends BaseTranslatableTest
      * Test if query builder returned by translatable repository has join to translation entity
      * and is constrained to current locale
      */
-    public function testTranslatableRepositoryCreateQueryBuilderWithLocaleSameAsDefaultLocale()
+    public function testTranslatableRepositoryCreateQueryBuilderWithLocaleSameAsDefaultLocale(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_EN);
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
 
         $qb = $this->entityManager->getRepository(Article::class)->createTranslatableQueryBuilder('a', 't');
-        $this->assertEquals(
+        self::assertEquals(
             sprintf(
                 'SELECT a, t FROM %s a LEFT JOIN a.translations t WITH t.locale = :locale',
                 Article::class
@@ -152,14 +147,14 @@ class RepositoryTest extends BaseTranslatableTest
             'Wrong DQL returned from QueryBuilder'
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             self::LANGUAGE_EN,
             $qb->getParameter('locale')->getValue(),
             'Parameter :locale has wrong value'
         );
     }
 
-    public function testPostHydrateWithTranslatableQueryBuilder()
+    public function testPostHydrateWithTranslatableQueryBuilder(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_EN);
         $repository = $this->entityManager->getRepository(Article::class);
@@ -184,21 +179,17 @@ class RepositoryTest extends BaseTranslatableTest
 
         $articles = $query->execute();
         foreach ($articles as $article) {
-            $this->assertAttributeEquals(self::ENGLISH_TITLE_1, 'title', $article);
-            $this->assertAttributeEquals(self::ENGLISH_CONTENTS_1, 'contents', $article);
+            self::assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
+            self::assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
         }
 
-        $this->assertEquals(
-            4,
-            count($this->logger->queries),
-            'Reloading executed wrong number of queries'
-        );
+        self::assertCount(4, $this->logger->queries, 'Reloading executed wrong number of queries');
     }
 
     /**
      * tests that findTranslatableBy will return correct entity
      */
-    public function testFindTranslatableByFields()
+    public function testFindTranslatableByFields(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
@@ -222,18 +213,18 @@ class RepositoryTest extends BaseTranslatableTest
             'comments' => $comment, //translatable property in Article - one to many association
         ], ['date' => 'ASC', 'title' => 'DESC']);
 
-        $this->assertCount(1, $articles);
-        $this->assertEquals(self::LANGUAGE_PL, $articles[0]->getLocale());
-        $this->assertEquals(self::POLISH_TITLE_1, $articles[0]->getTitle());
-        $this->assertEquals(self::POLISH_TEASER, $articles[0]->getTeaser());
-        $this->assertEquals(self::POLISH_CONTENTS_1, $articles[0]->getContents());
+        self::assertCount(1, $articles);
+        self::assertEquals(self::LANGUAGE_PL, $articles[0]->getLocale());
+        self::assertEquals(self::POLISH_TITLE_1, $articles[0]->getTitle());
+        self::assertEquals(self::POLISH_TEASER, $articles[0]->getTeaser());
+        self::assertEquals(self::POLISH_CONTENTS_1, $articles[0]->getContents());
     }
 
     /**
      * test that findTranslatableBy will return fields from default translation
      * if translation in current locale was not found
      */
-    public function testFindTranslatableByLocaleFallback()
+    public function testFindTranslatableByLocaleFallback(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
@@ -246,15 +237,15 @@ class RepositoryTest extends BaseTranslatableTest
         /** @var Article $article */
         $articles = $repository->findTranslatableBy(['date' => '2014-01-01 00:00:00']);
 
-        $this->assertEquals(self::ENGLISH_TITLE_1, $articles[0]->getTitle());
-        $this->assertEquals(self::ENGLISH_TEASER, $articles[0]->getTeaser());
-        $this->assertEquals(self::ENGLISH_CONTENTS_1, $articles[0]->getContents());
+        self::assertEquals(self::ENGLISH_TITLE_1, $articles[0]->getTitle());
+        self::assertEquals(self::ENGLISH_TEASER, $articles[0]->getTeaser());
+        self::assertEquals(self::ENGLISH_CONTENTS_1, $articles[0]->getContents());
     }
 
     /**
      * test that findTranslatableBy will return fields from translation in specified locale
      */
-    public function testFindTranslatableByCustomLocale()
+    public function testFindTranslatableByCustomLocale(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_DE);
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
@@ -273,15 +264,15 @@ class RepositoryTest extends BaseTranslatableTest
             self::LANGUAGE_PL
         );
 
-        $this->assertEquals(self::ENGLISH_TITLE_1, $articles[0]->getTitle());
-        $this->assertEquals(self::ENGLISH_TEASER, $articles[0]->getTeaser());
-        $this->assertEquals(self::ENGLISH_CONTENTS_1, $articles[0]->getContents());
+        self::assertEquals(self::ENGLISH_TITLE_1, $articles[0]->getTitle());
+        self::assertEquals(self::ENGLISH_TEASER, $articles[0]->getTeaser());
+        self::assertEquals(self::ENGLISH_CONTENTS_1, $articles[0]->getContents());
     }
 
     /**
      * tests that findTranslatableOneBy will return correct entity and if not found throw exception
      */
-    public function testFindTranslatableOneByFields()
+    public function testFindTranslatableOneByFields(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
@@ -305,14 +296,13 @@ class RepositoryTest extends BaseTranslatableTest
             'comments' => [$comment1, $comment2], //translatable property in Article - one to many association
         ]);
 
-        $this->assertEquals(self::LANGUAGE_PL, $article->getLocale());
-        $this->assertEquals(self::POLISH_TITLE_1, $article->getTitle());
-        $this->assertEquals(self::POLISH_TEASER, $article->getTeaser());
-        $this->assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
+        self::assertEquals(self::LANGUAGE_PL, $article->getLocale());
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::POLISH_TEASER, $article->getTeaser());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
 
         $this->expectException(NoResultException::class);
-
-        //value that not exists
+        // value that not exists
         $repository->findTranslatableOneBy(['date' => '2014-01-01 00:00:01']);
     }
 
@@ -320,7 +310,7 @@ class RepositoryTest extends BaseTranslatableTest
      * test that findTranslatableOneBy will return fields from default translation
      * if translation in current locale was not found
      */
-    public function testFindTranslatableOneByLocaleFallback()
+    public function testFindTranslatableOneByLocaleFallback(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
@@ -332,15 +322,15 @@ class RepositoryTest extends BaseTranslatableTest
 
         /** @var Article $article */
         $article = $repository->findTranslatableOneBy(['date' => '2014-01-01 00:00:00']);
-        $this->assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
-        $this->assertEquals(self::ENGLISH_TEASER, $article->getTeaser());
-        $this->assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
+        self::assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::ENGLISH_TEASER, $article->getTeaser());
+        self::assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
     }
 
     /**
      * test that findTranslatableOneBy will return fields from translation in specified locale
      */
-    public function testFindTranslatableOneByWithCustomLocale()
+    public function testFindTranslatableOneByWithCustomLocale(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_DE);
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_EN);
@@ -357,9 +347,9 @@ class RepositoryTest extends BaseTranslatableTest
             self::LANGUAGE_PL
         );
 
-        $this->assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
-        $this->assertEquals(self::ENGLISH_TEASER, $article->getTeaser());
-        $this->assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
+        self::assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::ENGLISH_TEASER, $article->getTeaser());
+        self::assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
     }
 
     protected function getUsedEntityFixtures(): array
@@ -374,7 +364,7 @@ class RepositoryTest extends BaseTranslatableTest
         ];
     }
 
-    private function fillDataForFindTranslatable()
+    private function fillDataForFindTranslatable(): void
     {
         /** @var TranslatableRepository $repository */
         $repository = $this->entityManager->getRepository(Article::class);

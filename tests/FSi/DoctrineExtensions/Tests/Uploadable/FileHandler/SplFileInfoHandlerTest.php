@@ -23,69 +23,69 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
     public const KEY = '/someKey';
     public const TEMP_FILENAME = 'tempfile';
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->handler = new SplFileInfoHandler(self::TEMP_FILENAME);
     }
 
-    public function testSupports()
+    public function testSupports(): void
     {
-        $this->assertTrue($this->handler->supports($this->getInput()));
+        self::assertTrue($this->handler->supports($this->getInput()));
     }
 
-    public function testGetContent()
+    public function testGetContent(): void
     {
         $input = $this->getInput();
 
         $content = $this->handler->getContent($input);
-        $this->assertEquals(self::CONTENT, $content);
+        self::assertEquals(self::CONTENT, $content);
     }
 
-    public function testGetContentOnEmptyFile()
+    public function testGetContentOnEmptyFile(): void
     {
         $emptyFile = new SplTempFileObject();
 
         $content = $this->handler->getContent($emptyFile);
-        $this->assertEquals('', $content);
+        self::assertEquals('', $content);
     }
 
-    public function testGetContentOnTempFile()
+    public function testGetContentOnTempFile(): void
     {
         $input = new SplTempFileObject();
         $input->fwrite(self::CONTENT);
         $position = $input->ftell();
 
         $content = $this->handler->getContent($input);
-        $this->assertEquals(self::CONTENT, $content);
-        $this->assertEquals($position, $input->ftell());
+        self::assertEquals(self::CONTENT, $content);
+        self::assertEquals($position, $input->ftell());
     }
 
-    public function testGetContentOnOpenFile()
+    public function testGetContentOnOpenFile(): void
     {
         $input = $this->getInput()->openFile();
 
         $content = $this->handler->getContent($input);
-        $this->assertEquals(self::CONTENT, $content);
+        self::assertEquals(self::CONTENT, $content);
     }
 
-    public function testGetName()
+    public function testGetName(): void
     {
         $input = $this->getInput();
 
         $name = $this->handler->getName($input);
-        $this->assertEquals(basename(FILESYSTEM1 . self::KEY), $name);
+        self::assertEquals(basename(FILESYSTEM1 . self::KEY), $name);
     }
 
-    public function testGetNameOnTempFile()
+    public function testGetNameOnTempFile(): void
     {
         $input = new SplTempFileObject();
         $input->fwrite(self::CONTENT);
 
         $name = $this->handler->getName($input);
-        $this->assertEquals(self::TEMP_FILENAME, $name);
+        self::assertEquals(self::TEMP_FILENAME, $name);
     }
 
-    public function testException()
+    public function testException(): void
     {
         $filesystem = new Filesystem(new Local(FILESYSTEM1));
         $input = new SplFileInfo(FILESYSTEM1 . self::KEY);
@@ -95,11 +95,12 @@ class SplFileInfoHandlerTest extends BaseHandlerTest
         $this->handler->getContent($input, $key, $filesystem);
     }
 
-    protected function getInput()
+    protected function getInput(): SplFileInfo
     {
         $input = new SplFileInfo(FILESYSTEM1 . self::KEY);
         $fileObj = $input->openFile('a');
         $fileObj->fwrite(self::CONTENT);
+
         return $input;
     }
 }

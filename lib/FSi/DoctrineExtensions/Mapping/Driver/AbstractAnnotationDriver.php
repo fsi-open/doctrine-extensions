@@ -12,8 +12,8 @@ declare(strict_types=1);
 namespace FSi\DoctrineExtensions\Mapping\Driver;
 
 use Doctrine\Common\Annotations\Reader;
-use Doctrine\Common\Persistence\Mapping\ClassMetadataFactory;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\Persistence\Mapping\ClassMetadataFactory;
 use FSi\DoctrineExtensions\Mapping\Driver\DriverInterface;
 use FSi\DoctrineExtensions\Mapping\Exception\RuntimeException;
 use FSi\DoctrineExtensions\Metadata\ClassMetadataInterface;
@@ -50,7 +50,10 @@ abstract class AbstractAnnotationDriver implements DriverInterface
             return;
         }
 
-        $this->loadExtendedClassMetadata($this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()), $metadata);
+        $this->loadExtendedClassMetadata(
+            $this->getBaseMetadataFactory()->getMetadataFor($metadata->getClassName()),
+            $metadata
+        );
     }
 
     public function setAnnotationReader(Reader $reader): void

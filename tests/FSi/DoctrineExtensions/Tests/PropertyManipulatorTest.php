@@ -9,16 +9,15 @@
 
 declare(strict_types=1);
 
-namespace FSi\DoctrineExtensions\Tests\Uploadable\PropertyManipulator;
+namespace FSi\DoctrineExtensions\Tests;
 
 use FSi\DoctrineExtensions\PropertyManipulator;
-use FSi\DoctrineExtensions\Tests\Uploadable\PropertyManipulator\TestObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 class PropertyManipulatorTest extends TestCase
 {
-    public function testValueChanged()
+    public function testValueChanged(): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -34,17 +33,17 @@ class PropertyManipulatorTest extends TestCase
 
         $object->property1 = 'new value 1';
         $object->property3 = 'new value 3';
-        $this->assertTrue($observer->hasSavedValue($object, 'property1'));
-        $this->assertTrue($observer->hasChangedValue($object, 'property1'));
-        $this->assertTrue($observer->hasSavedValue($object, 'property2'));
-        $this->assertFalse($observer->hasChangedValue($object, 'property2'));
-        $this->assertTrue($observer->hasChangedValue($object, 'property3'));
-        $this->assertTrue($observer->hasSavedValue($object, 'property3'));
-        $this->assertFalse($observer->hasSavedValue($object, 'property4'));
+        self::assertTrue($observer->hasSavedValue($object, 'property1'));
+        self::assertTrue($observer->hasChangedValue($object, 'property1'));
+        self::assertTrue($observer->hasSavedValue($object, 'property2'));
+        self::assertFalse($observer->hasChangedValue($object, 'property2'));
+        self::assertTrue($observer->hasChangedValue($object, 'property3'));
+        self::assertTrue($observer->hasSavedValue($object, 'property3'));
+        self::assertFalse($observer->hasSavedValue($object, 'property4'));
         $observer->hasChangedValue($object, 'property4');
     }
 
-    public function testChangedValue()
+    public function testChangedValue(): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -60,17 +59,17 @@ class PropertyManipulatorTest extends TestCase
 
         $object->property1 = 'new value 1';
         $object->property3 = 'new value 3';
-        $this->assertTrue($observer->hasSavedValue($object, 'property1'));
-        $this->assertTrue($observer->hasChangedValue($object, 'property1'));
-        $this->assertTrue($observer->hasSavedValue($object, 'property2'));
-        $this->assertFalse($observer->hasChangedValue($object, 'property2'));
-        $this->assertTrue($observer->hasChangedValue($object, 'property3'));
-        $this->assertTrue($observer->hasSavedValue($object, 'property3'));
-        $this->assertFalse($observer->hasSavedValue($object, 'property4'));
+        self::assertTrue($observer->hasSavedValue($object, 'property1'));
+        self::assertTrue($observer->hasChangedValue($object, 'property1'));
+        self::assertTrue($observer->hasSavedValue($object, 'property2'));
+        self::assertFalse($observer->hasChangedValue($object, 'property2'));
+        self::assertTrue($observer->hasChangedValue($object, 'property3'));
+        self::assertTrue($observer->hasSavedValue($object, 'property3'));
+        self::assertFalse($observer->hasSavedValue($object, 'property4'));
         $observer->hasChangedValue($object, 'property4');
     }
 
-    public function testSetValue()
+    public function testSetValue(): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -83,13 +82,13 @@ class PropertyManipulatorTest extends TestCase
 
         $object->property1 = 'new value 1';
         $object->property3 = 'new value 3';
-        $this->assertTrue($observer->hasChangedValue($object, 'property1'));
-        $this->assertFalse($observer->hasChangedValue($object, 'property2'));
-        $this->assertTrue($observer->hasChangedValue($object, 'property3'));
+        self::assertTrue($observer->hasChangedValue($object, 'property1'));
+        self::assertFalse($observer->hasChangedValue($object, 'property2'));
+        self::assertTrue($observer->hasChangedValue($object, 'property3'));
         $observer->hasChangedValue($object, 'property4');
     }
 
-    public function testGetSavedValue()
+    public function testGetSavedValue(): void
     {
         $this->expectException(RuntimeException::class);
 
@@ -105,19 +104,19 @@ class PropertyManipulatorTest extends TestCase
 
         $object->property1 = 'new value 1';
         $object->property3 = 'new value 3';
-        $this->assertEquals(
+        self::assertEquals(
             $observer->getSavedValue($object, 'property1'),
             'original value 1'
         );
-        $this->assertEquals(
+        self::assertEquals(
             $observer->getSavedValue($object, 'property2'),
             'original value 2'
         );
-        $this->assertNull($observer->getSavedValue($object, 'property3'));
+        self::assertNull($observer->getSavedValue($object, 'property3'));
         $observer->getSavedValue($object, 'property4');
     }
 
-    public function testTreatNotSavedAsNull()
+    public function testTreatNotSavedAsNull(): void
     {
         $observer = new PropertyManipulator();
 
@@ -127,20 +126,9 @@ class PropertyManipulatorTest extends TestCase
         $object->property1 = 'new value 1';
         $object->property3 = 'new value 3';
 
-        $this->assertTrue($observer->hasChangedValue($object, 'property1', true));
-        $this->assertTrue($observer->hasChangedValue($object, 'property2', true));
-        $this->assertTrue($observer->hasChangedValue($object, 'property3', true));
-        $this->assertFalse($observer->hasChangedValue($object, 'property4', true));
+        self::assertTrue($observer->hasChangedValue($object, 'property1', true));
+        self::assertTrue($observer->hasChangedValue($object, 'property2', true));
+        self::assertTrue($observer->hasChangedValue($object, 'property3', true));
+        self::assertFalse($observer->hasChangedValue($object, 'property4', true));
     }
-}
-
-class TestObject
-{
-    public $property1;
-
-    public $property2;
-
-    public $property3;
-
-    public $property4;
 }

@@ -35,7 +35,7 @@ class ListenerTest extends BaseTranslatableTest
     /**
      * Test simple entity creation with translation its state after $em->flush()
      */
-    public function testInsert()
+    public function testInsert(): void
     {
         $article = $this->createArticle();
         $this->entityManager->persist($article);
@@ -43,28 +43,21 @@ class ListenerTest extends BaseTranslatableTest
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $this->entityManager->flush();
 
-        $this->assertEquals(
-            4,
-            count($this->logger->queries),
-            'Flushing executed wrong number of queries'
-        );
+        self::assertCount(4, $this->logger->queries, 'Flushing executed wrong number of queries');
 
-        $this->assertAttributeEquals(
+        self::assertEquals(
             self::POLISH_TITLE_1,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
+            $article->getTranslations()->get(self::LANGUAGE_PL)->getTitle()
         );
 
-        $this->assertAttributeEquals(
+        self::assertEquals(
             self::POLISH_SUBTITLE,
-            'subtitle',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
+            $article->getTranslations()->get(self::LANGUAGE_PL)->getSubtitle()
         );
 
-        $this->assertAttributeEquals(
+        self::assertEquals(
             self::POLISH_CONTENTS_1,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
+            $article->getTranslations()->get(self::LANGUAGE_PL)->getContents()
         );
     }
 
@@ -72,7 +65,7 @@ class ListenerTest extends BaseTranslatableTest
      * Test simple entity creation without translations and adding translation
      * later its state after $em->flush()
      */
-    public function testInsertAndAddFirstTranslation()
+    public function testInsertAndAddFirstTranslation(): void
     {
         $article = new Article();
         $article->setDate(new DateTime());
@@ -86,38 +79,26 @@ class ListenerTest extends BaseTranslatableTest
         $this->logger->enabled = true;
         $this->entityManager->flush();
 
-        $this->assertEquals(
-            3,
-            count($this->logger->queries),
-            'Flushing executed wrong number of queries'
-        );
+        self::assertCount(3, $this->logger->queries, 'Flushing executed wrong number of queries');
+        self::assertCount(1, $article->getTranslations(), 'Number of translations is not valid');
 
-        $this->assertEquals(
-            1,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(
+        self::assertEquals(
             self::POLISH_TITLE_1,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
+            $article->getTranslations()->get(self::LANGUAGE_PL)->getTitle()
         );
 
-        $this->assertAttributeEquals(
+        self::assertEquals(
             self::POLISH_SUBTITLE,
-            'subtitle',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
+            $article->getTranslations()->get(self::LANGUAGE_PL)->getSubtitle()
         );
 
-        $this->assertAttributeEquals(
+        self::assertEquals(
             self::POLISH_CONTENTS_1,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
+            $article->getTranslations()->get(self::LANGUAGE_PL)->getContents()
         );
     }
 
-    public function testNotInsertTranslation()
+    public function testNotInsertTranslation(): void
     {
         $article = new Article();
         $article->setDate(new DateTime());
@@ -127,19 +108,14 @@ class ListenerTest extends BaseTranslatableTest
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $this->entityManager->flush();
 
-        $this->assertEquals(
-            3,
-            count($this->logger->queries),
-            'Flushing executed wrong number of queries'
-        );
-
-        $this->assertEquals(0, $article->getTranslations()->count());
+        self::assertCount(3, $this->logger->queries, 'Flushing executed wrong number of queries');
+        self::assertEquals(0, $article->getTranslations()->count());
     }
 
     /**
      * Test simple entity creation with one translation and adding one later
      */
-    public function testInsertAndAddTranslation()
+    public function testInsertAndAddTranslation(): void
     {
         $article = $this->createArticle();
         $this->entityManager->persist($article);
@@ -152,41 +128,21 @@ class ListenerTest extends BaseTranslatableTest
         $this->logger->enabled = true;
         $this->entityManager->flush();
 
-        $this->assertEquals(
-            3,
-            count($this->logger->queries),
-            'Flushing executed wrong number of queries'
-        );
-
-        $this->assertEquals(
-            2,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(
-            self::ENGLISH_TITLE_1,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_EN)
-        );
-
-        $this->assertAttributeEquals(
-            self::ENGLISH_SUBTITLE,
-            'subtitle',
-            $article->getTranslations()->get(self::LANGUAGE_EN)
-        );
-
-        $this->assertAttributeEquals(
+        self::assertCount(3, $this->logger->queries, 'Flushing executed wrong number of queries');
+        self::assertCount(2, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::ENGLISH_TITLE_1, $article->getTranslations()->get(self::LANGUAGE_EN)->getTitle());
+        self::assertEquals(self::ENGLISH_SUBTITLE, $article->getTranslations()->get(self::LANGUAGE_EN)->getSubtitle());
+        self::assertEquals(
             self::ENGLISH_CONTENTS_1,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_EN)
+            $article->getTranslations()->get(self::LANGUAGE_EN)->getContents()
         );
     }
 
     /**
-     * Test simple entity creation with two translation and check its state after $em->clear(), change default locale and load
+     * Test simple entity creation with two translation and check its state after $em->clear(),
+     * change default locale and load
      */
-    public function testInsertWithTwoTranslationsClearAndLoad()
+    public function testInsertWithTwoTranslationsClearAndLoad(): void
     {
         $article = $this->createArticle();
         $this->entityManager->persist($article);
@@ -203,45 +159,20 @@ class ListenerTest extends BaseTranslatableTest
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $article = $this->entityManager->find(Article::class, $article->getId());
 
-        $this->assertEquals(
-            5,
-            count($this->logger->queries),
-            'Reloading executed wrong number of queries'
-        );
-
-        $this->assertEquals(
-            2,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
-        $this->assertAttributeEquals(self::POLISH_SUBTITLE, 'subtitle', $article);
-        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
-
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_SUBTITLE,
-            'subtitle',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
+        self::assertCount(5, $this->logger->queries, 'Reloading executed wrong number of queries');
+        self::assertCount(2, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::POLISH_SUBTITLE, $article->getSubtitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTranslations()->get(self::LANGUAGE_PL)->getTitle());
+        self::assertEquals(self::POLISH_SUBTITLE, $article->getTranslations()->get(self::LANGUAGE_PL)->getSubtitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getTranslations()->get(self::LANGUAGE_PL)->getContents());
     }
 
     /**
      * Test simple entity creation with two translations and removing one of them later
      */
-    public function testInsertAndRemoveTranslation()
+    public function testInsertAndRemoveTranslation(): void
     {
         $article = new Article();
         $article->setDate(new DateTime());
@@ -265,29 +196,10 @@ class ListenerTest extends BaseTranslatableTest
         $this->logger->enabled = true;
         $this->entityManager->flush();
 
-        $this->assertEquals(
-            4,
-            count($this->logger->queries),
-            'Flushing executed wrong number of queries'
-        );
-
-        $this->assertEquals(
-            1,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
+        self::assertCount(4, $this->logger->queries, 'Flushing executed wrong number of queries');
+        self::assertCount(1, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTranslations()->get(self::LANGUAGE_PL)->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getTranslations()->get(self::LANGUAGE_PL)->getContents());
     }
 
     /**
@@ -302,38 +214,18 @@ class ListenerTest extends BaseTranslatableTest
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $article = $this->entityManager->find(Article::class, $article->getId());
 
-        $this->assertEquals(
-            5,
-            count($this->logger->queries),
-            'Reloading executed wrong number of queries'
-        );
-
-        $this->assertEquals(
-            1,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
-        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
-
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
+        self::assertCount(5, $this->logger->queries, 'Reloading executed wrong number of queries');
+        self::assertCount(1, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTranslations()->get(self::LANGUAGE_PL)->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getTranslations()->get(self::LANGUAGE_PL)->getContents());
     }
 
     /**
      * Test updating previously created and persisted translation and its state after $em->flush()
      */
-    public function testUpdate()
+    public function testUpdate(): void
     {
         $article = $this->createArticle();
         $this->entityManager->persist($article);
@@ -344,35 +236,16 @@ class ListenerTest extends BaseTranslatableTest
         $this->logger->enabled = true;
         $this->entityManager->flush();
 
-        $this->assertEquals(
-            3,
-            count($this->logger->queries),
-            'Flushing executed wrong number of queries'
-        );
-
-        $this->assertEquals(
-            1,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_2,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_2,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
+        self::assertCount(3, $this->logger->queries, 'Flushing executed wrong number of queries');
+        self::assertCount(1, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::POLISH_TITLE_2, $article->getTranslations()->get(self::LANGUAGE_PL)->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_2, $article->getTranslations()->get(self::LANGUAGE_PL)->getContents());
     }
 
     /**
      * Test updating previously created and persisted translation and its state after $em->clear()
      */
-    public function testUpdateClearAndLoad()
+    public function testUpdateClearAndLoad(): void
     {
         $article = $this->createArticle();
         $this->entityManager->persist($article);
@@ -387,38 +260,18 @@ class ListenerTest extends BaseTranslatableTest
         $this->translatableListener->setLocale(self::LANGUAGE_PL);
         $article = $this->entityManager->find(Article::class, $article->getId());
 
-        $this->assertEquals(
-            5,
-            count($this->logger->queries),
-            'Reloading executed wrong number of queries'
-        );
-
-        $this->assertEquals(
-            1,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(self::POLISH_TITLE_2, 'title', $article);
-        $this->assertAttributeEquals(self::POLISH_CONTENTS_2, 'contents', $article);
-
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_2,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_2,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_PL)
-        );
+        self::assertCount(5, $this->logger->queries, 'Reloading executed wrong number of queries');
+        self::assertCount(1, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::POLISH_TITLE_2, $article->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_2, $article->getContents());
+        self::assertEquals(self::POLISH_TITLE_2, $article->getTranslations()->get(self::LANGUAGE_PL)->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_2, $article->getTranslations()->get(self::LANGUAGE_PL)->getContents());
     }
 
     /**
      * Test copying one translation to another
      */
-    public function testCopyTranslation()
+    public function testCopyTranslation(): void
     {
         $article = $this->createArticle();
         $this->entityManager->persist($article);
@@ -428,39 +281,19 @@ class ListenerTest extends BaseTranslatableTest
         $this->logger->enabled = true;
         $this->entityManager->flush();
 
-        $this->assertEquals(
-            3,
-            count($this->logger->queries),
-            'Flushing executed wrong number of queries'
-        );
-
-        $this->assertEquals(
-            2,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
-        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
-
-        $this->assertAttributeEquals(
-            self::POLISH_TITLE_1,
-            'title',
-            $article->getTranslations()->get(self::LANGUAGE_EN)
-        );
-
-        $this->assertAttributeEquals(
-            self::POLISH_CONTENTS_1,
-            'contents',
-            $article->getTranslations()->get(self::LANGUAGE_EN)
-        );
+        self::assertCount(3, $this->logger->queries, 'Flushing executed wrong number of queries');
+        self::assertCount(2, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTranslations()->get(self::LANGUAGE_EN)->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getTranslations()->get(self::LANGUAGE_EN)->getContents());
     }
 
     /**
-     * Test entity creation with one translation in default language and check if that translation is loaded after changing language
-     * to other
+     * Test entity creation with one translation in default language and check if that translation is loaded after
+     * changing language to other
      */
-    public function testLoadDefaultTranslation()
+    public function testLoadDefaultTranslation(): void
     {
         $article = $this->createArticle();
         $this->entityManager->persist($article);
@@ -472,32 +305,27 @@ class ListenerTest extends BaseTranslatableTest
         $this->logger->enabled = true;
         $article = $this->entityManager->find(Article::class, $article->getId());
 
-        $this->assertEquals(
-            5,
-            count($this->logger->queries),
-            'Reloading executed wrong number of queries'
-        );
-
-        $this->assertAttributeEquals(self::LANGUAGE_PL, 'locale', $article);
-        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
-        $this->assertAttributeEquals(self::POLISH_SUBTITLE, 'subtitle', $article);
-        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
+        self::assertCount(5, $this->logger->queries, 'Reloading executed wrong number of queries');
+        self::assertEquals(self::LANGUAGE_PL, $article->getLocale());
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::POLISH_SUBTITLE, $article->getSubtitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
 
         $article->setLocale(self::LANGUAGE_EN);
         $this->entityManager->flush();
         $this->entityManager->clear();
 
         $article = $this->entityManager->find(Article::class, $article->getId());
-        $this->assertAttributeEquals(self::LANGUAGE_EN, 'locale', $article);
-        $this->assertAttributeEquals(self::POLISH_TITLE_1, 'title', $article);
-        $this->assertAttributeEquals(self::POLISH_CONTENTS_1, 'contents', $article);
+        self::assertEquals(self::LANGUAGE_EN, $article->getLocale());
+        self::assertEquals(self::POLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::POLISH_CONTENTS_1, $article->getContents());
     }
 
     /**
      * Assert that an empty string returned in Article::getLocale() will not mask
      * the fact that no locale was set for either the listener or the entity.
      */
-    public function testCurrentLocaleSetToNull()
+    public function testCurrentLocaleSetToNull(): void
     {
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_PL);
         $this->translatableListener->setLocale(null);
@@ -518,10 +346,10 @@ class ListenerTest extends BaseTranslatableTest
     }
 
     /**
-     * Test entity creation with two translation and check its state after $em->clear(), change default locale and load with some
-     * specific translation
+     * Test entity creation with two translation and check its state after $em->clear(),
+     * change default locale and load with some specific translation
      */
-    public function testInsertWithTwoTranslationsClearAndLoadTranslation()
+    public function testInsertWithTwoTranslationsClearAndLoadTranslation(): void
     {
         $article = $this->createArticle();
         $this->entityManager->persist($article);
@@ -539,20 +367,15 @@ class ListenerTest extends BaseTranslatableTest
         $this->logger->enabled = true;
         $this->translatableListener->loadTranslation($this->entityManager, $article, self::LANGUAGE_EN);
 
-        $this->assertEquals(
-            2,
-            count($article->getTranslations()),
-            'Number of translations is not valid'
-        );
-
-        $this->assertAttributeEquals(self::ENGLISH_TITLE_1, 'title', $article);
-        $this->assertAttributeEquals(self::ENGLISH_CONTENTS_1, 'contents', $article);
+        self::assertCount(2, $article->getTranslations(), 'Number of translations is not valid');
+        self::assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
+        self::assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
     }
 
     /**
      * Test translatable and uploadable properties
      */
-    public function testTranslatableUplodableProperties()
+    public function testTranslatableUplodableProperties(): void
     {
         $this->translatableListener->setDefaultLocale(self::LANGUAGE_PL);
 
@@ -577,19 +400,19 @@ class ListenerTest extends BaseTranslatableTest
         $article = $this->entityManager->find(Article::class, $article->getId());
 
         $file1 = $article->getIntroImage()->getKey();
-        $this->assertFileExists(FILESYSTEM1 . $file1);
+        self::assertFileExists(FILESYSTEM1 . $file1);
 
         $this->entityManager->clear();
         $this->translatableListener->setLocale(self::LANGUAGE_EN);
         $article = $this->entityManager->find(Article::class, $article->getId());
 
         $file2 = $article->getIntroImage()->getKey();
-        $this->assertFileExists(FILESYSTEM1 . $file2);
+        self::assertFileExists(FILESYSTEM1 . $file2);
 
-        $this->assertNotSame($file1, $file2);
+        self::assertNotSame($file1, $file2);
     }
 
-    public function testPostHydrate()
+    public function testPostHydrate(): void
     {
         $this->translatableListener->setLocale(self::LANGUAGE_EN);
         /* @var $repository TranslatableRepository */
@@ -615,33 +438,26 @@ class ListenerTest extends BaseTranslatableTest
 
         $articles = $query->execute();
         foreach ($articles as $article) {
-            $this->assertAttributeEquals(self::ENGLISH_TITLE_1, 'title', $article);
-            $this->assertAttributeEquals(self::ENGLISH_CONTENTS_1, 'contents', $article);
+            self::assertEquals(self::ENGLISH_TITLE_1, $article->getTitle());
+            self::assertEquals(self::ENGLISH_CONTENTS_1, $article->getContents());
         }
 
-        $this->assertEquals(
-            4,
-            count($this->logger->queries),
-            'Reloading executed wrong number of queries'
-        );
+        self::assertCount(4, $this->logger->queries, 'Reloading executed wrong number of queries');
     }
 
-    public function testTranslatableWithoutLocaleProperty()
+    public function testTranslatableWithoutLocaleProperty(): void
     {
         $this->expectException(MappingException::class);
         $this->expectExceptionMessage(sprintf(
             "Entity '%s' has translatable properties so it must have property"
-            . " marked with @Translatable\Language annotation",
+                . " marked with @Translatable\Language annotation",
             TranslatableWithoutLocale::class
         ));
 
-        $this->translatableListener->getExtendedMetadata(
-            $this->entityManager,
-            TranslatableWithoutLocale::class
-        );
+        $this->translatableListener->getExtendedMetadata($this->entityManager, TranslatableWithoutLocale::class);
     }
 
-    public function testTranslatableWithoutTranslations()
+    public function testTranslatableWithoutTranslations(): void
     {
         $this->expectException(MappingException::class);
         $this->expectExceptionMessage(sprintf(
@@ -649,13 +465,10 @@ class ListenerTest extends BaseTranslatableTest
             TranslatableWithoutTranslations::class
         ));
 
-        $this->translatableListener->getExtendedMetadata(
-            $this->entityManager,
-            TranslatableWithoutTranslations::class
-        );
+        $this->translatableListener->getExtendedMetadata($this->entityManager, TranslatableWithoutTranslations::class);
     }
 
-    public function testTranslatableWithPersistentLocale()
+    public function testTranslatableWithPersistentLocale(): void
     {
         $this->expectException(MappingException::class);
         $this->expectExceptionMessage(sprintf(
@@ -664,13 +477,10 @@ class ListenerTest extends BaseTranslatableTest
             TranslatableWithPersistentLocale::class
         ));
 
-        $this->translatableListener->getExtendedMetadata(
-            $this->entityManager,
-            TranslatableWithPersistentLocale::class
-        );
+        $this->translatableListener->getExtendedMetadata($this->entityManager, TranslatableWithPersistentLocale::class);
     }
 
-    public function testTranslationsWithoutPersistentLocale()
+    public function testTranslationsWithoutPersistentLocale(): void
     {
         $this->expectException(MappingException::class);
         $this->expectExceptionMessage(sprintf(
