@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Tests\Tool;
 
-use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Logging\DebugStack;
@@ -90,7 +89,7 @@ abstract class BaseORMTest extends TestCase
         $config->expects(self::once())->method('getProxyNamespace')->willReturn('Proxy');
         $config->expects(self::once())->method('getAutoGenerateProxyClasses')->willReturn(true);
         $config->expects(self::once())->method('getClassMetadataFactoryName')->willReturn(ClassMetadataFactory::class);
-        $config->method('getMetadataCacheImpl')->willReturn(new ArrayCache());
+        $config->method('getMetadataCacheImpl')->willReturn(null);
         $config->method('getQuoteStrategy')->willReturn(new DefaultQuoteStrategy());
         $config->method('getDefaultQueryHints')->willReturn([]);
         $config->method('getRepositoryFactory')->willReturn(new DefaultRepositoryFactory());

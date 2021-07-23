@@ -34,5 +34,4 @@ foreach ([FILESYSTEM1, FILESYSTEM2] as $filesystem) {
 );
 
 $reader = new \Doctrine\Common\Annotations\AnnotationReader();
-$reader = new \Doctrine\Common\Annotations\CachedReader($reader, new \Doctrine\Common\Cache\ArrayCache());
 $_ENV['annotation_reader'] = $reader;

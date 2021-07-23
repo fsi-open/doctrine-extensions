@@ -14,7 +14,6 @@ namespace FSi\DoctrineExtensions\Mapping;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Annotations\Reader;
-use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -98,7 +97,7 @@ abstract class MappedEventSubscriber implements EventSubscriber
         $oid = spl_object_hash($entityManager);
         if (!isset($this->extendedMetadataFactory[$oid])) {
             if (is_null($this->annotationReader)) {
-                $this->annotationReader = $this->getDefaultAnnotationReader();
+                $this->annotationReader = $this->getDefaultAnnotationReader($entityManager);
             }
             $this->extendedMetadataFactory[$oid] = new ExtendedMetadataFactory(
                 $entityManager,
@@ -123,13 +122,15 @@ abstract class MappedEventSubscriber implements EventSubscriber
         return $this->getExtendedMetadata($entityManager, $meta->getName());
     }
 
-    private function getDefaultAnnotationReader(): Reader
+    private function getDefaultAnnotationReader(EntityManagerInterface $entityManager): Reader
     {
         if (null === $this->defaultAnnotationReader) {
-            $this->defaultAnnotationReader = new CachedReader(
-                new AnnotationReader(),
-                new ArrayCache()
-            );
+            $this->defaultAnnotationReader = new AnnotationReader();
+
+            $cache = $entityManager->getConfiguration()->getMetadataCacheImpl();
+            if (null !== $cache) {
+                $this->defaultAnnotationReader = new CachedReader($this->defaultAnnotationReader, $cache);
+            }
         }
 
         return $this->defaultAnnotationReader;
