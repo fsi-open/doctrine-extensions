@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace FSi\DoctrineExtensions\Mapping;
 
+use Doctrine\Bundle\DoctrineBundle\Mapping\MappingDriver as DoctrineBundleMappingDriver;
 use Doctrine\Common\Annotations\Reader;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\ORM\EntityManagerInterface;
@@ -169,6 +170,9 @@ final class ExtendedMetadataFactory
     {
         $className = get_class($omDriver);
         $driverName = substr($className, strrpos($className, '\\') + 1);
+        if (class_exists(DoctrineBundleMappingDriver::class) && $omDriver instanceof DoctrineBundleMappingDriver) {
+            $omDriver = $omDriver->getDriver();
+        }
         if ($omDriver instanceof MappingDriverChain) {
             $driver = new DriverChain();
             foreach ($omDriver->getDrivers() as $namespace => $nestedOmDriver) {
