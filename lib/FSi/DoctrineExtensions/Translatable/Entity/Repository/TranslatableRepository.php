@@ -23,6 +23,10 @@ use FSi\DoctrineExtensions\Translatable\Model\TranslatableRepositoryInterface;
 use FSi\DoctrineExtensions\Translatable\Query\QueryBuilder;
 use FSi\DoctrineExtensions\Translatable\TranslatableListener;
 
+/**
+ * @template T of object
+ * @template-extends EntityRepository<T>
+ */
 class TranslatableRepository extends EntityRepository implements TranslatableRepositoryInterface
 {
     /**
